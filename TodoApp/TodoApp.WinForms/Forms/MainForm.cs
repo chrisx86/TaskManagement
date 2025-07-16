@@ -1,5 +1,6 @@
 #nullable enable
 using System.ComponentModel;
+using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualBasic;
 using TodoApp.Core.Models;
@@ -28,8 +29,6 @@ public partial class MainForm : Form
     private DataGridViewColumn? _sortedColumn = null;
     private ListSortDirection _sortDirection = ListSortDirection.Ascending;
 
-    // Timer for debouncing filter changes
-    private System.Windows.Forms.Timer? _filterDebounceTimer;
     private bool _isUpdatingUI = false;
     private int _currentPage = 1;
     private int _pageSize = 20;
@@ -80,16 +79,19 @@ public partial class MainForm : Form
         this.txtCurrentPage.KeyDown += TxtCurrentPage_KeyDown;
     }
 
-    private void InitializePaginationControls()
+    private void SetWindowTitleWithVersion()
     {
-        cmbPageSize.Items.AddRange(new object[] { 10, 20, 50, 100 });
-        cmbPageSize.SelectedItem = _pageSize;
+        Assembly mainAssembly = Assembly.GetExecutingAssembly();
+        Version? version = mainAssembly.GetName().Version;
+        var versionString = version != null
+            ? $"V {version.Major}.{version.Minor}.{version.Build}"
+            : "V ?.?.?";
+        this.Text = $"待辦事項清單 - [ {_currentUser.Username} ] - {versionString} Beta";
     }
-
     private async void MainForm_Load(object? sender, EventArgs e)
     {
-        this.Text = $"待辦事項清單 - [{_currentUser.Username}]";
-
+        this.Text = $"待辦事項清單 - [ {_currentUser.Username} ]";
+        SetWindowTitleWithVersion();
         SetupDataGridView();
         SetupUIPermissions();
         await PopulateFilterDropDownsAsync();
@@ -134,7 +136,6 @@ public partial class MainForm : Form
     }
     #region --- NEW User Action Event Handlers ---
 
-    // --- Requirement 1: Change Password ---
     private async void TsbChangePassword_Click(object? sender, EventArgs e)
     {
         // Use a simple InputBox for password entry. For higher security, a custom dialog is better.
@@ -459,14 +460,7 @@ public partial class MainForm : Form
     private void UpdatePaginationUI()
     {
         // If there are no tasks, display a simple message.
-        if (_totalTasks == 0)
-        {
-            lblPageInfo.Text = "沒有符合條件的任務";
-        }
-        else
-        {
-            lblPageInfo.Text = $"第 {_currentPage} / {_totalPages} 頁 (共 {_totalTasks} 筆)";
-        }
+        lblPageInfo.Text = (_totalTasks == 0) ? "沒有符合條件的任務" : $"第 {_currentPage} / {_totalPages} 頁 (共 {_totalTasks} 筆)";
 
         // Update the text box without triggering its own event.
         _isUpdatingUI = true;
@@ -536,8 +530,6 @@ public partial class MainForm : Form
             else
             {
                 cmbFilterByUserRelation.SelectedItem = UserTaskFilter.AssignedToMe;
-                // Disabling is still correct.
-                // cmbFilterByAssignedUser.Enabled = false; // This is now handled by SetupUIPermissions
             }
         }
         finally
