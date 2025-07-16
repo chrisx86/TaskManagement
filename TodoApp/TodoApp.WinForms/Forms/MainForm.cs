@@ -50,6 +50,7 @@ public partial class MainForm : Form
         this.dgvTasks.CellValueChanged += DgvTasks_CellValueChanged;
         this.dgvTasks.CellBeginEdit += DgvTasks_CellBeginEdit;
         this.dgvTasks.CellDoubleClick += DgvTasks_CellDoubleClick;
+        this.dgvTasks.RowPrePaint += DgvTasks_RowPrePaint;
         this.dgvTasks.CellFormatting += DgvTasks_CellFormatting;
         this.dgvTasks.ColumnHeaderMouseClick += DgvTasks_ColumnHeaderMouseClick;
         this.tsbChangePassword.Click += TsbChangePassword_Click;
@@ -109,6 +110,8 @@ public partial class MainForm : Form
         dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "AssignedTo", HeaderText = "指派給", DataPropertyName = "AssignedTo", Width = 100, SortMode = DataGridViewColumnSortMode.Programmatic });
         dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "Creator", HeaderText = "建立者", DataPropertyName = "Creator", Width = 100, SortMode = DataGridViewColumnSortMode.Programmatic });
         dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "Comments", HeaderText = "備註", DataPropertyName = "Comments", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill, SortMode = DataGridViewColumnSortMode.Programmatic });
+        // --- Requirement 6: Add Timestamp column (usually hidden) ---
+        dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "Timestamp", HeaderText = "版本戳", DataPropertyName = "Timestamp", Visible = false });
     }
     #region --- NEW User Action Event Handlers ---
 
@@ -268,42 +271,33 @@ public partial class MainForm : Form
 
     private void DgvTasks_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
     {
+        // We only need to handle the columns that require their value to be formatted.
+        // The row-level styling is now handled by RowPrePaint.
         if (e.RowIndex < 0) return;
 
-        // Use a guard clause to exit if the row's DataBoundItem is not a TodoItem.
         if (dgvTasks.Rows[e.RowIndex].DataBoundItem is not TodoItem task) return;
 
-        // --- Apply row style first ---
-        var rowStyle = dgvTasks.Rows[e.RowIndex].DefaultCellStyle;
-        // ... (The conditional coloring logic remains the same) ...
-
-        // --- Format specific cells ---
         string columnName = dgvTasks.Columns[e.ColumnIndex].Name;
 
-        // IMPORTANT: Only set the value if it's different to prevent recursion.
-        // This is a key fix to prevent flickering.
-        if (columnName == "Status")
+        switch (columnName)
         {
-            if (e.Value?.ToString() != task.Status.ToString())
-            {
+            case "Status":
                 e.Value = task.Status.ToString();
-            }
-        }
-        else if (columnName == "AssignedTo" && e.Value is User assignedUser)
-        {
-            if (e.Value?.ToString() != assignedUser.Username)
-            {
-                e.Value = assignedUser.Username;
-                e.FormattingApplied = true;
-            }
-        }
-        else if (columnName == "Creator")
-        {
-            if (e.Value is User creatorUser)
-            {
-                e.Value = creatorUser.Username;
-                e.FormattingApplied = true;
-            }
+                break;
+            case "AssignedTo":
+                if (e.Value is User assignedUser)
+                {
+                    e.Value = assignedUser.Username;
+                    e.FormattingApplied = true;
+                }
+                break;
+            case "Creator":
+                if (e.Value is User creatorUser)
+                {
+                    e.Value = creatorUser.Username;
+                    e.FormattingApplied = true;
+                }
+                break;
         }
     }
 
@@ -500,6 +494,42 @@ public partial class MainForm : Form
     private void DgvTasks_CellDoubleClick(object? sender, DataGridViewCellEventArgs e)
     {
         if (e.RowIndex >= 0) { TsbEditTask_Click(sender, e); }
+    }
+
+    private void DgvTasks_RowPrePaint(object? sender, DataGridViewRowPrePaintEventArgs e)
+    {
+        // Ignore the row for new records if it's visible.
+        if (e.RowIndex < 0 || e.RowIndex == dgvTasks.NewRowIndex) return;
+
+        // Get the underlying TodoItem for the current row.
+        if (dgvTasks.Rows[e.RowIndex].DataBoundItem is not TodoItem task) return;
+
+        // --- Requirement #5: Conditional Row Styling Logic ---
+        var now = DateTime.UtcNow;
+        bool isOverdue = task.DueDate.HasValue && task.DueDate < now && task.Status != TodoStatus.Completed;
+        bool isDueSoon = task.DueDate.HasValue && task.DueDate >= now && task.DueDate < now.AddDays(2) && task.Status != TodoStatus.Completed;
+
+        var row = dgvTasks.Rows[e.RowIndex];
+
+        if (isOverdue)
+        {
+            row.DefaultCellStyle.BackColor = Color.MistyRose;
+            row.DefaultCellStyle.ForeColor = Color.DarkRed;
+            row.DefaultCellStyle.Font = new Font(this.Font, FontStyle.Bold);
+        }
+        else if (isDueSoon)
+        {
+            row.DefaultCellStyle.BackColor = Color.Yellow;
+            row.DefaultCellStyle.ForeColor = Color.Orange;
+            row.DefaultCellStyle.Font = new Font(this.Font, FontStyle.Regular);
+        }
+        else
+        {
+            // --- CRITICAL: Reset to default style for all other rows ---
+            row.DefaultCellStyle.BackColor = SystemColors.Window;
+            row.DefaultCellStyle.ForeColor = SystemColors.ControlText;
+            row.DefaultCellStyle.Font = new Font(this.Font, FontStyle.Regular);
+        }
     }
 
     private async void TsbNewTask_Click(object? sender, EventArgs e)
