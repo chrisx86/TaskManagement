@@ -1,0 +1,56 @@
+﻿// We need to use our core models here.
+using TodoApp.Core.Models;
+
+// The namespace should match the project and folder structure.
+namespace TodoApp.Core.Services;
+
+/// <summary>
+/// Defines the contract for user-related business logic services.
+/// This interface will be implemented by a class in the Infrastructure layer.
+/// </summary>
+public interface IUserService
+{
+    /// <summary>
+    /// Authenticates a user based on their username and password.
+    /// </summary>
+    /// <param name="username">The user's username.</param>
+    /// <param name="password">The user's plain text password.</param>
+    /// <returns>
+    /// A Task that represents the asynchronous operation.
+    /// The task result contains the User object if authentication is successful; otherwise, null.
+    /// </returns>
+    Task<User?> AuthenticateAsync(string username, string password);
+
+    /// <summary>
+    /// Retrieves a list of all users in the system.
+    /// This is typically used for populating dropdowns (e.g., 'Assign To').
+    /// </summary>
+    /// <returns>A Task that represents the asynchronous operation. 
+    /// The task result contains a list of all User objects.</returns>
+    Task<List<User>> GetAllUsersAsync();
+
+    /// <summary>
+    /// Creates a new user in the system. (Admin only)
+    /// </summary>
+    /// <param name="username">The username for the new user.</param>
+    /// <param name="password">The plain text password for the new user.</param>
+    /// <param name="role">The role assigned to the new user.</param>
+    /// <returns>A Task that represents the asynchronous operation.
+    /// The task result contains the newly created User object.</returns>
+    Task<User> CreateUserAsync(string username, string password, UserRole role);
+
+    /// <summary>
+    /// Deletes a user from the system. (Admin only)
+    /// </summary>
+    /// <param name="userId">The ID of the user to delete.</param>
+    /// <returns>A Task representing the asynchronous operation.</returns>
+    Task<bool> DeleteUserAsync(int userId);
+
+    /// <summary>
+    /// Resets a user's password. (Admin only)
+    /// </summary>
+    /// <param name="userId">The ID of the user whose password will be reset.</param>
+    /// <param name="newPassword">The new plain text password.</param>
+    /// <returns>A Task representing the asynchronous operation.</returns>
+    Task<bool> ResetPasswordAsync(int userId, string newPassword);
+}

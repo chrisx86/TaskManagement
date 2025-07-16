@@ -1,0 +1,70 @@
+﻿// We need to use our core models here.
+using TodoApp.Core.Models;
+
+// The namespace should match the project and folder structure.
+namespace TodoApp.Core.Services;
+// --- NEW ENUM FOR FILTERING ---
+// Defines the filtering options for task status.
+public enum TaskStatusFilter { All, Completed, Pending, InProgress }
+
+// --- NEW ENUM FOR FILTERING ---
+// Defines the filtering options related to the current user.
+public enum UserTaskFilter { All, AssignedToMe, CreatedByMe }
+/// <summary>
+/// Defines the contract for to-do item related business logic services.
+/// This interface will be implemented by a class in the Infrastructure layer.
+/// </summary>
+public interface ITaskService
+{
+    // --- MODIFIED (Requirement #1 & #2) ---
+    // statusFilter now uses the core TaskStatus enum and is nullable.
+    // assignedToUserIdFilter is a new nullable int for filtering by a specific user.
+    Task<List<TodoItem>> GetAllTasksAsync(
+        // --- FIXED: Fully qualify the type name to resolve ambiguity. ---
+        // We explicitly tell the compiler to use the TaskStatus from our Models namespace.
+        // 修正：使用完整的命名空間來解決歧義。
+        // 我們明確地告訴編譯器要使用我們 Models 命名空間下的 TaskStatus。
+        TodoApp.Core.Models.TodoStatus? statusFilter,
+        UserTaskFilter userFilter,
+        int currentUserId,
+        int? assignedToUserIdFilter
+    );
+    /// <summary>
+    /// Creates a new to-do item.
+    /// </summary>
+    /// <param name="title">The title of the new task.</param>
+    /// <param name="creatorId">The ID of the user creating the task.</param>
+    /// <param name="priority">The priority of the task.</param>
+    /// <param name="dueDate">The optional due date of the task.</param>
+    /// <param name="assignedToId">The optional ID of the user the task is assigned to.</param>
+    /// <returns>A Task that represents the asynchronous operation.
+    /// The task result contains the newly created TodoItem object.</returns>
+    Task<TodoItem> CreateTaskAsync(string title, string? comments, int creatorId, PriorityLevel priority, DateTime? dueDate, int? assignedToId);
+
+    /// <summary>
+    /// Updates an existing to-do item.
+    /// The implementation must handle concurrency conflicts.
+    /// </summary>
+    /// <param name="taskToUpdate">The to-do item object with updated values.</param>
+    /// <returns>A Task representing the asynchronous operation.</returns>
+    Task UpdateTaskAsync(TodoItem taskToUpdate);
+
+    /// <summary>
+    /// Deletes a to-do item.
+    /// </summary>
+    /// <param name="taskId">The ID of the task to delete.</param>
+    /// <param name="currentUserId">The ID of the user attempting the deletion (for permission checks).</param>
+    /// <param name="isCurrentUserAdmin">A flag indicating if the current user is an admin.</param>
+    /// <returns>A Task representing the asynchronous operation.</returns>
+    Task DeleteTaskAsync(int taskId, int currentUserId, bool isCurrentUserAdmin);
+
+    /// <summary>
+    /// Gets all tasks grouped by user for the admin dashboard.
+    /// </summary>
+    /// <returns>
+    /// A Task that represents the asynchronous operation.
+    /// The task result contains a dictionary where the key is the User and the value is a list of their TodoItems.
+    /// </returns>
+    Task<Dictionary<User, List<TodoItem>>> GetTasksGroupedByUserAsync();
+
+}
