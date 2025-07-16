@@ -137,41 +137,37 @@ public partial class MainForm : Form
 
     private async void TsbChangePassword_Click(object? sender, EventArgs e)
     {
-        // Use a simple InputBox for password entry. For higher security, a custom dialog is better.
-        string newPassword = Interaction.InputBox("請輸入您的新密碼：", "修改密碼", "");
-
-        // Check if the user cancelled or entered an empty password.
-        if (string.IsNullOrWhiteSpace(newPassword))
+        // 1. Create an instance of our new dialog.
+        using (var passwordDialog = new PasswordInputDialog("修改密碼", "請輸入並確認您的新密碼："))
         {
-            // If user clicks "Cancel", InputBox returns an empty string.
-            // We can silently exit without showing a message.
-            return;
-        }
-
-        string confirmPassword = Interaction.InputBox("請再次輸入您的新密碼以進行確認：", "確認密碼", "");
-        if (newPassword != confirmPassword)
-        {
-            MessageBox.Show("兩次輸入的密碼不一致，請重試。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            return;
-        }
-
-        try
-        {
-            var success = await _userService.ResetPasswordAsync(_currentUser.Id, newPassword);
-
-            if (success)
+            // 2. Show the dialog and check the result.
+            if (passwordDialog.ShowDialog(this) == DialogResult.OK)
             {
-                MessageBox.Show("您的密碼已成功更新。", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                // 3. Get the validated password from the dialog's public property.
+                string? newPassword = passwordDialog.NewPassword;
+
+                // This check is for extra safety, though the dialog's logic should prevent this.
+                if (string.IsNullOrEmpty(newPassword)) return;
+
+                try
+                {
+                    // 4. Call the service with the new password.
+                    bool success = await _userService.ResetPasswordAsync(_currentUser.Id, newPassword);
+
+                    if (success)
+                    {
+                        MessageBox.Show("您的密碼已成功更新。", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    else
+                    {
+                        MessageBox.Show("更新密碼失敗，找不到您的使用者帳號。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"修改密碼時發生錯誤: {ex.Message}", "系統錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
-            else
-            {
-                // This case should be rare, but it's good to handle it.
-                MessageBox.Show("更新密碼失敗，找不到您的使用者帳號。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show($"修改密碼時發生錯誤: {ex.Message}", "系統錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
 
@@ -333,7 +329,7 @@ public partial class MainForm : Form
 
     private async Task PopulateFilterDropDownsAsync()
     {
-        // --- Status Filter ---
+        // --- Status Filter (This part is correct as StatusDisplayItem.Value is still nullable) ---
         var statusItems = new List<StatusDisplayItem>
         {
             new StatusDisplayItem { Name = "所有狀態", Value = null }
@@ -346,19 +342,31 @@ public partial class MainForm : Form
         cmbFilterStatus.DisplayMember = nameof(StatusDisplayItem.Name);
         cmbFilterStatus.ValueMember = nameof(StatusDisplayItem.Value);
 
-        // --- User Relation Filter (no change needed, it binds to a simple enum) ---
+        // --- User Relation Filter (no change needed) ---
         cmbFilterByUserRelation.DataSource = Enum.GetValues<UserTaskFilter>();
 
-        // --- Assigned-To-User Filter (reusing the UserDisplayItem ViewModel) ---
+        // --- Assigned-To-User Filter (This is where the fix is needed) ---
         _allUsers = await _userService.GetAllUsersAsync();
         var userFilterItems = new List<UserDisplayItem>
         {
-            new UserDisplayItem { Username = "所有人", Id = null }
+            // --- FIXED: Use the sentinel value 0 instead of null for the 'All' option's Id. ---
+            // This aligns with the non-nullable 'int' type of the UserDisplayItem.Id property.
+            // 修正：為「所有人」選項的 Id 使用哨兵值 0，而不是 null。
+            // 這與 UserDisplayItem.Id 屬性的非 nullable 'int' 類型保持一致。
+            new UserDisplayItem { Username = "所有人", Id = 0 }
         };
-        foreach (var user in _allUsers.OrderBy(u => u.Username))
+
+        // This logic remains the same.
+        var uniqueUsersById = new Dictionary<int, string>();
+        foreach (var user in _allUsers.Where(u => u != null && !string.IsNullOrEmpty(u.Username)))
         {
-            userFilterItems.Add(new UserDisplayItem { Username = user.Username, Id = user.Id });
+            uniqueUsersById.TryAdd(user.Id, user.Username);
         }
+        foreach (var userPair in uniqueUsersById.OrderBy(p => p.Value))
+        {
+            userFilterItems.Add(new UserDisplayItem { Id = userPair.Key, Username = userPair.Value });
+        }
+
         cmbFilterByAssignedUser.DataSource = userFilterItems;
         cmbFilterByAssignedUser.DisplayMember = nameof(UserDisplayItem.Username);
         cmbFilterByAssignedUser.ValueMember = nameof(UserDisplayItem.Id);
@@ -382,8 +390,11 @@ public partial class MainForm : Form
             // --- Step 2: Get current filter values from the UI ---
             TodoStatus? statusFilter = (cmbFilterStatus.SelectedItem as StatusDisplayItem)?.Value;
             var userFilter = (UserTaskFilter)cmbFilterByUserRelation.SelectedItem;
-            var assignedToUserIdFilter = (cmbFilterByAssignedUser.SelectedItem as UserDisplayItem)?.Id;
-
+            int? assignedToUserIdFilter = null;
+            if (cmbFilterByAssignedUser.SelectedValue is int selectedId && selectedId > 0)
+            {
+                assignedToUserIdFilter = selectedId;
+            }
             // --- Step 3: Fetch the total count of items that match the filters ---
             // This is crucial for calculating the total number of pages.
             _totalTasks = await _taskService.GetTaskCountAsync(
@@ -522,14 +533,7 @@ public partial class MainForm : Form
             }
 
             // The logic for UserTaskFilter can remain the same as it's bound to an enum.
-            if (_currentUser.Role == UserRole.Admin)
-            {
-                cmbFilterByUserRelation.SelectedItem = UserTaskFilter.All;
-            }
-            else
-            {
-                cmbFilterByUserRelation.SelectedItem = UserTaskFilter.AssignedToMe;
-            }
+            cmbFilterByUserRelation.SelectedItem = (_currentUser.Role == UserRole.Admin) ? UserTaskFilter.All : UserTaskFilter.AssignedToMe;
         }
         finally
         {
@@ -589,7 +593,10 @@ public partial class MainForm : Form
 
     private void DgvTasks_CellDoubleClick(object? sender, DataGridViewCellEventArgs e)
     {
-        if (e.RowIndex >= 0) { TsbEditTask_Click(sender, e); }
+        if (e.RowIndex >= 0)
+        {
+            TsbEditTask_Click(sender, e);
+        }
     }
 
     private void DgvTasks_RowPrePaint(object? sender, DataGridViewRowPrePaintEventArgs e)
@@ -637,13 +644,43 @@ public partial class MainForm : Form
 
     private async void TsbEditTask_Click(object? sender, EventArgs e)
     {
-        if (dgvTasks.SelectedRows.Count == 0 || dgvTasks.SelectedRows[0].DataBoundItem is not TodoItem selectedTask) return;
+        if (dgvTasks.SelectedRows.Count == 0 || dgvTasks.SelectedRows[0].DataBoundItem is not TodoItem selectedTaskInfo)
+        {
+            // This now just gets the basic info (like the ID) from the grid.
+            return;
+        }
 
-        using var scope = _serviceProvider.CreateScope();
-        var taskDialog = scope.ServiceProvider.GetRequiredService<TaskDetailDialog>();
-        taskDialog.SetTaskForEdit(selectedTask);
+        try
+        {
+            // --- KEY FIX: Re-fetch the full, tracked entity from the database before editing. ---
+            // This ensures we are working with a complete and valid object.
+            var taskToEdit = await _taskService.GetTaskByIdAsync(selectedTaskInfo.Id);
 
-        if (taskDialog.ShowDialog(this) == DialogResult.OK) { await LoadTasksAsync(); }
+            if (taskToEdit == null)
+            {
+                MessageBox.Show("無法編輯任務，它可能已被其他使用者刪除。請重新整理。", "找不到任務", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                await LoadTasksAsync();
+                return;
+            }
+
+            // Scoped lifetime for the dialog and its dependencies
+            using var scope = _serviceProvider.CreateScope();
+            var taskDialog = scope.ServiceProvider.GetRequiredService<TaskDetailDialog>();
+
+            // Pass the fresh, tracked entity to the dialog
+            taskDialog.SetTaskForEdit(taskToEdit);
+
+            if (taskDialog.ShowDialog(this) == DialogResult.OK)
+            {
+                // After editing, a full reload ensures all data (grid, pagination) is in sync.
+                await LoadTasksAsync();
+                lblStatus.Text = "任務已成功更新！";
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"打開編輯視窗時發生錯誤: {ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
     }
 
     private async void TsbDeleteTask_Click(object? sender, EventArgs e)

@@ -68,4 +68,5 @@ public interface ITaskService
     /// </returns>
     Task<Dictionary<User, List<TodoItem>>> GetTasksGroupedByUserAsync();
 
+    Task<TodoItem?> GetTaskByIdAsync(int taskId);
 }

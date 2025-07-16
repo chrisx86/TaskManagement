@@ -16,6 +16,9 @@ public partial class TaskDetailDialog : Form
     private TodoItem? _editingTask;
     private List<User> _allUsers = new();
 
+    // A flag to prevent events from firing during programmatic UI updates.
+    private bool _isUpdatingUI = false;
+
     public TaskDetailDialog(IUserService userService, ITaskService taskService, IUserContext userContext)
     {
         InitializeComponent();
@@ -24,20 +27,30 @@ public partial class TaskDetailDialog : Form
         _taskService = taskService;
         _userContext = userContext;
 
-        this.Load += TaskDetailDialog_Load;
+        this.Load += TaskDialog_Load;
         this.btnSave.Click += BtnSave_Click;
     }
 
-    private async void TaskDetailDialog_Load(object? sender, EventArgs e)
+    private async void TaskDialog_Load(object? sender, EventArgs e)
     {
         try
         {
-            this.Enabled = false; // Disable form during async load
+            this.Enabled = false; // Disable form during async load for better UX
+
+            // --- STEP 1: Populate all data sources first ---
             _allUsers = await _userService.GetAllUsersAsync();
             PopulateComboBoxes();
 
-            if (_editingTask == null)
+            // --- STEP 2: Check the mode and populate UI controls at the correct time ---
+            if (_editingTask != null)
             {
+                // We are in EDIT mode. Populate all controls from the _editingTask object.
+                this.Text = "編輯任務";
+                PopulateControlsFromTask(_editingTask);
+            }
+            else
+            {
+                // We are in CREATE mode. Set default values.
                 this.Text = "新增任務";
                 cmbPriority.SelectedItem = PriorityLevel.Medium;
                 dtpDueDate.Checked = false;
@@ -57,54 +70,74 @@ public partial class TaskDetailDialog : Form
 
     private void PopulateComboBoxes()
     {
-        // Priority ComboBox
+        // Priority ComboBox (no change needed)
         cmbPriority.DataSource = Enum.GetValues<PriorityLevel>();
 
-        // --- FIXED: A much safer way to bind a nullable foreign key ---
-        // We use a custom class/struct or a list of KeyValuePair to avoid dictionary issues.
-        // Here we use a list of a simple custom object for clarity.
+        // --- FIXED: Avoid using a null value in the ValueMember for the ComboBox ---
+        // We will use a sentinel value (e.g., 0) to represent "Unassigned".
+
         var userDataSource = new List<UserDisplayItem>
         {
-            new UserDisplayItem { Id = null, Username = "(未指派)" }
+            // Use a non-null placeholder value for the "Unassigned" option.
+            // 0 is a safe choice as real user Ids from the database start at 1.
+            new UserDisplayItem { Id = 0, Username = "(未指派)" }
         };
 
-        var validUsers = _allUsers
-            .Where(u => !string.IsNullOrEmpty(u.Username))
-            .OrderBy(u => u.Username);
-
-        foreach (var user in validUsers)
+        // This part remains the same
+        var uniqueUsersById = new Dictionary<int, string>();
+        foreach (var user in _allUsers.Where(u => u != null && !string.IsNullOrEmpty(u.Username)))
         {
-            userDataSource.Add(new UserDisplayItem { Id = user.Id, Username = user.Username });
+            uniqueUsersById.TryAdd(user.Id, user.Username);
+        }
+        foreach (var userPair in uniqueUsersById.OrderBy(p => p.Value))
+        {
+            userDataSource.Add(new UserDisplayItem { Id = userPair.Key, Username = userPair.Value });
         }
 
         cmbAssignedTo.DataSource = userDataSource;
         cmbAssignedTo.DisplayMember = nameof(UserDisplayItem.Username);
+        // The ValueMember is now of type int, not int?
         cmbAssignedTo.ValueMember = nameof(UserDisplayItem.Id);
     }
 
+
     /// <summary>
-    /// This is the public method for MainForm to call when a task needs to be edited.
-    /// It switches the dialog to "Edit" mode.
+    /// Sets the dialog to "Edit" mode by providing the task to be edited.
+    /// Its only job is to set the state. UI population happens in the Load event.
     /// </summary>
-    /// <param name="taskToEdit">The task object from MainForm's DataGridView.</param>
     public void SetTaskForEdit(TodoItem taskToEdit)
     {
         _editingTask = taskToEdit;
-        this.Text = "編輯任務";
+    }
 
-        txtTitle.Text = _editingTask.Title;
-        txtComments.Text = _editingTask.Comments;
-        cmbPriority.SelectedItem = _editingTask.Priority;
-        cmbAssignedTo.SelectedValue = _editingTask.AssignedToId;
-
-        if (_editingTask.DueDate.HasValue)
+    /// <summary>
+    /// Helper method to populate all UI controls from a given TodoItem.
+    /// </summary>
+    private void PopulateControlsFromTask(TodoItem task)
+    {
+        _isUpdatingUI = true; // Prevent event handlers from firing
+        try
         {
-            dtpDueDate.Checked = true;
-            dtpDueDate.Value = _editingTask.DueDate.Value.ToLocalTime();
+            txtTitle.Text = task.Title;
+            txtComments.Text = task.Comments;
+
+            // These assignments are now safe because the ComboBox DataSources are already populated.
+            cmbPriority.SelectedItem = task.Priority;
+            cmbAssignedTo.SelectedValue = task.AssignedToId ?? 0;
+            if (task.DueDate.HasValue)
+            {
+                dtpDueDate.Checked = true;
+                // Ensure to convert from UTC (database) to Local time for display
+                dtpDueDate.Value = task.DueDate.Value.ToLocalTime();
+            }
+            else
+            {
+                dtpDueDate.Checked = false;
+            }
         }
-        else
+        finally
         {
-            dtpDueDate.Checked = false;
+            _isUpdatingUI = false; // Always re-enable events
         }
     }
 
@@ -116,16 +149,23 @@ public partial class TaskDetailDialog : Form
             txtTitle.Focus();
             return;
         }
+
+        // Safely get values from ComboBoxes before the try block.
         if (cmbPriority.SelectedItem is not PriorityLevel priority)
         {
             MessageBox.Show("請選擇一個有效的優先級。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return;
         }
-        int? assignedToId = (cmbAssignedTo.SelectedItem as UserDisplayItem)?.Id;
+        int? assignedToId = null;
+        if (cmbAssignedTo.SelectedValue is int selectedId && selectedId > 0)
+        {
+            assignedToId = selectedId;
+        }
         try
         {
             if (_editingTask == null)
             {
+                // --- CREATE MODE ---
                 await _taskService.CreateTaskAsync(
                     txtTitle.Text.Trim(),
                     txtComments.Text.Trim(),
@@ -137,12 +177,11 @@ public partial class TaskDetailDialog : Form
             }
             else
             {
+                // --- EDIT MODE ---
                 _editingTask.Title = txtTitle.Text.Trim();
                 _editingTask.Comments = txtComments.Text.Trim();
-
                 _editingTask.Priority = priority;
                 _editingTask.AssignedToId = assignedToId;
-
                 _editingTask.DueDate = dtpDueDate.Checked ? dtpDueDate.Value.ToUniversalTime() : null;
 
                 await _taskService.UpdateTaskAsync(_editingTask);

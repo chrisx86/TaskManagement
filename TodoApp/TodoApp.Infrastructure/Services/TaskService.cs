@@ -3,8 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using TodoApp.Core.Models;
 using TodoApp.Core.Services;
 using TodoApp.Infrastructure.Data;
-// Using alias to resolve ambiguity with System.Threading.Tasks.TaskStatus
-using TodoStatus = TodoApp.Core.Models.TodoStatus;
 
 namespace TodoApp.Infrastructure.Services;
 
@@ -19,35 +17,13 @@ public class TaskService : ITaskService
     {
         _context = context;
     }
-
-    // A private helper method to build the base query with filters
-    private IQueryable<TodoItem> BuildFilteredQuery(
-        TodoStatus? statusFilter, // Use the alias
-        UserTaskFilter userFilter,
-        int currentUserId,
-        int? assignedToUserIdFilter)
+    public async Task<TodoItem?> GetTaskByIdAsync(int taskId)
     {
-        var query = _context.TodoItems.AsNoTracking();
-
-        if (statusFilter.HasValue)
-        {
-            query = query.Where(t => t.Status == statusFilter.Value);
-        }
-
-        switch (userFilter)
-        {
-            case UserTaskFilter.AssignedToMe:
-                query = query.Where(t => t.AssignedToId == currentUserId);
-                break;
-            case UserTaskFilter.CreatedByMe:
-                query = query.Where(t => t.CreatorId == currentUserId);
-                break;
-        }
-
-        if (assignedToUserIdFilter.HasValue)
-            query = query.Where(t => t.AssignedToId == assignedToUserIdFilter.Value);
-
-        return query;
+        // Find the task and include all necessary related data for editing.
+        return await _context.TodoItems
+            .Include(t => t.Creator)
+            .Include(t => t.AssignedTo)
+            .FirstOrDefaultAsync(t => t.Id == taskId);
     }
 
     /// <summary>
@@ -210,5 +186,35 @@ public class TaskService : ITaskService
         }
 
         return tasksByUser;
+    }
+
+    // A private helper method to build the base query with filters
+    private IQueryable<TodoItem> BuildFilteredQuery(
+        TodoStatus? statusFilter, // Use the alias
+        UserTaskFilter userFilter,
+        int currentUserId,
+        int? assignedToUserIdFilter)
+    {
+        var query = _context.TodoItems.AsNoTracking();
+
+        if (statusFilter.HasValue)
+        {
+            query = query.Where(t => t.Status == statusFilter.Value);
+        }
+
+        switch (userFilter)
+        {
+            case UserTaskFilter.AssignedToMe:
+                query = query.Where(t => t.AssignedToId == currentUserId);
+                break;
+            case UserTaskFilter.CreatedByMe:
+                query = query.Where(t => t.CreatorId == currentUserId);
+                break;
+        }
+
+        if (assignedToUserIdFilter.HasValue)
+            query = query.Where(t => t.AssignedToId == assignedToUserIdFilter.Value);
+
+        return query;
     }
 }

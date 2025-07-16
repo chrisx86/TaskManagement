@@ -8,15 +8,6 @@ namespace TodoApp.WinForms.ViewModels;
 /// </summary>
 public class UserDisplayItem
 {
-    // The underlying value for the ComboBox item. Null represents 'unassigned'.
-    public int? Id { get; set; }
-
-    // The text to be displayed in the ComboBox item.
+    public int Id { get; set; }
     public string Username { get; set; } = string.Empty;
-
-    // Optional: Override ToString for easier debugging or simple data binding scenarios.
-    public override string ToString()
-    {
-        return Username;
-    }
 }

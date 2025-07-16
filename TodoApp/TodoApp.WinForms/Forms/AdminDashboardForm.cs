@@ -367,31 +367,43 @@ public partial class AdminDashboardForm : Form
     {
         // 1. Get the currently selected task from the TreeView.
         //    We check the SelectedNode and its Tag property.
-        if (tvTasks.SelectedNode?.Tag is not TodoItem selectedTask)
+        if (tvTasks.SelectedNode?.Tag is not TodoItem selectedTaskInfo)
         {
-            // This case should theoretically not happen if the button is correctly disabled,
-            // but it's a good defensive check.
-            MessageBox.Show("請先在左側樹狀圖中選擇一個有效的任務。", "無效操作", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show("請先選擇一個有效的任務。", "無效操作", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return;
         }
 
-        // 2. Resolve the TaskDetailDialog from the DI container within a new scope.
-        //    Using a scope ensures that any scoped services for the dialog are handled correctly.
-        using var scope = _serviceProvider.CreateScope();
-        var taskDialog = scope.ServiceProvider.GetRequiredService<TaskDetailDialog>();
-
-        //    Pass the selected task to the dialog to populate it for editing.
-        taskDialog.SetTaskForEdit(selectedTask);
-
-        // 3. Show the dialog and check the result.
-        var dialogResult = taskDialog.ShowDialog(this);
-
-        // 4. If the user clicked "Save" (DialogResult.OK), refresh the dashboard data.
-        if (dialogResult == DialogResult.OK)
+        try
         {
-            lblStatus.Text = "任務已更新，正在重新整理儀表板...";
-            // Reload all dashboard data to ensure everything (stats, treeview) is in sync.
-            await LoadAndDisplayDataAsync();
+            // --- THIS IS THE KEY FIX ---
+            // Re-fetch the task from the database before editing.
+            // This ensures we have a fully-tracked entity with all navigation properties correctly loaded.
+            //
+            // 關鍵修正：
+            // 在編輯前，從資料庫重新獲取一次任務。
+            // 這能確保我們得到的是一個完整的、可被追蹤的、所有導覽屬性都已正確載入的實體。
+            var taskToEdit = await _taskService.GetTaskByIdAsync(selectedTaskInfo.Id);
+
+            if (taskToEdit == null)
+            {
+                MessageBox.Show("找不到該任務，可能已被其他使用者刪除。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                await LoadAndDisplayDataAsync(); // Refresh the view
+                return;
+            }
+
+            using var scope = _serviceProvider.CreateScope();
+            var taskDialog = scope.ServiceProvider.GetRequiredService<TaskDetailDialog>();
+
+            taskDialog.SetTaskForEdit(taskToEdit); // Pass the fresh, tracked entity
+
+            if (taskDialog.ShowDialog(this) == DialogResult.OK)
+            {
+                await LoadAndDisplayDataAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"打開編輯視窗時發生錯誤: {ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
 
