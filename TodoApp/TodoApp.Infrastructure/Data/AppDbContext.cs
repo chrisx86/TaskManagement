@@ -86,11 +86,8 @@ public class AppDbContext : DbContext
                    .IsRequired(false) // This makes the foreign key nullable.
                    .OnDelete(DeleteBehavior.SetNull); // IMPORTANT: If an assigned user is deleted, the task's AssignedToId becomes NULL.
 
-            // Configure the Timestamp property for optimistic concurrency.
-            // This tells EF Core to treat this property as a row version token.
-            // for simulating row version behavior in SQLite.
-            builder.Property(t => t.Timestamp)
-                .IsRowVersion(); // This is the primary configuration for concurrency token.
+            builder.Property(t => t.LastModifiedDate)
+                   .IsConcurrencyToken();
         });
 
         // --- DATA SEEDING ---
@@ -98,13 +95,13 @@ public class AppDbContext : DbContext
         // It pre-populates the database with essential data.
 
         // Hash the default admin password.
-        var adminPasswordHash = Security.PasswordHasher.HashPassword("admin");
+        var adminPasswordHash = PasswordHasher.HashPassword("admin");
 
         // Seed the default administrator user.
         modelBuilder.Entity<User>().HasData(
             new User
             {
-                Id = 1, // It's important to specify the primary key for seeded data.
+                Id = 1,
                 Username = "admin",
                 HashedPassword = "Vs+y4YmzkPR7FVZjKLtTSQ==;LiLRzmFSgXYlWfLa4XcD+3xtGwSMGlVr9Q8G4bVxlrU=",
                 Role = Core.Models.UserRole.Admin

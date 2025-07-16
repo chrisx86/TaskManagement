@@ -1,8 +1,8 @@
 ﻿#nullable enable
-using Microsoft.EntityFrameworkCore;
 using TodoApp.Core.Models;
 using TodoApp.Core.Services;
 using TodoApp.WinForms.ViewModels;
+using Microsoft.EntityFrameworkCore;
 
 namespace TodoApp.WinForms.Forms;
 
@@ -161,6 +161,11 @@ public partial class TaskDetailDialog : Form
         {
             assignedToId = selectedId;
         }
+        DateTime? dueDate = null;
+        if (dtpDueDate.Checked)
+        {
+            dueDate = dtpDueDate.Value.Date;
+        }
         try
         {
             if (_editingTask == null)
@@ -171,7 +176,7 @@ public partial class TaskDetailDialog : Form
                     txtComments.Text.Trim(),
                     _userContext.CurrentUser!.Id,
                     priority,
-                    dtpDueDate.Checked ? dtpDueDate.Value.ToUniversalTime() : null,
+                    dueDate,
                     assignedToId
                 );
             }
@@ -182,7 +187,7 @@ public partial class TaskDetailDialog : Form
                 _editingTask.Comments = txtComments.Text.Trim();
                 _editingTask.Priority = priority;
                 _editingTask.AssignedToId = assignedToId;
-                _editingTask.DueDate = dtpDueDate.Checked ? dtpDueDate.Value.ToUniversalTime() : null;
+                _editingTask.DueDate = dueDate;
 
                 await _taskService.UpdateTaskAsync(_editingTask);
             }

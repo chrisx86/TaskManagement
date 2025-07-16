@@ -31,6 +31,7 @@ namespace TodoApp.WinForms.Forms
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.tsbNewTask = new System.Windows.Forms.ToolStripButton();
             this.tsbEditTask = new System.Windows.Forms.ToolStripButton();
@@ -52,32 +53,28 @@ namespace TodoApp.WinForms.Forms
             this.lblFilterUser = new System.Windows.Forms.Label();
             this.cmbFilterStatus = new System.Windows.Forms.ComboBox();
             this.lblFilterStatus = new System.Windows.Forms.Label();
-            this.splitContainerMain = new System.Windows.Forms.SplitContainer();
-            this.dgvTasks = new System.Windows.Forms.DataGridView();
-            this.txtCommentsPreview = new System.Windows.Forms.TextBox();
-            // --- THIS IS THE FIX: Instantiate all pagination controls FIRST ---
-            // Before using any control, it must be created with 'new'.
             this.panelPagination = new System.Windows.Forms.Panel();
             this.lblPageSize = new System.Windows.Forms.Label();
             this.cmbPageSize = new System.Windows.Forms.ComboBox();
-            this.btnFirstPage = new System.Windows.Forms.Button();
-            this.btnPreviousPage = new System.Windows.Forms.Button();
-            this.txtCurrentPage = new System.Windows.Forms.TextBox();
-            this.lblPageInfo = new System.Windows.Forms.Label();
-            this.btnNextPage = new System.Windows.Forms.Button();
             this.btnLastPage = new System.Windows.Forms.Button();
-            this.panelPagination.SuspendLayout();
-
+            this.btnNextPage = new System.Windows.Forms.Button();
+            this.lblPageInfo = new System.Windows.Forms.Label();
+            this.txtCurrentPage = new System.Windows.Forms.TextBox();
+            this.btnPreviousPage = new System.Windows.Forms.Button();
+            this.btnFirstPage = new System.Windows.Forms.Button();
+            this.splitContainerMain = new System.Windows.Forms.SplitContainer();
+            this.dgvTasks = new System.Windows.Forms.DataGridView();
+            this.txtCommentsPreview = new System.Windows.Forms.TextBox();
             this.toolStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.panelFilters.SuspendLayout();
+            this.panelPagination.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainerMain)).BeginInit();
             this.splitContainerMain.Panel1.SuspendLayout();
             this.splitContainerMain.Panel2.SuspendLayout();
             this.splitContainerMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvTasks)).BeginInit();
             this.SuspendLayout();
-
             // 
             // toolStrip1
             // 
@@ -92,11 +89,11 @@ namespace TodoApp.WinForms.Forms
             this.tsbUserManagement,
             this.tsbAdminDashboard,
             this.toolStripSeparator3,
-            this.tsbChangePassword,
-            this.tsbSwitchUser});
+            this.tsbSwitchUser,
+            this.tsbChangePassword});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(1008, 27);
+            this.toolStrip1.Size = new System.Drawing.Size(1264, 27);
             this.toolStrip1.TabIndex = 0;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -160,14 +157,37 @@ namespace TodoApp.WinForms.Forms
             this.tsbAdminDashboard.Text = "管理儀表板";
             this.tsbAdminDashboard.Visible = false;
             // 
+            // toolStripSeparator3
+            // 
+            this.toolStripSeparator3.Name = "toolStripSeparator3";
+            this.toolStripSeparator3.Size = new System.Drawing.Size(6, 27);
+            // 
+            // tsbChangePassword
+            // 
+            this.tsbChangePassword.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.tsbChangePassword.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.tsbChangePassword.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsbChangePassword.Name = "tsbChangePassword";
+            this.tsbChangePassword.Size = new System.Drawing.Size(62, 24);
+            this.tsbChangePassword.Text = "修改密碼";
+            // 
+            // tsbSwitchUser
+            // 
+            this.tsbSwitchUser.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.tsbSwitchUser.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.tsbSwitchUser.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsbSwitchUser.Name = "tsbSwitchUser";
+            this.tsbSwitchUser.Size = new System.Drawing.Size(74, 24);
+            this.tsbSwitchUser.Text = "切換使用者";
+            // 
             // statusStrip1
             // 
             this.statusStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.lblStatus});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 659);
+            this.statusStrip1.Location = new System.Drawing.Point(0, 739);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(1008, 22);
+            this.statusStrip1.Size = new System.Drawing.Size(1264, 22);
             this.statusStrip1.TabIndex = 1;
             this.statusStrip1.Text = "statusStrip1";
             // 
@@ -186,13 +206,11 @@ namespace TodoApp.WinForms.Forms
             this.panelFilters.Controls.Add(this.lblFilterUser);
             this.panelFilters.Controls.Add(this.cmbFilterStatus);
             this.panelFilters.Controls.Add(this.lblFilterStatus);
-            // --- THIS IS THE CRUCIAL FIX for the layout ---
-            this.panelFilters.Dock = System.Windows.Forms.DockStyle.Top; // Ensure it docks to the top
-            this.panelFilters.Location = new System.Drawing.Point(0, 27); // Position it below the ToolStrip
+            this.panelFilters.Dock = System.Windows.Forms.DockStyle.Top;
+            this.panelFilters.Location = new System.Drawing.Point(0, 27);
             this.panelFilters.Name = "panelFilters";
-            this.panelFilters.Size = new System.Drawing.Size(1184, 40); // Give it a fixed height
+            this.panelFilters.Size = new System.Drawing.Size(1264, 40);
             this.panelFilters.TabIndex = 2;
-            this.panelFilters.Visible = true; // Ensure it's visible
             // 
             // lblFilterByAssignedUser
             // 
@@ -248,6 +266,93 @@ namespace TodoApp.WinForms.Forms
             this.lblFilterStatus.TabIndex = 0;
             this.lblFilterStatus.Text = "狀態：";
             // 
+            // panelPagination
+            // 
+            this.panelPagination.Controls.Add(this.lblPageSize);
+            this.panelPagination.Controls.Add(this.cmbPageSize);
+            this.panelPagination.Controls.Add(this.btnLastPage);
+            this.panelPagination.Controls.Add(this.btnNextPage);
+            this.panelPagination.Controls.Add(this.lblPageInfo);
+            this.panelPagination.Controls.Add(this.txtCurrentPage);
+            this.panelPagination.Controls.Add(this.btnPreviousPage);
+            this.panelPagination.Controls.Add(this.btnFirstPage);
+            this.panelPagination.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.panelPagination.Location = new System.Drawing.Point(0, 694);
+            this.panelPagination.Name = "panelPagination";
+            this.panelPagination.Size = new System.Drawing.Size(1264, 45);
+            this.panelPagination.TabIndex = 4;
+            // 
+            // lblPageSize
+            // 
+            this.lblPageSize.AutoSize = true;
+            this.lblPageSize.Location = new System.Drawing.Point(12, 15);
+            this.lblPageSize.Name = "lblPageSize";
+            this.lblPageSize.Size = new System.Drawing.Size(67, 15);
+            this.lblPageSize.TabIndex = 7;
+            this.lblPageSize.Text = "每頁顯示：";
+            // 
+            // cmbPageSize
+            // 
+            this.cmbPageSize.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbPageSize.FormattingEnabled = true;
+            this.cmbPageSize.Location = new System.Drawing.Point(85, 12);
+            this.cmbPageSize.Name = "cmbPageSize";
+            this.cmbPageSize.Size = new System.Drawing.Size(60, 23);
+            this.cmbPageSize.TabIndex = 6;
+            // 
+            // btnLastPage
+            // 
+            this.btnLastPage.Location = new System.Drawing.Point(585, 10);
+            this.btnLastPage.Name = "btnLastPage";
+            this.btnLastPage.Size = new System.Drawing.Size(40, 25);
+            this.btnLastPage.TabIndex = 5;
+            this.btnLastPage.Text = ">|";
+            this.btnLastPage.UseVisualStyleBackColor = true;
+            // 
+            // btnNextPage
+            // 
+            this.btnNextPage.Location = new System.Drawing.Point(540, 10);
+            this.btnNextPage.Name = "btnNextPage";
+            this.btnNextPage.Size = new System.Drawing.Size(40, 25);
+            this.btnNextPage.TabIndex = 4;
+            this.btnNextPage.Text = ">";
+            this.btnNextPage.UseVisualStyleBackColor = true;
+            // 
+            // lblPageInfo
+            // 
+            this.lblPageInfo.AutoSize = true;
+            this.lblPageInfo.Location = new System.Drawing.Point(335, 15);
+            this.lblPageInfo.Name = "lblPageInfo";
+            this.lblPageInfo.Size = new System.Drawing.Size(123, 15);
+            this.lblPageInfo.TabIndex = 3;
+            this.lblPageInfo.Text = "第 1 / 1 頁 (共 0 筆)";
+            // 
+            // txtCurrentPage
+            // 
+            this.txtCurrentPage.Location = new System.Drawing.Point(290, 11);
+            this.txtCurrentPage.Name = "txtCurrentPage";
+            this.txtCurrentPage.Size = new System.Drawing.Size(40, 23);
+            this.txtCurrentPage.TabIndex = 2;
+            this.txtCurrentPage.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // btnPreviousPage
+            // 
+            this.btnPreviousPage.Location = new System.Drawing.Point(245, 10);
+            this.btnPreviousPage.Name = "btnPreviousPage";
+            this.btnPreviousPage.Size = new System.Drawing.Size(40, 25);
+            this.btnPreviousPage.TabIndex = 1;
+            this.btnPreviousPage.Text = "<";
+            this.btnPreviousPage.UseVisualStyleBackColor = true;
+            // 
+            // btnFirstPage
+            // 
+            this.btnFirstPage.Location = new System.Drawing.Point(200, 10);
+            this.btnFirstPage.Name = "btnFirstPage";
+            this.btnFirstPage.Size = new System.Drawing.Size(40, 25);
+            this.btnFirstPage.TabIndex = 0;
+            this.btnFirstPage.Text = "|<";
+            this.btnFirstPage.UseVisualStyleBackColor = true;
+            // 
             // splitContainerMain
             // 
             this.splitContainerMain.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -262,158 +367,58 @@ namespace TodoApp.WinForms.Forms
             // splitContainerMain.Panel2
             // 
             this.splitContainerMain.Panel2.Controls.Add(this.txtCommentsPreview);
-            this.splitContainerMain.Size = new System.Drawing.Size(1008, 592);
-            this.splitContainerMain.SplitterDistance = 450;
-            this.splitContainerMain.TabIndex = 3;
+            this.splitContainerMain.Size = new System.Drawing.Size(1264, 627);
+            this.splitContainerMain.SplitterDistance = 480;
+            this.splitContainerMain.TabIndex = 5;
             // 
             // dgvTasks
             // 
             this.dgvTasks.AllowUserToAddRows = false;
             this.dgvTasks.AllowUserToDeleteRows = false;
-            this.dgvTasks.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.dgvTasks.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells;
             this.dgvTasks.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle1.Font = new System.Drawing.Font("Segoe UI", 9F);
+            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dgvTasks.DefaultCellStyle = dataGridViewCellStyle1;
             this.dgvTasks.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.dgvTasks.Location = new System.Drawing.Point(0, 67);
+            this.dgvTasks.Location = new System.Drawing.Point(0, 0);
             this.dgvTasks.MultiSelect = false;
             this.dgvTasks.Name = "dgvTasks";
-            this.dgvTasks.RowHeadersWidth = 51;
+            this.dgvTasks.RowHeadersVisible = false;
+            this.dgvTasks.RowTemplate.Height = 25;
             this.dgvTasks.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dgvTasks.Size = new System.Drawing.Size(1008, 450);
-            this.dgvTasks.TabIndex = 0;
+            this.dgvTasks.Size = new System.Drawing.Size(1264, 480);
+            this.dgvTasks.TabIndex = 3;
             // 
             // txtCommentsPreview
             // 
             this.txtCommentsPreview.BackColor = System.Drawing.SystemColors.Info;
             this.txtCommentsPreview.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.txtCommentsPreview.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.txtCommentsPreview.Font = new System.Drawing.Font("Segoe UI", 9.75F);
             this.txtCommentsPreview.Location = new System.Drawing.Point(0, 0);
             this.txtCommentsPreview.Multiline = true;
             this.txtCommentsPreview.Name = "txtCommentsPreview";
             this.txtCommentsPreview.ReadOnly = true;
             this.txtCommentsPreview.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtCommentsPreview.Size = new System.Drawing.Size(1008, 138);
+            this.txtCommentsPreview.Size = new System.Drawing.Size(1264, 143);
             this.txtCommentsPreview.TabIndex = 0;
-            // 
-            // toolStripSeparator3
-            // 
-            this.toolStripSeparator3.Name = "toolStripSeparator3";
-            this.toolStripSeparator3.Size = new System.Drawing.Size(6, 27);
-            // 
-            // tsbChangePassword
-            // 
-            this.tsbChangePassword.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
-            this.tsbChangePassword.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.tsbChangePassword.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsbChangePassword.Name = "tsbChangePassword";
-            this.tsbChangePassword.Size = new System.Drawing.Size(62, 24);
-            this.tsbChangePassword.Text = "修改密碼";
-            // 
-            // tsbSwitchUser
-            // 
-            this.tsbSwitchUser.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
-            this.tsbSwitchUser.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.tsbSwitchUser.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsbSwitchUser.Name = "tsbSwitchUser";
-            this.tsbSwitchUser.Size = new System.Drawing.Size(74, 24);
-            this.tsbSwitchUser.Text = "切換使用者";
-            // 
-            // panelPagination
-            // 
-            this.panelPagination.Controls.Add(this.lblPageSize);
-            this.panelPagination.Controls.Add(this.cmbPageSize);
-            this.panelPagination.Controls.Add(this.btnLastPage);
-            // ... (add all other pagination controls)
-            this.panelPagination.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.panelPagination.Location = new System.Drawing.Point(0, 516); // Position it above the status strip
-            this.panelPagination.Size = new System.Drawing.Size(1184, 45);
-
-            // --- Configure properties for each individual pagination control ---
-            // lblPageSize
-            this.lblPageSize.Location = new System.Drawing.Point(12, 14);
-            this.lblPageSize.Name = "lblPageSize";
-            this.lblPageSize.Size = new System.Drawing.Size(80, 15);
-            this.lblPageSize.Text = "每頁顯示：";
-
-            // cmbPageSize
-            this.cmbPageSize.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cmbPageSize.FormattingEnabled = true;
-            this.cmbPageSize.Location = new System.Drawing.Point(90, 11);
-            this.cmbPageSize.Name = "cmbPageSize";
-            this.cmbPageSize.Size = new System.Drawing.Size(60, 23);
-
-            // btnFirstPage
-            this.btnFirstPage.Location = new System.Drawing.Point(200, 10);
-            this.btnFirstPage.Name = "btnFirstPage";
-            this.btnFirstPage.Size = new System.Drawing.Size(40, 25);
-            this.btnFirstPage.Text = "|<";
-
-            // btnPreviousPage
-            this.btnPreviousPage.Location = new System.Drawing.Point(245, 10);
-            this.btnPreviousPage.Name = "btnPreviousPage";
-            this.btnPreviousPage.Size = new System.Drawing.Size(40, 25);
-            this.btnPreviousPage.Text = "<";
-
-            // txtCurrentPage
-            this.txtCurrentPage.Location = new System.Drawing.Point(290, 11);
-            this.txtCurrentPage.Name = "txtCurrentPage";
-            this.txtCurrentPage.Size = new System.Drawing.Size(40, 23);
-            this.txtCurrentPage.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-
-            // lblPageInfo
-            this.lblPageInfo.Location = new System.Drawing.Point(335, 14);
-            this.lblPageInfo.Name = "lblPageInfo";
-            this.lblPageInfo.Size = new System.Drawing.Size(200, 15);
-            this.lblPageInfo.Text = "第 1 / 1 頁 (共 0 筆)";
-
-            // btnNextPage
-            this.btnNextPage.Location = new System.Drawing.Point(540, 10);
-            this.btnNextPage.Name = "btnNextPage";
-            this.btnNextPage.Size = new System.Drawing.Size(40, 25);
-            this.btnNextPage.Text = ">";
-
-            // btnLastPage
-            this.btnLastPage.Location = new System.Drawing.Point(585, 10);
-            this.btnLastPage.Name = "btnLastPage";
-            this.btnLastPage.Size = new System.Drawing.Size(40, 25);
-            this.btnLastPage.Text = ">|";
-
-            // Finally, add the main pagination panel to the form's controls
-            this.Controls.Add(this.panelPagination);
-
-            // Resume layout after setup
-            this.panelPagination.ResumeLayout(false);
-            this.panelPagination.PerformLayout();
-            this.ResumeLayout(false);
-            this.PerformLayout();
-
-            this.toolStrip1.ResumeLayout(false);
-            this.toolStrip1.PerformLayout();
-            this.ResumeLayout(false);
-            this.PerformLayout();
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1008, 681);
+            this.ClientSize = new System.Drawing.Size(1264, 761);
             this.Controls.Add(this.splitContainerMain);
+            this.Controls.Add(this.panelPagination);
             this.Controls.Add(this.panelFilters);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.toolStrip1);
-            this.Controls.Add(this.panelPagination);
-            this.panelPagination.Controls.Add(this.lblPageSize);
-            this.panelPagination.Controls.Add(this.cmbPageSize);
-            this.panelPagination.Controls.Add(this.btnLastPage);
-            this.panelPagination.Controls.Add(this.btnNextPage);
-            this.panelPagination.Controls.Add(this.lblPageInfo);
-            this.panelPagination.Controls.Add(this.txtCurrentPage);
-            this.panelPagination.Controls.Add(this.btnPreviousPage);
-            this.panelPagination.Controls.Add(this.btnFirstPage);
-            this.panelPagination.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.panelPagination.Location = new System.Drawing.Point(0, 516);
-            this.panelPagination.Name = "panelPagination";
-            this.panelPagination.Size = new System.Drawing.Size(1184, 45);
-            this.panelPagination.TabIndex = 4; // Ensure TabIndex is unique
+            this.MinimumSize = new System.Drawing.Size(1024, 600);
             this.Name = "MainForm";
             this.Text = "待辦事項清單";
             this.toolStrip1.ResumeLayout(false);
@@ -422,6 +427,8 @@ namespace TodoApp.WinForms.Forms
             this.statusStrip1.PerformLayout();
             this.panelFilters.ResumeLayout(false);
             this.panelFilters.PerformLayout();
+            this.panelPagination.ResumeLayout(false);
+            this.panelPagination.PerformLayout();
             this.splitContainerMain.Panel1.ResumeLayout(false);
             this.splitContainerMain.Panel2.ResumeLayout(false);
             this.splitContainerMain.Panel2.PerformLayout();
@@ -447,26 +454,25 @@ namespace TodoApp.WinForms.Forms
         private System.Windows.Forms.Label lblFilterStatus;
         private System.Windows.Forms.ComboBox cmbFilterByUserRelation;
         private System.Windows.Forms.Label lblFilterUser;
+        private System.Windows.Forms.DataGridView dgvTasks;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
         private System.Windows.Forms.ToolStripButton tsbUserManagement;
         private System.Windows.Forms.ToolStripButton tsbAdminDashboard;
+        private System.Windows.Forms.Panel panelPagination;
+        private System.Windows.Forms.Button btnLastPage;
+        private System.Windows.Forms.Button btnNextPage;
+        private System.Windows.Forms.Label lblPageInfo;
+        private System.Windows.Forms.TextBox txtCurrentPage;
+        private System.Windows.Forms.Button btnPreviousPage;
+        private System.Windows.Forms.Button btnFirstPage;
+        private System.Windows.Forms.Label lblPageSize;
+        private System.Windows.Forms.ComboBox cmbPageSize;
         private System.Windows.Forms.Label lblFilterByAssignedUser;
         private System.Windows.Forms.ComboBox cmbFilterByAssignedUser;
-        private System.Windows.Forms.SplitContainer splitContainerMain;
-        private System.Windows.Forms.DataGridView dgvTasks;
-        private System.Windows.Forms.TextBox txtCommentsPreview;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
         private System.Windows.Forms.ToolStripButton tsbChangePassword;
         private System.Windows.Forms.ToolStripButton tsbSwitchUser;
-        // --- All pagination control fields should be declared here ---
-        private System.Windows.Forms.Panel panelPagination;
-        private System.Windows.Forms.Label lblPageSize;
-        private System.Windows.Forms.ComboBox cmbPageSize;
-        private System.Windows.Forms.Button btnFirstPage;
-        private System.Windows.Forms.Button btnPreviousPage;
-        private System.Windows.Forms.TextBox txtCurrentPage;
-        private System.Windows.Forms.Label lblPageInfo;
-        private System.Windows.Forms.Button btnNextPage;
-        private System.Windows.Forms.Button btnLastPage;
+        private System.Windows.Forms.SplitContainer splitContainerMain;
+        private System.Windows.Forms.TextBox txtCommentsPreview;
     }
 }

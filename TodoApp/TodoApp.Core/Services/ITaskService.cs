@@ -2,12 +2,9 @@
 using TodoApp.Core.Models;
 
 namespace TodoApp.Core.Services;
-// --- NEW ENUM FOR FILTERING ---
-// Defines the filtering options for task status.
+
 public enum TaskStatusFilter { All, Completed, Pending, InProgress }
 
-// --- NEW ENUM FOR FILTERING ---
-// Defines the filtering options related to the current user.
 public enum UserTaskFilter { All, AssignedToMe, CreatedByMe }
 /// <summary>
 /// Defines the contract for to-do item related business logic services.

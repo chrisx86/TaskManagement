@@ -1,11 +1,10 @@
 #nullable enable
 using System.ComponentModel;
 using System.Reflection;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualBasic;
 using TodoApp.Core.Models;
 using TodoApp.Core.Services;
 using TodoApp.WinForms.ViewModels;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace TodoApp.WinForms.Forms;
 
@@ -24,7 +23,6 @@ public partial class MainForm : Form
     // It automatically notifies the grid of changes (add, remove, reset).
     private readonly BindingList<TodoItem> _tasksBindingList = new();
 
-    // --- NEW FIELDS for managing sorting state ---
     private DataGridViewColumn? _sortedColumn = null;
     private ListSortDirection _sortDirection = ListSortDirection.Ascending;
 
@@ -103,8 +101,9 @@ public partial class MainForm : Form
         dgvTasks.AutoGenerateColumns = false;
         dgvTasks.DataSource = _tasksBindingList;
 
-        // --- Performance & Appearance ---
-        dgvTasks.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
+        // Set default cell style for wrapping in code for clarity
+        dgvTasks.DefaultCellStyle.WrapMode = DataGridViewTriState.True;
+        dgvTasks.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
         dgvTasks.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
         dgvTasks.RowHeadersVisible = false;
 
@@ -124,14 +123,32 @@ public partial class MainForm : Form
         };
         dgvTasks.Columns.Add(statusColumn);
 
-        dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "Title", HeaderText = "標題", DataPropertyName = "Title", Width = 300, SortMode = DataGridViewColumnSortMode.Programmatic });
+        dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "Title", HeaderText = "標題", DataPropertyName = "Title", Width = 300, AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill, SortMode = DataGridViewColumnSortMode.Programmatic });
         dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "Priority", HeaderText = "優先級", DataPropertyName = "Priority", Width = 80, SortMode = DataGridViewColumnSortMode.Programmatic });
         dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "DueDate", HeaderText = "到期日", DataPropertyName = "DueDate", Width = 110, DefaultCellStyle = { Format = "yyyy-MM-dd" }, SortMode = DataGridViewColumnSortMode.Programmatic });
         dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "AssignedTo", HeaderText = "指派給", DataPropertyName = "AssignedTo", Width = 100, SortMode = DataGridViewColumnSortMode.Programmatic });
         dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "Creator", HeaderText = "建立者", DataPropertyName = "Creator", Width = 100, SortMode = DataGridViewColumnSortMode.Programmatic });
-        dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "Comments", HeaderText = "備註", DataPropertyName = "Comments", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill, SortMode = DataGridViewColumnSortMode.Programmatic });
-        // --- Requirement 6: Add Timestamp column (usually hidden) ---
-        dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "Timestamp", HeaderText = "版本戳", DataPropertyName = "Timestamp", Visible = false });
+        dgvTasks.Columns.Add(new DataGridViewTextBoxColumn
+        {
+            Name = "CreationDate",
+            HeaderText = "建立日期",
+            DataPropertyName = "CreationDate",
+            Width = 140,
+            DefaultCellStyle = { Format = "yyyy-MM-dd" },
+            ReadOnly = true,
+            SortMode = DataGridViewColumnSortMode.Programmatic
+        });
+
+        dgvTasks.Columns.Add(new DataGridViewTextBoxColumn
+        {
+            Name = "LastModifiedDate",
+            HeaderText = "最後更新",
+            DataPropertyName = "LastModifiedDate",
+            Width = 140,
+            DefaultCellStyle = { Format = "yyyy-MM-dd HH:mm" },
+            ReadOnly = true,
+            SortMode = DataGridViewColumnSortMode.Programmatic
+        });
     }
     #region --- NEW User Action Event Handlers ---
 
@@ -288,32 +305,11 @@ public partial class MainForm : Form
     {
         // We only need to handle the columns that require their value to be formatted.
         // The row-level styling is now handled by RowPrePaint.
-        if (e.RowIndex < 0) return;
-
-        if (dgvTasks.Rows[e.RowIndex].DataBoundItem is not TodoItem task) return;
-
+        if (e.RowIndex < 0 || dgvTasks.Rows[e.RowIndex].DataBoundItem is not TodoItem task) return;
         string columnName = dgvTasks.Columns[e.ColumnIndex].Name;
-
-        switch (columnName)
-        {
-            case "Status":
-                e.Value = task.Status.ToString();
-                break;
-            case "AssignedTo":
-                if (e.Value is User assignedUser)
-                {
-                    e.Value = assignedUser.Username;
-                    e.FormattingApplied = true;
-                }
-                break;
-            case "Creator":
-                if (e.Value is User creatorUser)
-                {
-                    e.Value = creatorUser.Username;
-                    e.FormattingApplied = true;
-                }
-                break;
-        }
+        if (columnName == "AssignedTo" && e.Value is User assignedUser) { e.Value = assignedUser.Username; e.FormattingApplied = true; }
+        else if (columnName == "Creator" && e.Value is User creatorUser) { e.Value = creatorUser.Username; e.FormattingApplied = true; }
+        else if (columnName == "Status") { e.Value = task.Status.ToString(); }
     }
 
     private void SetupUIPermissions()
@@ -351,8 +347,6 @@ public partial class MainForm : Form
         {
             // --- FIXED: Use the sentinel value 0 instead of null for the 'All' option's Id. ---
             // This aligns with the non-nullable 'int' type of the UserDisplayItem.Id property.
-            // 修正：為「所有人」選項的 Id 使用哨兵值 0，而不是 null。
-            // 這與 UserDisplayItem.Id 屬性的非 nullable 'int' 類型保持一致。
             new UserDisplayItem { Username = "所有人", Id = 0 }
         };
 
@@ -452,8 +446,10 @@ public partial class MainForm : Form
         this.UseWaitCursor = isLoading;
         panelFilters.Enabled = !isLoading;
         toolStrip1.Enabled = !isLoading;
+
         splitContainerMain.Enabled = !isLoading;
-        lblStatus.Text = isLoading ? "正在載入..." : "就緒";
+
+        lblStatus.Text = isLoading ? "正在載入..." : "準備就緒";
     }
 
     private async void Filter_Changed(object? sender, EventArgs e)
@@ -547,9 +543,10 @@ public partial class MainForm : Form
         tsbEditTask.Enabled = isRowSelected;
         tsbDeleteTask.Enabled = isRowSelected;
 
+        // This code will now compile and work correctly.
         if (isRowSelected && dgvTasks.SelectedRows[0].DataBoundItem is TodoItem selectedTask)
         {
-            txtCommentsPreview.Text = selectedTask.Comments ?? "此任務沒有備註。";
+            txtCommentsPreview.Text = selectedTask.Comments ?? "(此任務沒有備註)";
         }
         else
         {

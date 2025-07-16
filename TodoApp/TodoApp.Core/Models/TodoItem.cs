@@ -12,12 +12,10 @@ public class TodoItem
     [MaxLength(200)]
     public string Title { get; set; } = string.Empty;
 
-    // --- NEW FIELD (Requirement #5) ---
     // A new field to store discussion, notes, or updates about the task.
     // Can be null if there are no comments.
     public string? Comments { get; set; }
 
-    // --- MODIFIED (Requirement #1 & #4) ---
     // The Status field now directly supports Pending, InProgress, and Completed.
     public TodoStatus Status { get; set; }
 
@@ -32,6 +30,6 @@ public class TodoItem
     public int? AssignedToId { get; set; }
     public virtual User? AssignedTo { get; set; }
 
-    [Timestamp]
-    public byte[]? Timestamp { get; set; }
+    [ConcurrencyCheck]
+    public DateTime LastModifiedDate { get; set; }
 }

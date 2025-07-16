@@ -1,8 +1,8 @@
 ﻿#nullable enable
-using Microsoft.EntityFrameworkCore;
 using TodoApp.Core.Models;
 using TodoApp.Core.Services;
 using TodoApp.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace TodoApp.Infrastructure.Services;
 
@@ -70,6 +70,7 @@ public class TaskService : ITaskService
     /// </summary>
     public async Task<TodoItem> CreateTaskAsync(string title, string? comments, int creatorId, PriorityLevel priority, DateTime? dueDate, int? assignedToId)
     {
+        var now = DateTime.Now;
         var newTask = new TodoItem
         {
             Title = title,
@@ -79,7 +80,8 @@ public class TaskService : ITaskService
             DueDate = dueDate,
             AssignedToId = assignedToId,
             Status = TodoStatus.Pending,
-            CreationDate = DateTime.UtcNow
+            CreationDate = now,
+            LastModifiedDate = now
         };
 
         _context.TodoItems.Add(newTask);
@@ -95,25 +97,27 @@ public class TaskService : ITaskService
     /// <summary>
     /// Updates an existing to-do item, handling concurrency.
     /// </summary>
-    // --- The parameter name here is 'taskToUpdate' ---
-    public async Task UpdateTaskAsync(TodoItem taskToUpdate)
+    public async Task UpdateTaskAsync(TodoItem taskFromUI)
     {
-        // Use the "Find then Update" pattern for disconnected entities
+        // We still use the "Find then Update" pattern as it's the most robust.
+        var trackedTask = await _context.TodoItems.FindAsync(taskFromUI.Id);
 
-        // 1. Find the existing entity in the database using its primary key.
-        var trackedTask = await _context.TodoItems.FindAsync(taskToUpdate.Id);
-        if (trackedTask != null)
+        if (trackedTask == null)
         {
-            // When using SetValues, EF Core's change tracker is smart enough to know
-            // that the Timestamp is a concurrency token and should be included in the
-            // WHERE clause of the UPDATE statement.
-            _context.Entry(trackedTask).CurrentValues.SetValues(taskToUpdate);
+            throw new Exception($"操作失敗：找不到 ID 為 {taskFromUI.Id} 的任務，它可能已被刪除。");
+        }
+
+        _context.Entry(trackedTask).CurrentValues.SetValues(taskFromUI);
+
+        trackedTask.LastModifiedDate = DateTime.Now;
+
+        try
+        {
             await _context.SaveChangesAsync();
         }
-        else
+        catch (DbUpdateConcurrencyException ex)
         {
-            // --- FIXED: Also use the correct parameter name here for the error message ---
-            throw new Exception($"操作失敗：找不到 ID 為 {taskToUpdate.Id} 的任務，它可能已被刪除。");
+            throw new Exception("資料已被他人修改，請重新整理後再試。", ex);
         }
     }
 
