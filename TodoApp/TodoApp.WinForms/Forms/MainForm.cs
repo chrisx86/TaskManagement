@@ -1,11 +1,12 @@
 #nullable enable
 using System.ComponentModel;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.VisualBasic;
 using TodoApp.Core.Models;
 using TodoApp.Core.Services;
-using TodoStatus = TodoApp.Core.Models.TodoStatus;
-using Microsoft.VisualBasic;
 using TodoApp.WinForms.ViewModels;
+using TodoStatus = TodoApp.Core.Models.TodoStatus;
+
 namespace TodoApp.WinForms.Forms;
 
 public partial class MainForm : Form
@@ -30,6 +31,11 @@ public partial class MainForm : Form
     // Timer for debouncing filter changes
     private System.Windows.Forms.Timer? _filterDebounceTimer;
     private bool _isUpdatingUI = false;
+    private int _currentPage = 1;
+    private int _pageSize = 20;
+    private int _totalTasks = 0;
+    private int _totalPages = 0;
+
     public MainForm(IServiceProvider serviceProvider, ITaskService taskService, IUserService userService, IUserContext userContext)
     {
         InitializeComponent();
@@ -65,6 +71,19 @@ public partial class MainForm : Form
         this.cmbFilterStatus.SelectedIndexChanged += Filter_Changed;
         this.cmbFilterByUserRelation.SelectedIndexChanged += Filter_Changed;
         this.cmbFilterByAssignedUser.SelectedIndexChanged += Filter_Changed;
+        // --- Wire up events for pagination controls ---
+        this.btnFirstPage.Click += (s, e) => ChangePage(1);
+        this.btnPreviousPage.Click += (s, e) => ChangePage(_currentPage - 1);
+        this.btnNextPage.Click += (s, e) => ChangePage(_currentPage + 1);
+        this.btnLastPage.Click += (s, e) => ChangePage(_totalPages);
+        this.cmbPageSize.SelectedIndexChanged += CmbPageSize_Changed;
+        this.txtCurrentPage.KeyDown += TxtCurrentPage_KeyDown;
+    }
+
+    private void InitializePaginationControls()
+    {
+        cmbPageSize.Items.AddRange(new object[] { 10, 20, 50, 100 });
+        cmbPageSize.SelectedItem = _pageSize;
     }
 
     private async void MainForm_Load(object? sender, EventArgs e)
@@ -347,33 +366,63 @@ public partial class MainForm : Form
 
     private async Task LoadTasksAsync()
     {
+        // --- Step 1: Guard Clauses - Prevent execution in invalid states ---
+        // Ensure the form's handle is created and all necessary filter controls are initialized.
         if (!this.IsHandleCreated ||
             cmbFilterStatus.SelectedItem == null ||
             cmbFilterByUserRelation.SelectedItem == null ||
             cmbFilterByAssignedUser.SelectedItem == null)
         {
-            // If any condition is not met, simply exit the method.
-            // This prevents NullReferenceException and unnecessary processing.
             return;
         }
+
         SetLoadingState(true);
         try
         {
+            // --- Step 2: Get current filter values from the UI ---
             TodoStatus? statusFilter = (cmbFilterStatus.SelectedItem as StatusDisplayItem)?.Value;
-            var userFilter = (UserTaskFilter)cmbFilterByUserRelation.SelectedItem; // This line is now safe.
-            int? assignedToUserIdFilter = (cmbFilterByAssignedUser.SelectedItem as UserDisplayItem)?.Id;
+            var userFilter = (UserTaskFilter)cmbFilterByUserRelation.SelectedItem;
+            var assignedToUserIdFilter = (cmbFilterByAssignedUser.SelectedItem as UserDisplayItem)?.Id;
 
-            var tasks = await _taskService.GetAllTasksAsync(statusFilter, userFilter, _currentUser.Id, assignedToUserIdFilter);
-            var sortedTasks = tasks
-                .OrderBy(t => t.Status == TodoStatus.InProgress ? 0 : (t.Status == TodoStatus.Pending ? 1 : 2))
-                .ThenByDescending(t => t.Priority)
-                .ThenBy(t => t.DueDate ?? DateTime.MaxValue)
-                .ToList();
+            // --- Step 3: Fetch the total count of items that match the filters ---
+            // This is crucial for calculating the total number of pages.
+            _totalTasks = await _taskService.GetTaskCountAsync(
+                statusFilter,
+                userFilter,
+                _currentUser.Id,
+                assignedToUserIdFilter
+            );
 
+            // --- Step 4: Calculate pagination variables ---
+            _totalPages = (_pageSize > 0) ? (int)Math.Ceiling((double)_totalTasks / _pageSize) : 1;
+            if (_totalPages == 0) _totalPages = 1; // Ensure there's always at least one page.
+                                                   // If the current page is now out of bounds (e.g., after a filter reduced the total items), reset it.
+            if (_currentPage > _totalPages)
+            {
+                _currentPage = _totalPages;
+            }
+
+            // --- Step 5: Fetch the actual data for the current page ---
+            var tasks = await _taskService.GetAllTasksAsync(
+                statusFilter,
+                userFilter,
+                _currentUser.Id,
+                assignedToUserIdFilter,
+                _currentPage,
+                _pageSize
+            );
+
+            // --- Step 6: Update the UI with the new data and state ---
+            // The sorting logic is now handled by the service, so the client just displays the data.
+            var raiseEvents = _tasksBindingList.RaiseListChangedEvents;
+            _tasksBindingList.RaiseListChangedEvents = false;
             _tasksBindingList.Clear();
-            sortedTasks.ForEach(task => _tasksBindingList.Add(task));
+            tasks.ForEach(task => _tasksBindingList.Add(task));
+            _tasksBindingList.RaiseListChangedEvents = raiseEvents;
+            _tasksBindingList.ResetBindings(); // This efficiently refreshes the grid.
 
-            lblStatus.Text = $"共 {_tasksBindingList.Count} 個任務";
+            // Update the pagination controls' state (e.g., enable/disable buttons, update labels).
+            UpdatePaginationUI();
         }
         catch (Exception ex)
         {
@@ -382,6 +431,7 @@ public partial class MainForm : Form
         finally
         {
             SetLoadingState(false);
+            // After loading, trigger a selection change to update the comments preview panel.
             DgvTasks_SelectionChanged(null, EventArgs.Empty);
         }
     }
@@ -397,14 +447,69 @@ public partial class MainForm : Form
 
     private async void Filter_Changed(object? sender, EventArgs e)
     {
-        // If the UI is being updated by code, do nothing.
         if (_isUpdatingUI) return;
-
-        // When the user manually changes a filter, reload the tasks.
+        _currentPage = 1; // Reset to the first page when filters change
         await LoadTasksAsync();
     }
 
     #region --- Event Handlers ---
+    /// <summary>
+    /// Updates the UI of the pagination controls based on the current pagination state.
+    /// </summary>
+    private void UpdatePaginationUI()
+    {
+        // If there are no tasks, display a simple message.
+        if (_totalTasks == 0)
+        {
+            lblPageInfo.Text = "沒有符合條件的任務";
+        }
+        else
+        {
+            lblPageInfo.Text = $"第 {_currentPage} / {_totalPages} 頁 (共 {_totalTasks} 筆)";
+        }
+
+        // Update the text box without triggering its own event.
+        _isUpdatingUI = true;
+        txtCurrentPage.Text = _currentPage.ToString();
+        _isUpdatingUI = false;
+
+        // Enable or disable navigation buttons based on the current page.
+        btnFirstPage.Enabled = _currentPage > 1;
+        btnPreviousPage.Enabled = _currentPage > 1;
+        btnNextPage.Enabled = _currentPage < _totalPages;
+        btnLastPage.Enabled = _currentPage < _totalPages;
+    }
+
+    // --- NEW: Method to handle page changes ---
+    private async void ChangePage(int newPageNumber)
+    {
+        if (newPageNumber >= 1 && newPageNumber <= _totalPages && newPageNumber != _currentPage)
+        {
+            _currentPage = newPageNumber;
+            await LoadTasksAsync();
+        }
+    }
+
+    // --- NEW: Event handlers for pagination controls ---
+    private async void CmbPageSize_Changed(object? sender, EventArgs e)
+    {
+        if (_isUpdatingUI) return;
+        _pageSize = (int)cmbPageSize.SelectedItem!;
+        _currentPage = 1; // Reset to first page when page size changes
+        await LoadTasksAsync();
+    }
+
+    private void TxtCurrentPage_KeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.KeyCode == Keys.Enter)
+        {
+            if (int.TryParse(txtCurrentPage.Text, out int pageNumber))
+            {
+                ChangePage(pageNumber);
+            }
+            e.SuppressKeyPress = true; // Prevent the "ding" sound
+        }
+    }
 
     private void SetDefaultFiltersForCurrentUser()
     {

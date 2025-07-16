@@ -20,27 +20,20 @@ public class TaskService : ITaskService
         _context = context;
     }
 
-    /// <summary>
-    /// Retrieves a list of to-do items based on specified filter criteria.
-    /// </summary>
-    public async Task<List<TodoItem>> GetAllTasksAsync(
-        TodoStatus? statusFilter,
+    // A private helper method to build the base query with filters
+    private IQueryable<TodoItem> BuildFilteredQuery(
+        TodoStatus? statusFilter, // Use the alias
         UserTaskFilter userFilter,
         int currentUserId,
         int? assignedToUserIdFilter)
     {
-        var query = _context.TodoItems
-            .Include(t => t.Creator)
-            .Include(t => t.AssignedTo)
-            .AsNoTracking();
+        var query = _context.TodoItems.AsNoTracking();
 
-        // Apply Status Filter
         if (statusFilter.HasValue)
         {
             query = query.Where(t => t.Status == statusFilter.Value);
         }
 
-        // Apply general User Filter (My Tasks, etc.)
         switch (userFilter)
         {
             case UserTaskFilter.AssignedToMe:
@@ -51,13 +44,49 @@ public class TaskService : ITaskService
                 break;
         }
 
-        // Apply specific 'Assigned To User' Filter
         if (assignedToUserIdFilter.HasValue)
-        {
             query = query.Where(t => t.AssignedToId == assignedToUserIdFilter.Value);
-        }
 
-        return await query.OrderByDescending(t => t.CreationDate).ToListAsync();
+        return query;
+    }
+
+    /// <summary>
+    /// Retrieves a list of to-do items based on specified filter criteria.
+    /// </summary>
+    public async Task<List<TodoItem>> GetAllTasksAsync(
+        TodoStatus? statusFilter,
+        UserTaskFilter userFilter,
+        int currentUserId,
+        int? assignedToUserIdFilter,
+        int pageNumber,
+        int pageSize)
+    {
+        var query = BuildFilteredQuery(statusFilter, userFilter, currentUserId, assignedToUserIdFilter);
+
+        // Apply ordering BEFORE pagination
+        var orderedQuery = query
+            .OrderBy(t => t.Status == TodoStatus.InProgress ? 0 : (t.Status == TodoStatus.Pending ? 1 : 2))
+            .ThenByDescending(t => t.Priority)
+            .ThenBy(t => t.DueDate ?? DateTime.MaxValue);
+
+        // Apply pagination. EF Core will translate this to efficient SQL.
+        return await orderedQuery
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .Include(t => t.Creator)
+            .Include(t => t.AssignedTo)
+            .ToListAsync();
+    }
+
+    public async Task<int> GetTaskCountAsync(
+        TodoStatus? statusFilter,
+        UserTaskFilter userFilter,
+        int currentUserId,
+        int? assignedToUserIdFilter)
+    {
+        var query = BuildFilteredQuery(statusFilter, userFilter, currentUserId, assignedToUserIdFilter);
+        // CountAsync is highly optimized at the database level.
+        return await query.CountAsync();
     }
 
     /// <summary>

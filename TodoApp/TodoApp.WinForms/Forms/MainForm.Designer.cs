@@ -55,6 +55,19 @@ namespace TodoApp.WinForms.Forms
             this.splitContainerMain = new System.Windows.Forms.SplitContainer();
             this.dgvTasks = new System.Windows.Forms.DataGridView();
             this.txtCommentsPreview = new System.Windows.Forms.TextBox();
+            // --- THIS IS THE FIX: Instantiate all pagination controls FIRST ---
+            // Before using any control, it must be created with 'new'.
+            this.panelPagination = new System.Windows.Forms.Panel();
+            this.lblPageSize = new System.Windows.Forms.Label();
+            this.cmbPageSize = new System.Windows.Forms.ComboBox();
+            this.btnFirstPage = new System.Windows.Forms.Button();
+            this.btnPreviousPage = new System.Windows.Forms.Button();
+            this.txtCurrentPage = new System.Windows.Forms.TextBox();
+            this.lblPageInfo = new System.Windows.Forms.Label();
+            this.btnNextPage = new System.Windows.Forms.Button();
+            this.btnLastPage = new System.Windows.Forms.Button();
+            this.panelPagination.SuspendLayout();
+
             this.toolStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.panelFilters.SuspendLayout();
@@ -303,6 +316,75 @@ namespace TodoApp.WinForms.Forms
             this.tsbSwitchUser.Name = "tsbSwitchUser";
             this.tsbSwitchUser.Size = new System.Drawing.Size(74, 24);
             this.tsbSwitchUser.Text = "切換使用者";
+            // 
+            // panelPagination
+            // 
+            this.panelPagination.Controls.Add(this.lblPageSize);
+            this.panelPagination.Controls.Add(this.cmbPageSize);
+            this.panelPagination.Controls.Add(this.btnLastPage);
+            // ... (add all other pagination controls)
+            this.panelPagination.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.panelPagination.Location = new System.Drawing.Point(0, 516); // Position it above the status strip
+            this.panelPagination.Size = new System.Drawing.Size(1184, 45);
+
+            // --- Configure properties for each individual pagination control ---
+            // lblPageSize
+            this.lblPageSize.Location = new System.Drawing.Point(12, 14);
+            this.lblPageSize.Name = "lblPageSize";
+            this.lblPageSize.Size = new System.Drawing.Size(80, 15);
+            this.lblPageSize.Text = "每頁顯示：";
+
+            // cmbPageSize
+            this.cmbPageSize.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbPageSize.FormattingEnabled = true;
+            this.cmbPageSize.Location = new System.Drawing.Point(90, 11);
+            this.cmbPageSize.Name = "cmbPageSize";
+            this.cmbPageSize.Size = new System.Drawing.Size(60, 23);
+
+            // btnFirstPage
+            this.btnFirstPage.Location = new System.Drawing.Point(200, 10);
+            this.btnFirstPage.Name = "btnFirstPage";
+            this.btnFirstPage.Size = new System.Drawing.Size(40, 25);
+            this.btnFirstPage.Text = "|<";
+
+            // btnPreviousPage
+            this.btnPreviousPage.Location = new System.Drawing.Point(245, 10);
+            this.btnPreviousPage.Name = "btnPreviousPage";
+            this.btnPreviousPage.Size = new System.Drawing.Size(40, 25);
+            this.btnPreviousPage.Text = "<";
+
+            // txtCurrentPage
+            this.txtCurrentPage.Location = new System.Drawing.Point(290, 11);
+            this.txtCurrentPage.Name = "txtCurrentPage";
+            this.txtCurrentPage.Size = new System.Drawing.Size(40, 23);
+            this.txtCurrentPage.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+
+            // lblPageInfo
+            this.lblPageInfo.Location = new System.Drawing.Point(335, 14);
+            this.lblPageInfo.Name = "lblPageInfo";
+            this.lblPageInfo.Size = new System.Drawing.Size(200, 15);
+            this.lblPageInfo.Text = "第 1 / 1 頁 (共 0 筆)";
+
+            // btnNextPage
+            this.btnNextPage.Location = new System.Drawing.Point(540, 10);
+            this.btnNextPage.Name = "btnNextPage";
+            this.btnNextPage.Size = new System.Drawing.Size(40, 25);
+            this.btnNextPage.Text = ">";
+
+            // btnLastPage
+            this.btnLastPage.Location = new System.Drawing.Point(585, 10);
+            this.btnLastPage.Name = "btnLastPage";
+            this.btnLastPage.Size = new System.Drawing.Size(40, 25);
+            this.btnLastPage.Text = ">|";
+
+            // Finally, add the main pagination panel to the form's controls
+            this.Controls.Add(this.panelPagination);
+
+            // Resume layout after setup
+            this.panelPagination.ResumeLayout(false);
+            this.panelPagination.PerformLayout();
+            this.ResumeLayout(false);
+            this.PerformLayout();
 
             this.toolStrip1.ResumeLayout(false);
             this.toolStrip1.PerformLayout();
@@ -318,6 +400,20 @@ namespace TodoApp.WinForms.Forms
             this.Controls.Add(this.panelFilters);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.toolStrip1);
+            this.Controls.Add(this.panelPagination);
+            this.panelPagination.Controls.Add(this.lblPageSize);
+            this.panelPagination.Controls.Add(this.cmbPageSize);
+            this.panelPagination.Controls.Add(this.btnLastPage);
+            this.panelPagination.Controls.Add(this.btnNextPage);
+            this.panelPagination.Controls.Add(this.lblPageInfo);
+            this.panelPagination.Controls.Add(this.txtCurrentPage);
+            this.panelPagination.Controls.Add(this.btnPreviousPage);
+            this.panelPagination.Controls.Add(this.btnFirstPage);
+            this.panelPagination.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.panelPagination.Location = new System.Drawing.Point(0, 516);
+            this.panelPagination.Name = "panelPagination";
+            this.panelPagination.Size = new System.Drawing.Size(1184, 45);
+            this.panelPagination.TabIndex = 4; // Ensure TabIndex is unique
             this.Name = "MainForm";
             this.Text = "待辦事項清單";
             this.toolStrip1.ResumeLayout(false);
@@ -362,5 +458,15 @@ namespace TodoApp.WinForms.Forms
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
         private System.Windows.Forms.ToolStripButton tsbChangePassword;
         private System.Windows.Forms.ToolStripButton tsbSwitchUser;
+        // --- All pagination control fields should be declared here ---
+        private System.Windows.Forms.Panel panelPagination;
+        private System.Windows.Forms.Label lblPageSize;
+        private System.Windows.Forms.ComboBox cmbPageSize;
+        private System.Windows.Forms.Button btnFirstPage;
+        private System.Windows.Forms.Button btnPreviousPage;
+        private System.Windows.Forms.TextBox txtCurrentPage;
+        private System.Windows.Forms.Label lblPageInfo;
+        private System.Windows.Forms.Button btnNextPage;
+        private System.Windows.Forms.Button btnLastPage;
     }
 }

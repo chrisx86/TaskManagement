@@ -1,7 +1,10 @@
-﻿// We need to use our core models here.
+﻿#nullable enable
+using System.Threading.Tasks;
 using TodoApp.Core.Models;
+using TodoApp.Core.ViewModels;
+// --- Use an alias to make the contract unambiguous ---
+using TodoStatus = TodoApp.Core.Models.TodoStatus;
 
-// The namespace should match the project and folder structure.
 namespace TodoApp.Core.Services;
 // --- NEW ENUM FOR FILTERING ---
 // Defines the filtering options for task status.
@@ -16,15 +19,17 @@ public enum UserTaskFilter { All, AssignedToMe, CreatedByMe }
 /// </summary>
 public interface ITaskService
 {
-    // --- MODIFIED (Requirement #1 & #2) ---
-    // statusFilter now uses the core TaskStatus enum and is nullable.
-    // assignedToUserIdFilter is a new nullable int for filtering by a specific user.
     Task<List<TodoItem>> GetAllTasksAsync(
-        // --- FIXED: Fully qualify the type name to resolve ambiguity. ---
-        // We explicitly tell the compiler to use the TaskStatus from our Models namespace.
-        // 修正：使用完整的命名空間來解決歧義。
-        // 我們明確地告訴編譯器要使用我們 Models 命名空間下的 TaskStatus。
-        TodoApp.Core.Models.TodoStatus? statusFilter,
+        TodoStatus? statusFilter,
+        UserTaskFilter userFilter,
+        int currentUserId,
+        int? assignedToUserIdFilter,
+        int pageNumber,
+        int pageSize
+    );
+
+    Task<int> GetTaskCountAsync(
+        TodoStatus? statusFilter,
         UserTaskFilter userFilter,
         int currentUserId,
         int? assignedToUserIdFilter
