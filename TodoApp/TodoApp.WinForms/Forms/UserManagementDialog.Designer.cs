@@ -32,7 +32,8 @@ namespace TodoApp.WinForms.Forms
         {
             this.lstUsers = new System.Windows.Forms.ListBox();
             this.grpUserDetails = new System.Windows.Forms.GroupBox();
-            this.btnClear = new System.Windows.Forms.Button();
+            this.txtEmail = new System.Windows.Forms.TextBox();
+            this.lblEmail = new System.Windows.Forms.Label();
             this.btnSaveUser = new System.Windows.Forms.Button();
             this.cmbRole = new System.Windows.Forms.ComboBox();
             this.lblRole = new System.Windows.Forms.Label();
@@ -42,6 +43,7 @@ namespace TodoApp.WinForms.Forms
             this.lblUsername = new System.Windows.Forms.Label();
             this.btnDeleteUser = new System.Windows.Forms.Button();
             this.btnClose = new System.Windows.Forms.Button();
+            this.btnClear = new System.Windows.Forms.Button();
             this.grpUserDetails.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -62,6 +64,8 @@ namespace TodoApp.WinForms.Forms
             this.grpUserDetails.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
             | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.grpUserDetails.Controls.Add(this.txtEmail);
+            this.grpUserDetails.Controls.Add(this.lblEmail);
             this.grpUserDetails.Controls.Add(this.btnSaveUser);
             this.grpUserDetails.Controls.Add(this.cmbRole);
             this.grpUserDetails.Controls.Add(this.lblRole);
@@ -71,29 +75,36 @@ namespace TodoApp.WinForms.Forms
             this.grpUserDetails.Controls.Add(this.lblUsername);
             this.grpUserDetails.Location = new System.Drawing.Point(207, 12);
             this.grpUserDetails.Name = "grpUserDetails";
-            this.grpUserDetails.Size = new System.Drawing.Size(305, 160);
+            this.grpUserDetails.Size = new System.Drawing.Size(305, 197);
             this.grpUserDetails.TabIndex = 1;
             this.grpUserDetails.TabStop = false;
             this.grpUserDetails.Text = "使用者詳細資料";
             // 
-            // btnClear
+            // txtEmail
             // 
-            this.btnClear.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.btnClear.Location = new System.Drawing.Point(207, 215);
-            this.btnClear.Name = "btnClear";
-            this.btnClear.Size = new System.Drawing.Size(100, 23);
-            this.btnClear.TabIndex = 3;
-            this.btnClear.Text = "新增使用者模式";
-            this.btnClear.UseVisualStyleBackColor = true;
-            this.btnClear.Click += new System.EventHandler(this.btnClear_Click);
+            this.txtEmail.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtEmail.Location = new System.Drawing.Point(100, 130);
+            this.txtEmail.Name = "txtEmail";
+            this.txtEmail.Size = new System.Drawing.Size(196, 23);
+            this.txtEmail.TabIndex = 8;
+            // 
+            // lblEmail
+            // 
+            this.lblEmail.AutoSize = true;
+            this.lblEmail.Location = new System.Drawing.Point(15, 133);
+            this.lblEmail.Name = "lblEmail";
+            this.lblEmail.Size = new System.Drawing.Size(56, 15);
+            this.lblEmail.TabIndex = 7;
+            this.lblEmail.Text = "Email(&E):";
             // 
             // btnSaveUser
             // 
             this.btnSaveUser.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnSaveUser.Location = new System.Drawing.Point(221, 125);
+            this.btnSaveUser.Location = new System.Drawing.Point(221, 162);
             this.btnSaveUser.Name = "btnSaveUser";
             this.btnSaveUser.Size = new System.Drawing.Size(75, 23);
-            this.btnSaveUser.TabIndex = 6;
+            this.btnSaveUser.TabIndex = 9;
             this.btnSaveUser.Text = "儲存";
             this.btnSaveUser.UseVisualStyleBackColor = true;
             this.btnSaveUser.Click += new System.EventHandler(this.btnSaveUser_Click);
@@ -107,7 +118,7 @@ namespace TodoApp.WinForms.Forms
             this.cmbRole.Location = new System.Drawing.Point(100, 95);
             this.cmbRole.Name = "cmbRole";
             this.cmbRole.Size = new System.Drawing.Size(196, 23);
-            this.cmbRole.TabIndex = 5;
+            this.cmbRole.TabIndex = 6;
             // 
             // lblRole
             // 
@@ -115,7 +126,7 @@ namespace TodoApp.WinForms.Forms
             this.lblRole.Location = new System.Drawing.Point(15, 98);
             this.lblRole.Name = "lblRole";
             this.lblRole.Size = new System.Drawing.Size(51, 15);
-            this.lblRole.TabIndex = 4;
+            this.lblRole.TabIndex = 5;
             this.lblRole.Text = "角色(&R):";
             // 
             // txtPassword
@@ -125,7 +136,7 @@ namespace TodoApp.WinForms.Forms
             this.txtPassword.Location = new System.Drawing.Point(100, 60);
             this.txtPassword.Name = "txtPassword";
             this.txtPassword.Size = new System.Drawing.Size(196, 23);
-            this.txtPassword.TabIndex = 3;
+            this.txtPassword.TabIndex = 4;
             this.txtPassword.UseSystemPasswordChar = true;
             // 
             // lblPassword
@@ -134,7 +145,7 @@ namespace TodoApp.WinForms.Forms
             this.lblPassword.Location = new System.Drawing.Point(15, 63);
             this.lblPassword.Name = "lblPassword";
             this.lblPassword.Size = new System.Drawing.Size(59, 15);
-            this.lblPassword.TabIndex = 2;
+            this.lblPassword.TabIndex = 3;
             this.lblPassword.Text = "密碼(&P):";
             // 
             // txtUsername
@@ -144,7 +155,7 @@ namespace TodoApp.WinForms.Forms
             this.txtUsername.Location = new System.Drawing.Point(100, 25);
             this.txtUsername.Name = "txtUsername";
             this.txtUsername.Size = new System.Drawing.Size(196, 23);
-            this.txtUsername.TabIndex = 1;
+            this.txtUsername.TabIndex = 2;
             // 
             // lblUsername
             // 
@@ -152,17 +163,17 @@ namespace TodoApp.WinForms.Forms
             this.lblUsername.Location = new System.Drawing.Point(15, 28);
             this.lblUsername.Name = "lblUsername";
             this.lblUsername.Size = new System.Drawing.Size(84, 15);
-            this.lblUsername.TabIndex = 0;
+            this.lblUsername.TabIndex = 1;
             this.lblUsername.Text = "使用者名稱(&U):";
             // 
             // btnDeleteUser
             // 
             this.btnDeleteUser.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnDeleteUser.ForeColor = System.Drawing.Color.Red;
-            this.btnDeleteUser.Location = new System.Drawing.Point(207, 244);
+            this.btnDeleteUser.Location = new System.Drawing.Point(207, 278);
             this.btnDeleteUser.Name = "btnDeleteUser";
             this.btnDeleteUser.Size = new System.Drawing.Size(100, 23);
-            this.btnDeleteUser.TabIndex = 2;
+            this.btnDeleteUser.TabIndex = 11;
             this.btnDeleteUser.Text = "刪除使用者";
             this.btnDeleteUser.UseVisualStyleBackColor = true;
             this.btnDeleteUser.Click += new System.EventHandler(this.btnDeleteUser_Click);
@@ -173,10 +184,21 @@ namespace TodoApp.WinForms.Forms
             this.btnClose.Location = new System.Drawing.Point(437, 278);
             this.btnClose.Name = "btnClose";
             this.btnClose.Size = new System.Drawing.Size(75, 23);
-            this.btnClose.TabIndex = 4;
+            this.btnClose.TabIndex = 12;
             this.btnClose.Text = "關閉";
             this.btnClose.UseVisualStyleBackColor = true;
             this.btnClose.Click += new System.EventHandler(this.btnClose_Click);
+            // 
+            // btnClear
+            // 
+            this.btnClear.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.btnClear.Location = new System.Drawing.Point(207, 249);
+            this.btnClear.Name = "btnClear";
+            this.btnClear.Size = new System.Drawing.Size(100, 23);
+            this.btnClear.TabIndex = 10;
+            this.btnClear.Text = "新增使用者模式";
+            this.btnClear.UseVisualStyleBackColor = true;
+            this.btnClear.Click += new System.EventHandler(this.btnClear_Click);
             // 
             // UserManagementDialog
             // 
@@ -197,6 +219,7 @@ namespace TodoApp.WinForms.Forms
             this.grpUserDetails.ResumeLayout(false);
             this.grpUserDetails.PerformLayout();
             this.ResumeLayout(false);
+
         }
 
         #endregion
@@ -213,5 +236,7 @@ namespace TodoApp.WinForms.Forms
         private System.Windows.Forms.Button btnDeleteUser;
         private System.Windows.Forms.Button btnClose;
         private System.Windows.Forms.Button btnClear;
+        private System.Windows.Forms.TextBox txtEmail;
+        private System.Windows.Forms.Label lblEmail;
     }
 }

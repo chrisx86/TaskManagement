@@ -1,9 +1,5 @@
 ﻿#nullable enable
-using System.Threading.Tasks;
 using TodoApp.Core.Models;
-using TodoApp.Core.ViewModels;
-// --- Use an alias to make the contract unambiguous ---
-using TodoStatus = TodoApp.Core.Models.TodoStatus;
 
 namespace TodoApp.Core.Services;
 // --- NEW ENUM FOR FILTERING ---

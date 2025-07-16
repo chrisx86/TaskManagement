@@ -1,7 +1,5 @@
 ﻿using TodoApp.Core.Models;
 using TodoApp.Core.Services;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
-using TodoApp.Infrastructure.Services;
 
 namespace TodoApp.WinForms.Forms
 {

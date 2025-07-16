@@ -31,8 +31,8 @@ public class UserService : IUserService
     public async Task<User?> AuthenticateAsync(string username, string password)
     {
         // 1. Find the user by username. The search is case-insensitive for better usability.
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Username.ToLower() == username.ToLower());
-
+        var user = await _context.Users
+            .FirstOrDefaultAsync(u => EF.Functions.Like(u.Username, username));
         // 2. If user is not found, authentication fails.
         if (user == null)
         {
@@ -63,32 +63,38 @@ public class UserService : IUserService
     /// <summary>
     /// Creates a new user in the system.
     /// </summary>
-    public async Task<User> CreateUserAsync(string username, string password, UserRole role)
+    public async Task<User> CreateUserAsync(string username, string password, UserRole role, string? email)
     {
-        // 1. Check if a user with the same username already exists.
-        if (await _context.Users.AnyAsync(u => u.Username.ToLower() == username.ToLower()))
+        if (await _context.Users.AnyAsync(u => EF.Functions.Like(u.Username, username)))
         {
-            // Throw an exception if the username is taken. The UI layer will have to catch this.
             throw new InvalidOperationException($"Username '{username}' already exists.");
         }
 
-        // 2. Hash the new user's password.
-        var hashedPassword = PasswordHasher.HashPassword(password);
-
-        // 3. Create a new User entity.
         var newUser = new User
         {
             Username = username,
-            HashedPassword = hashedPassword,
-            Role = role
+            HashedPassword = PasswordHasher.HashPassword(password),
+            Role = role,
+            Email = email // Assign the email
         };
 
-        // 4. Add the new user to the context and save changes to the database.
         _context.Users.Add(newUser);
         await _context.SaveChangesAsync();
-
-        // 5. Return the newly created user object (which now has an Id).
         return newUser;
+    }
+
+    public async Task<bool> UpdateUserAsync(User userToUpdate)
+    {
+        var trackedUser = await _context.Users.FindAsync(userToUpdate.Id);
+        if (trackedUser == null) return false;
+
+        // We only allow updating Role and Email in this method.
+        // Username and Password changes are handled by other methods.
+        trackedUser.Role = userToUpdate.Role;
+        trackedUser.Email = userToUpdate.Email;
+
+        await _context.SaveChangesAsync();
+        return true;
     }
 
     /// <summary>

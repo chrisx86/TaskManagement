@@ -9,6 +9,7 @@
     <AssemblyVersion>1.0.0.1</AssemblyVersion>
     <ApplicationIcon>favicon.ico</ApplicationIcon>
     <Version>1.0.0</Version>
+    <UseHost>false</UseHost>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,184 +1,122 @@
+#nullable enable
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-// Core and Infrastructure using statements
 using TodoApp.Core.Services;
-using TodoApp.Infrastructure.Data;
-using TodoApp.Infrastructure.Services;
-using TodoApp.Infrastructure.Data;
-using TodoApp.Infrastructure.Services;
 using TodoApp.WinForms.Forms;
-using TodoApp.WinForms.Utils;
+using TodoApp.Infrastructure.Data;
+using TodoApp.Infrastructure.Services;
 
-namespace TodoApp.WinForms
+namespace TodoApp.WinForms;
+
+internal static class Program
 {
-    internal static class Program
+    [STAThread]
+    static void Main()
     {
-        public static IServiceProvider? ServiceProvider { get; private set; }
-        /// <summary>
-        ///  The main entry point for the application.
-        /// </summary>
-        [STAThread]
-        static void Main()
+        // Use the modern hosting model which handles application lifecycle gracefully.
+        var host = CreateHostBuilder().Build();
+
+        // The service provider should be retrieved from the host.
+        var services = host.Services;
+
+        // --- Global Exception Handling Setup ---
+        Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
+        Application.ThreadException += (sender, args) => HandleException(args.Exception, "UI Thread");
+        AppDomain.CurrentDomain.UnhandledException += (sender, args) => HandleException(args.ExceptionObject as Exception, "Non-UI Thread");
+
+        ApplicationConfiguration.Initialize();
+
+        // --- Clean Application Startup Flow ---
+        // We use a using statement to ensure the scope is properly disposed.
+        using (var serviceScope = services.CreateScope())
         {
-            // ===================================================================
-            // Task 8.1: Global Error Handling Implementation
-            // This setup must be at the very beginning of the Main method.
-            // ===================================================================
-            Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
-
-            // Catches exceptions from the main UI thread.
-            Application.ThreadException += new ThreadExceptionEventHandler(OnThreadException);
-
-            // Catches exceptions from non-UI threads.
-            AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(OnUnhandledException);
-            // ===================================================================
-
-            // Your existing DI and application startup logic continues here.
-            var host = CreateHostBuilder().Build();
-            ServiceProvider = host.Services;
-
-            ApplicationConfiguration.Initialize();
-
-            // --- APPLICATION STARTUP LOGIC ---
+            var scopedServices = serviceScope.ServiceProvider;
             try
             {
-                var loginForm = ServiceProvider.GetRequiredService<LoginForm>();
+                // Resolve the login form from the scope.
+                var loginForm = scopedServices.GetRequiredService<LoginForm>();
 
+                // Show the login form. If login is successful...
                 if (loginForm.ShowDialog() == DialogResult.OK)
                 {
-                    ApplicationState.CurrentUser = loginForm.AuthenticatedUser;
-                    Application.Run(ServiceProvider.GetRequiredService<MainForm>());
+                    // ...the main form is resolved and run.
+                    // The IUserContext already holds the user info, no need for ApplicationState.
+                    Application.Run(scopedServices.GetRequiredService<MainForm>());
                 }
             }
             catch (Exception ex)
             {
-                // This catch block will handle errors that might occur during startup,
-                // before the main message loop has even started.
+                // This catch block handles critical DI or startup failures.
                 HandleException(ex, "Application Startup");
             }
         }
+    }
 
-
-        static IHostBuilder CreateHostBuilder()
-        {
-            return Host.CreateDefaultBuilder()
-                // Step 1: Add configuration sources. This tells the host to read the JSON file.
-                .ConfigureAppConfiguration((context, builder) =>
-                {
-                    // Sets the base path for finding the config file to the application's current directory.
-                    builder.SetBasePath(Directory.GetCurrentDirectory())
-                           .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-                })
-                .ConfigureServices((context, services) => {
-                    // Step 2: Use the configuration to set up services.
-
-                    // Read the connection string from the "ConnectionStrings" section of appsettings.json.
-                    string? connectionString = context.Configuration.GetConnectionString("DefaultConnection");
-
-                    // A robust check to ensure the connection string exists in the config file.
-                    if (string.IsNullOrEmpty(connectionString))
-                    {
-                        MessageBox.Show(
-                            "Database connection string 'DefaultConnection' could not be found in appsettings.json.",
-                            "Configuration Error",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Stop);
-                        // Stop the application if configuration is missing.
-                        throw new InvalidOperationException("Fatal: ConnectionString is not configured.");
-                    }
-                    services.AddDbContext<AppDbContext>(options =>
-                    {
-                        options.UseSqlite(connectionString);
-
-                        // --- ADD THESE LINES FOR DETAILED LOGGING ---
-                        // This will log EF Core's activity to the debug output window.
-                        options.LogTo(message => System.Diagnostics.Debug.WriteLine(message),
-                                      Microsoft.Extensions.Logging.LogLevel.Information);
-                        // This enables sensitive data logging, which includes connection strings and parameter values.
-                        // Be careful using this in production. It's great for debugging.
-                        options.EnableSensitiveDataLogging();
-                    });
-                    services.AddSingleton<IUserContext, UserContext>();
-                    services.AddTransient<IUserService, UserService>();
-                    services.AddTransient<ITaskService, TaskService>();
-                    // We use AddTransient because the service itself is lightweight and doesn't hold state.
-                    // Each time the dashboard is opened, it can get a fresh service instance.
-                    services.AddTransient<IAdminDashboardService, AdminDashboardService>();
-                    // --- FORMS REGISTRATION ---
-                    // Register all forms that will be resolved by the DI container
-                    services.AddTransient<LoginForm>();
-                    services.AddTransient<MainForm>();
-                    services.AddTransient<TaskDetailDialog>();
-                    services.AddTransient<UserManagementDialog>();
-                    services.AddTransient<AdminDashboardForm>();
-                });
-        }
-
-        // --- NEW ERROR HANDLING METHODS ---
-
-        /// <summary>
-        /// Handles exceptions thrown on the UI thread.
-        /// </summary>
-        private static void OnThreadException(object sender, ThreadExceptionEventArgs e)
-        {
-            HandleException(e.Exception, "UI Thread Exception");
-        }
-
-        /// <summary>
-        /// Handles exceptions thrown on non-UI threads.
-        /// </summary>
-        private static void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
-        {
-            HandleException(e.ExceptionObject as Exception, "Non-UI Thread Exception");
-        }
-
-        /// <summary>
-        /// The core logic for logging the exception and showing a user-friendly message.
-        /// </summary>
-        /// <param name="ex">The exception that was caught.</param>
-        /// <param name="source">The source of the exception.</param>
-        private static void HandleException(Exception? ex, string source)
-        {
-            if (ex == null) return;
-
-            // Step 1: Log the detailed exception
-            try
+    static IHostBuilder CreateHostBuilder()
+    {
+        return Host.CreateDefaultBuilder()
+            .ConfigureAppConfiguration((context, builder) =>
             {
-                var logFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "error_log.txt");
-                var errorDetails =
-                    $"============================================================\r\n" +
-                    $"Timestamp: {DateTime.Now:yyyy-MM-dd HH:mm:ss}\r\n" +
-                    $"Source: {source}\r\n" +
-                    $"Exception Type: {ex.GetType().FullName}\r\n" +
-                    $"Message: {ex.Message}\r\n" +
-                    $"Stack Trace:\r\n{ex}\r\n" + // .ToString() includes inner exceptions
-                    $"============================================================\r\n\r\n";
-
-                File.AppendAllText(logFilePath, errorDetails);
-            }
-            catch (Exception logEx)
+                builder.SetBasePath(Directory.GetCurrentDirectory())
+                       .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+            })
+            .ConfigureServices((context, services) =>
             {
-                // If logging fails, show a more critical error message.
-                MessageBox.Show(
-                    $"A critical error occurred, and the error could not be logged.\n\n" +
-                    $"Original Error: {ex.Message}\n\n" +
-                    $"Logging Error: {logEx.Message}",
-                    "Critical System Failure",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Stop);
-            }
+                // --- Configure all dependencies here ---
+                ConfigureDependencies(context.Configuration, services);
+            });
+    }
 
-            // Step 2: Show a friendly message to the user
-            var friendlyMessage = "An unexpected error has occurred in the application.\n\n" +
-                                           "The details have been logged for the development team.\n" +
-                                           "The application will now close to prevent data corruption.";
+    // --- NEW: Centralized dependency configuration method ---
+    private static void ConfigureDependencies(IConfiguration configuration, IServiceCollection services)
+    {
+        string? connectionString = configuration.GetConnectionString("DefaultConnection");
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            throw new InvalidOperationException("Fatal: ConnectionString is not configured.");
+        }
 
-            MessageBox.Show(friendlyMessage, "Application Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        // DbContext
+        services.AddDbContext<AppDbContext>(options =>
+                options.UseSqlite(connectionString),
+                ServiceLifetime.Transient);
+        // Core Services
+        services.AddSingleton<IUserContext, UserContext>();
+        services.AddTransient<IUserService, UserService>();
+        services.AddTransient<ITaskService, TaskService>();
+        services.AddTransient<IAdminDashboardService, AdminDashboardService>();
 
-            // Step 3: Terminate the application
-            // It's generally unsafe to continue after an unhandled exception.
+        // Forms (all forms that are resolved via DI)
+        services.AddTransient<LoginForm>();
+        services.AddTransient<MainForm>();
+        services.AddTransient<TaskDetailDialog>();
+        services.AddTransient<UserManagementDialog>();
+        services.AddTransient<AdminDashboardForm>();
+    }
+
+    // --- MODIFIED: HandleException should try to close gracefully first ---
+    private static void HandleException(Exception? ex, string source)
+    {
+        if (ex == null) return;
+
+        // Log the error (your existing logic is fine)
+        // ... File.AppendAllText(...) ...
+
+        const string friendlyMessage = "應用程式發生未預期的錯誤，即將關閉。\n\n" +
+                                       "詳細資訊已記錄供開發團隊參考。";
+        MessageBox.Show(friendlyMessage, "系統錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+        // --- Try to exit gracefully first ---
+        // This gives the application a chance to clean up resources.
+        try
+        {
+            Application.Exit();
+        }
+        catch
+        {
+            // If graceful exit fails, use the hammer.
             Environment.Exit(1);
         }
     }

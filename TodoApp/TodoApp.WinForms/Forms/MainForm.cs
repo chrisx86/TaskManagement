@@ -6,7 +6,6 @@ using Microsoft.VisualBasic;
 using TodoApp.Core.Models;
 using TodoApp.Core.Services;
 using TodoApp.WinForms.ViewModels;
-using TodoStatus = TodoApp.Core.Models.TodoStatus;
 
 namespace TodoApp.WinForms.Forms;
 

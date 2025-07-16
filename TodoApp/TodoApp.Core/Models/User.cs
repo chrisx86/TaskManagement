@@ -1,4 +1,6 @@
 ﻿// The namespace should match the project and folder structure.
+using System.ComponentModel.DataAnnotations;
+
 namespace TodoApp.Core.Models;
 
 /// <summary>
@@ -23,6 +25,8 @@ public class User
     /// </summary>
     public string HashedPassword { get; set; } = string.Empty;
 
+    [MaxLength(100)]
+    public string? Email { get; set; }
     /// <summary>
     /// The role of the user, determining their permissions.
     /// </summary>

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using TodoApp.Core.Models;
 using TodoApp.Core.Services;
 using TodoApp.WinForms.ViewModels;
+
 namespace TodoApp.WinForms.Forms;
 
 public partial class TaskDetailDialog : Form
@@ -15,18 +16,16 @@ public partial class TaskDetailDialog : Form
     private TodoItem? _editingTask;
     private List<User> _allUsers = new();
 
-    // The DI container will inject these services.
     public TaskDetailDialog(IUserService userService, ITaskService taskService, IUserContext userContext)
     {
         InitializeComponent();
 
         _userService = userService;
-        _taskService = taskService; // Injected for future use if needed, e.g., validation.
+        _taskService = taskService;
         _userContext = userContext;
 
         this.Load += TaskDetailDialog_Load;
         this.btnSave.Click += BtnSave_Click;
-        // Let the Cancel button on the form handle closing.
     }
 
     private async void TaskDetailDialog_Load(object? sender, EventArgs e)
@@ -117,7 +116,12 @@ public partial class TaskDetailDialog : Form
             txtTitle.Focus();
             return;
         }
-
+        if (cmbPriority.SelectedItem is not PriorityLevel priority)
+        {
+            MessageBox.Show("請選擇一個有效的優先級。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return;
+        }
+        int? assignedToId = (cmbAssignedTo.SelectedItem as UserDisplayItem)?.Id;
         try
         {
             if (_editingTask == null)
@@ -126,17 +130,19 @@ public partial class TaskDetailDialog : Form
                     txtTitle.Text.Trim(),
                     txtComments.Text.Trim(),
                     _userContext.CurrentUser!.Id,
-                    (PriorityLevel)cmbPriority.SelectedValue,
+                    priority,
                     dtpDueDate.Checked ? dtpDueDate.Value.ToUniversalTime() : null,
-                    (int?)cmbAssignedTo.SelectedValue > 0 ? (int?)cmbAssignedTo.SelectedValue : null
+                    assignedToId
                 );
             }
             else
             {
                 _editingTask.Title = txtTitle.Text.Trim();
                 _editingTask.Comments = txtComments.Text.Trim();
-                _editingTask.Priority = (PriorityLevel)cmbPriority.SelectedValue;
-                _editingTask.AssignedToId = (int?)cmbAssignedTo.SelectedValue;
+
+                _editingTask.Priority = priority;
+                _editingTask.AssignedToId = assignedToId;
+
                 _editingTask.DueDate = dtpDueDate.Checked ? dtpDueDate.Value.ToUniversalTime() : null;
 
                 await _taskService.UpdateTaskAsync(_editingTask);

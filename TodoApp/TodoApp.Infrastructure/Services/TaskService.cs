@@ -126,28 +126,13 @@ public class TaskService : ITaskService
 
         // 1. Find the existing entity in the database using its primary key.
         var trackedTask = await _context.TodoItems.FindAsync(taskToUpdate.Id);
-
         if (trackedTask != null)
         {
-            // 2. Copy the updated values from the UI object to the tracked entity.
-            // --- FIXED: Use the correct parameter name 'taskToUpdate' ---
-            // 修正：使用正確的參數名稱 'taskToUpdate'
+            // When using SetValues, EF Core's change tracker is smart enough to know
+            // that the Timestamp is a concurrency token and should be included in the
+            // WHERE clause of the UPDATE statement.
             _context.Entry(trackedTask).CurrentValues.SetValues(taskToUpdate);
-
-            try
-            {
-                // 3. Save the changes.
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException ex)
-            {
-                var entry = ex.Entries.Single();
-                if (await entry.GetDatabaseValuesAsync() == null)
-                {
-                    throw new Exception("操作失敗：此任務已被其他使用者刪除。", ex);
-                }
-                throw new Exception("資料已被他人修改，請重新整理後再試。", ex);
-            }
+            await _context.SaveChangesAsync();
         }
         else
         {

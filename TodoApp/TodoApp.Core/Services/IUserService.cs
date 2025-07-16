@@ -1,7 +1,5 @@
-﻿// We need to use our core models here.
-using TodoApp.Core.Models;
+﻿using TodoApp.Core.Models;
 
-// The namespace should match the project and folder structure.
 namespace TodoApp.Core.Services;
 
 /// <summary>
@@ -37,7 +35,7 @@ public interface IUserService
     /// <param name="role">The role assigned to the new user.</param>
     /// <returns>A Task that represents the asynchronous operation.
     /// The task result contains the newly created User object.</returns>
-    Task<User> CreateUserAsync(string username, string password, UserRole role);
+    Task<User> CreateUserAsync(string username, string password, UserRole role, string? email);
 
     /// <summary>
     /// Deletes a user from the system. (Admin only)
@@ -45,6 +43,14 @@ public interface IUserService
     /// <param name="userId">The ID of the user to delete.</param>
     /// <returns>A Task representing the asynchronous operation.</returns>
     Task<bool> DeleteUserAsync(int userId);
+
+    /// <summary>
+    /// Updates an existing user's details (e.g., Role, Email).
+    /// </summary>
+    /// <param name="userToUpdate">The user object with updated values.</param>
+    /// <returns>A Task that represents the asynchronous operation. 
+    /// The task result contains true if the user was found and updated; otherwise, false.</returns>
+    Task<bool> UpdateUserAsync(User userToUpdate);
 
     /// <summary>
     /// Resets a user's password. (Admin only)
