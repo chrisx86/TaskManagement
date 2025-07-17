@@ -32,6 +32,8 @@ namespace TodoApp.WinForms.Forms
         {
             this.components = new System.ComponentModel.Container();
             this.panelFilters = new System.Windows.Forms.Panel();
+            this.cmbFilterByUser = new System.Windows.Forms.ComboBox();
+            this.lblFilterByUser = new System.Windows.Forms.Label();
             this.chkFilterOverdue = new System.Windows.Forms.CheckBox();
             this.cmbFilterStatus = new System.Windows.Forms.ComboBox();
             this.lblFilterStatus = new System.Windows.Forms.Label();
@@ -102,6 +104,8 @@ namespace TodoApp.WinForms.Forms
             // 
             // panelFilters
             // 
+            this.panelFilters.Controls.Add(this.cmbFilterByUser);
+            this.panelFilters.Controls.Add(this.lblFilterByUser);
             this.panelFilters.Controls.Add(this.chkFilterOverdue);
             this.panelFilters.Controls.Add(this.cmbFilterStatus);
             this.panelFilters.Controls.Add(this.lblFilterStatus);
@@ -114,13 +118,33 @@ namespace TodoApp.WinForms.Forms
             this.panelFilters.Location = new System.Drawing.Point(0, 140);
             this.panelFilters.Name = "panelFilters";
             this.panelFilters.Padding = new System.Windows.Forms.Padding(5);
-            this.panelFilters.Size = new System.Drawing.Size(296, 180);
+            this.panelFilters.Size = new System.Drawing.Size(296, 210);
             this.panelFilters.TabIndex = 0;
+            // 
+            // cmbFilterByUser
+            // 
+            this.cmbFilterByUser.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.cmbFilterByUser.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbFilterByUser.FormattingEnabled = true;
+            this.cmbFilterByUser.Location = new System.Drawing.Point(100, 50);
+            this.cmbFilterByUser.Name = "cmbFilterByUser";
+            this.cmbFilterByUser.Size = new System.Drawing.Size(184, 23);
+            this.cmbFilterByUser.TabIndex = 9;
+            // 
+            // lblFilterByUser
+            // 
+            this.lblFilterByUser.AutoSize = true;
+            this.lblFilterByUser.Location = new System.Drawing.Point(12, 53);
+            this.lblFilterByUser.Name = "lblFilterByUser";
+            this.lblFilterByUser.Size = new System.Drawing.Size(55, 15);
+            this.lblFilterByUser.TabIndex = 8;
+            this.lblFilterByUser.Text = "使用者：";
             // 
             // chkFilterOverdue
             // 
             this.chkFilterOverdue.AutoSize = true;
-            this.chkFilterOverdue.Location = new System.Drawing.Point(100, 120);
+            this.chkFilterOverdue.Location = new System.Drawing.Point(100, 155);
             this.chkFilterOverdue.Name = "chkFilterOverdue";
             this.chkFilterOverdue.Size = new System.Drawing.Size(110, 19);
             this.chkFilterOverdue.TabIndex = 7;
@@ -133,7 +157,7 @@ namespace TodoApp.WinForms.Forms
             | System.Windows.Forms.AnchorStyles.Right)));
             this.cmbFilterStatus.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbFilterStatus.FormattingEnabled = true;
-            this.cmbFilterStatus.Location = new System.Drawing.Point(100, 85);
+            this.cmbFilterStatus.Location = new System.Drawing.Point(100, 120);
             this.cmbFilterStatus.Name = "cmbFilterStatus";
             this.cmbFilterStatus.Size = new System.Drawing.Size(184, 23);
             this.cmbFilterStatus.TabIndex = 6;
@@ -141,7 +165,7 @@ namespace TodoApp.WinForms.Forms
             // lblFilterStatus
             // 
             this.lblFilterStatus.AutoSize = true;
-            this.lblFilterStatus.Location = new System.Drawing.Point(12, 88);
+            this.lblFilterStatus.Location = new System.Drawing.Point(12, 123);
             this.lblFilterStatus.Name = "lblFilterStatus";
             this.lblFilterStatus.Size = new System.Drawing.Size(43, 15);
             this.lblFilterStatus.TabIndex = 5;
@@ -149,7 +173,7 @@ namespace TodoApp.WinForms.Forms
             // 
             // btnClearFilter
             // 
-            this.btnClearFilter.Location = new System.Drawing.Point(100, 145);
+            this.btnClearFilter.Location = new System.Drawing.Point(100, 180);
             this.btnClearFilter.Name = "btnClearFilter";
             this.btnClearFilter.Size = new System.Drawing.Size(75, 23);
             this.btnClearFilter.TabIndex = 4;
@@ -162,7 +186,7 @@ namespace TodoApp.WinForms.Forms
             | System.Windows.Forms.AnchorStyles.Right)));
             this.cmbFilterPriority.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbFilterPriority.FormattingEnabled = true;
-            this.cmbFilterPriority.Location = new System.Drawing.Point(100, 50);
+            this.cmbFilterPriority.Location = new System.Drawing.Point(100, 85);
             this.cmbFilterPriority.Name = "cmbFilterPriority";
             this.cmbFilterPriority.Size = new System.Drawing.Size(184, 23);
             this.cmbFilterPriority.TabIndex = 3;
@@ -170,7 +194,7 @@ namespace TodoApp.WinForms.Forms
             // lblFilterPriority
             // 
             this.lblFilterPriority.AutoSize = true;
-            this.lblFilterPriority.Location = new System.Drawing.Point(12, 53);
+            this.lblFilterPriority.Location = new System.Drawing.Point(12, 88);
             this.lblFilterPriority.Name = "lblFilterPriority";
             this.lblFilterPriority.Size = new System.Drawing.Size(59, 15);
             this.lblFilterPriority.TabIndex = 2;
@@ -687,6 +711,8 @@ namespace TodoApp.WinForms.Forms
         private System.Windows.Forms.TextBox txtSearch;
         private System.Windows.Forms.Label lblSearch;
         private System.Windows.Forms.ComboBox cmbFilterPriority;
+        private System.Windows.Forms.Label lblFilterByUser;
+        private System.Windows.Forms.ComboBox cmbFilterByUser;
         private System.Windows.Forms.Label lblFilterPriority;
         private System.Windows.Forms.Button btnClearFilter;
         private System.Windows.Forms.ToolStripStatusLabel lblStatus;

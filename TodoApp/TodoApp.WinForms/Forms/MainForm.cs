@@ -335,7 +335,7 @@ public partial class MainForm : Form
 
     private void DgvTasks_SelectionChanged(object? sender, EventArgs e)
     {
-        bool isRowSelected = dgvTasks.SelectedRows.Count > 0;
+        var isRowSelected = dgvTasks.SelectedRows.Count > 0;
         tsbEditTask.Enabled = isRowSelected;
         tsbDeleteTask.Enabled = isRowSelected;
 
@@ -428,7 +428,7 @@ public partial class MainForm : Form
     {
         if (e.RowIndex < 0 || dgvTasks.Rows[e.RowIndex].DataBoundItem is not TodoItem) return;
 
-        string columnName = dgvTasks.Columns[e.ColumnIndex].Name;
+        var columnName = dgvTasks.Columns[e.ColumnIndex].Name;
         if (columnName == "AssignedTo" && e.Value is User assignedUser) { e.Value = assignedUser.Username; e.FormattingApplied = true; }
         else if (columnName == "Creator" && e.Value is User creatorUser) { e.Value = creatorUser.Username; e.FormattingApplied = true; }
     }

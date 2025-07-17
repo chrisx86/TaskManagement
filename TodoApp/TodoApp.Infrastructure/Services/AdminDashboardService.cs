@@ -45,39 +45,39 @@ public class AdminDashboardService : IAdminDashboardService
             UnassignedTaskCount = allTasks.Count(t => t.AssignedToId == null)
         };
 
-        // --- STEP 3: FIXED - A robust grouping logic. ---
-
         // 3a. Initialize a dictionary with all users, each with an empty list of tasks.
         //     We use a custom User equality comparer to handle dictionary keys correctly.
-        var tasksByUser = new Dictionary<User, List<TodoItem>>(new UserEqualityComparer());
-        foreach (var user in allUsers)
-        {
-            tasksByUser[user] = new List<TodoItem>();
-        }
+        var tasksByUser = allUsers.ToDictionary(
+            user => user,
+            user => new List<TodoItem>(),
+            new UserEqualityComparer()
+        );
+        var unassignedUserKey = new User { Id = -1, Username = "(未指派的任務)" };
+        tasksByUser[unassignedUserKey] = new List<TodoItem>();
 
-        // 3b. Iterate through all tasks and place them in the correct user's "bucket".
-        //     The primary owner is the assignee. If not assigned, it's the creator.
         foreach (var task in allTasks)
         {
-            User? owner = null;
             if (task.AssignedTo != null)
             {
-                owner = task.AssignedTo;
+                // Task is assigned, find the correct user bucket.
+                if (tasksByUser.TryGetValue(task.AssignedTo, out var taskList))
+                {
+                    taskList.Add(task);
+                }
             }
-            else if (task.Creator != null)
+            else
             {
-                // Fallback to creator if not assigned
-                owner = task.Creator;
+                tasksByUser[unassignedUserKey].Add(task);
             }
+        }
 
-            if (owner != null && tasksByUser.ContainsKey(owner))
-            {
-                tasksByUser[owner].Add(task);
-            }
+        // Remove the unassigned group if it has no tasks, for a cleaner UI.
+        if (!tasksByUser[unassignedUserKey].Any())
+        {
+            tasksByUser.Remove(unassignedUserKey);
         }
 
         viewModel.GroupedTasks = tasksByUser;
-
         return viewModel;
     }
 }

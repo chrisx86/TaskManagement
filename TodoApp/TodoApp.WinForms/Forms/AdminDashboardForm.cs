@@ -44,6 +44,7 @@ public partial class AdminDashboardForm : Form
         this.cmbFilterPriority.SelectedIndexChanged += Filter_Changed;
         this.cmbFilterStatus.SelectedIndexChanged += Filter_Changed;
         this.chkFilterOverdue.CheckedChanged += Filter_Changed;
+        this.cmbFilterByUser.SelectedIndexChanged += Filter_Changed;
         this.btnClearFilter.Click += BtnClearFilter_Click;
 
         // TreeView
@@ -64,6 +65,7 @@ public partial class AdminDashboardForm : Form
 
     private async void AdminDashboardForm_Load(object? sender, EventArgs e)
     {
+        await PopulateUserFilterAsync();
         PopulateStatusFilter();
         PopulatePriorityFilter();
         await LoadAndDisplayDataAsync();
@@ -135,6 +137,23 @@ public partial class AdminDashboardForm : Form
         ApplyFiltersAndPopulateTree();
     }
 
+    private async Task PopulateUserFilterAsync()
+    {
+        var allUsers = await _userService.GetAllUsersAsync();
+        var userDataSource = new List<UserDisplayItem>
+        {
+            new UserDisplayItem { Id = 0, Username = "所有使用者" }
+        };
+        foreach (var user in allUsers.OrderBy(u => u.Username))
+        {
+            userDataSource.Add(new UserDisplayItem { Id = user.Id, Username = user.Username });
+        }
+
+        cmbFilterByUser.DataSource = userDataSource;
+        cmbFilterByUser.DisplayMember = nameof(UserDisplayItem.Username);
+        cmbFilterByUser.ValueMember = nameof(UserDisplayItem.Id);
+    }
+
     private void BtnClearFilter_Click(object? sender, EventArgs e)
     {
         _isUpdatingUI = true;
@@ -143,6 +162,7 @@ public partial class AdminDashboardForm : Form
             txtSearch.Clear();
             if (cmbFilterPriority.Items.Count > 0) cmbFilterPriority.SelectedIndex = 0;
             if (cmbFilterStatus.Items.Count > 0) cmbFilterStatus.SelectedIndex = 0;
+            if (cmbFilterByUser.Items.Count > 0) cmbFilterByUser.SelectedIndex = 0;
             chkFilterOverdue.Checked = false;
         }
         finally { _isUpdatingUI = false; }
@@ -164,16 +184,19 @@ public partial class AdminDashboardForm : Form
         var onlyShowOverdue = chkFilterOverdue.Checked;
         var now = DateTime.UtcNow;
 
+        int? userFilterId = (cmbFilterByUser.SelectedItem as UserDisplayItem)?.Id;
         // This list will hold all tasks from all users that match the current filters.
         // It's used to update the statistic cards dynamically.
         var allFilteredTasks = new List<TodoItem>();
-
         // Iterate through the cached user data, ordered by username for consistent display.
         foreach (var userTasksPair in _dashboardViewModel.GroupedTasks.OrderBy(p => p.Key.Username))
         {
             var user = userTasksPair.Key;
             IEnumerable<TodoItem> tasksToFilter = userTasksPair.Value;
-
+            if (userFilterId.HasValue && userFilterId > 0 && user.Id != userFilterId)
+            {
+                continue; // Skip this user entirely
+            }
             // --- Apply all filters sequentially to the user's task list ---
             if (!string.IsNullOrEmpty(searchTerm))
                 tasksToFilter = tasksToFilter.Where(t =>
