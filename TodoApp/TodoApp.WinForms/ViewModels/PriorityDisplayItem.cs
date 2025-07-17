@@ -1,5 +1,4 @@
 ﻿#nullable enable
-
 using TodoApp.Core.Models;
 
 namespace TodoApp.WinForms.ViewModels;

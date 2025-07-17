@@ -1,8 +1,8 @@
 #nullable enable
+using Microsoft.Extensions.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using TodoApp.Core.Models;
 using TodoApp.Core.Services;
 using TodoApp.Infrastructure.Data;
@@ -70,7 +70,6 @@ internal static class Program
         // This makes it available via IOptions<SmtpSettings> to any service that needs it.
         services.Configure<SmtpSettings>(configuration.GetSection("SmtpSettings"));
 
-        // --- Database Context ---
         string? connectionString = configuration.GetConnectionString("DefaultConnection");
         if (string.IsNullOrEmpty(connectionString))
         {
@@ -80,20 +79,17 @@ internal static class Program
             options.UseSqlite(connectionString),
             ServiceLifetime.Transient);
 
-        // --- Core Services ---
         services.AddSingleton<IUserContext, UserContext>();
         services.AddTransient<IUserService, UserService>();
         services.AddTransient<ITaskService, TaskService>();
         services.AddTransient<IAdminDashboardService, AdminDashboardService>();
         services.AddTransient<IEmailService, EmailService>();
 
-        // --- Forms ---
         services.AddTransient<LoginForm>();
         services.AddTransient<MainForm>();
         services.AddTransient<TaskDetailDialog>();
         services.AddTransient<UserManagementDialog>();
         services.AddTransient<AdminDashboardForm>();
-        // PasswordInputDialog is created manually, so no need to register it here.
     }
 
     /// <summary>
