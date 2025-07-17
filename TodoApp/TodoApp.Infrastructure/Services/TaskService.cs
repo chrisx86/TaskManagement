@@ -92,20 +92,39 @@ public class TaskService : ITaskService
         var trackedTask = await _context.TodoItems.FindAsync(taskFromUI.Id);
         if (trackedTask == null)
         {
-            throw new DbUpdateConcurrencyException($"操作失敗：找不到 ID 為 {taskFromUI.Id} 的任務，它可能已被刪除。");
+            throw new DbUpdateConcurrencyException($"操作失敗：找不到 ID 為 {taskFromUI.Id} 的任務。");
         }
 
-        _context.Entry(trackedTask).CurrentValues.SetValues(taskFromUI);
+        // --- Concurrency Check ---
+        // We need to compare the concurrency token BEFORE we overwrite it.
+        // The value from the UI represents the state when the user started editing.
+        if (trackedTask.LastModifiedDate != taskFromUI.LastModifiedDate)
+        {
+            throw new DbUpdateConcurrencyException("資料已被他人修改，請重新整理後再試。");
+        }
+
+        // --- Apply Updates ---
+        // Copy all properties EXCEPT the concurrency token itself.
+        trackedTask.Title = taskFromUI.Title;
+        trackedTask.Comments = taskFromUI.Comments;
+        trackedTask.Status = taskFromUI.Status;
+        trackedTask.Priority = taskFromUI.Priority;
+        trackedTask.DueDate = taskFromUI.DueDate;
+        trackedTask.AssignedToId = taskFromUI.AssignedToId;
+
+        // Now, set a new concurrency token for this update.
         trackedTask.LastModifiedDate = DateTime.Now;
 
         try
         {
             await _context.SaveChangesAsync();
+            // Pass the updated, tracked entity to the notification service.
             _ = NotifyTaskChangeAsync(trackedTask, currentUser, "更新");
         }
         catch (DbUpdateConcurrencyException ex)
         {
-            throw new Exception("資料已被他人修改，請重新整理後再試。", ex);
+            // This catch block is now a fallback, but the manual check above is the primary guard.
+            throw new Exception("儲存時發生並行衝突，請重試。", ex);
         }
     }
 

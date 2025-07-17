@@ -1,11 +1,10 @@
 ﻿#nullable enable
-using Microsoft.EntityFrameworkCore;
 using TodoApp.Core.Models;
 using TodoApp.Core.Services;
 using TodoApp.Core.ViewModels;
 using TodoApp.Infrastructure.Data;
 using TodoApp.Infrastructure.Comparers;
-using TodoStatus = TodoApp.Core.Models.TodoStatus;
+using Microsoft.EntityFrameworkCore;
 
 namespace TodoApp.Infrastructure.Services;
 

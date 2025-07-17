@@ -3,13 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34728.123
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TodoApp.WinForms", "TodoApp.WinForms\TodoApp.WinForms.csproj", "{EFFEC8AA-57DD-4882-80DD-1BB48DAC91FD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TodoApp.WinForms", "TodoApp.WinForms\TodoApp.WinForms.csproj", "{EFFEC8AA-57DD-4882-80DD-1BB48DAC91FD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TodoApp.Core", "TodoApp.Core\TodoApp.Core.csproj", "{AFFCC19E-DB39-4B53-B316-91EF5A6DF3EF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TodoApp.Core", "TodoApp.Core\TodoApp.Core.csproj", "{AFFCC19E-DB39-4B53-B316-91EF5A6DF3EF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TodoApp.Infrastructure", "TodoApp.Infrastructure\TodoApp.Infrastructure.csproj", "{D9C62896-D2CF-48C1-9620-FDB6254546B2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TodoApp.Infrastructure", "TodoApp.Infrastructure\TodoApp.Infrastructure.csproj", "{D9C62896-D2CF-48C1-9620-FDB6254546B2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TodoApp.Tools", "TodoApp.Tools\TodoApp.Tools.csproj", "{4C6C10A7-A992-4814-A8EA-971488D5F92D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TodoApp.Tools", "TodoApp.Tools\TodoApp.Tools.csproj", "{4C6C10A7-A992-4814-A8EA-971488D5F92D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TodoApp.Infrastructure.Tests", "TodoApp.Tests\TodoApp.Infrastructure.Tests.csproj", "{D5A13408-617D-4DCB-B80E-5AE0A272BCF9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{4C6C10A7-A992-4814-A8EA-971488D5F92D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4C6C10A7-A992-4814-A8EA-971488D5F92D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4C6C10A7-A992-4814-A8EA-971488D5F92D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D5A13408-617D-4DCB-B80E-5AE0A272BCF9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5A13408-617D-4DCB-B80E-5AE0A272BCF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5A13408-617D-4DCB-B80E-5AE0A272BCF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5A13408-617D-4DCB-B80E-5AE0A272BCF9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
