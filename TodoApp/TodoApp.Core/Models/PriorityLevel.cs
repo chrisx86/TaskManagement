@@ -1,5 +1,4 @@
-﻿// The namespace should match the project and folder structure.
-namespace TodoApp.Core.Models;
+﻿namespace TodoApp.Core.Models;
 
 /// <summary>
 /// Defines the priority levels for a to-do item.
@@ -7,12 +6,8 @@ namespace TodoApp.Core.Models;
 /// </summary>
 public enum PriorityLevel
 {
-    // The default value will be 0.
     Low,
-
-    // This will have a value of 1.
     Medium,
-
-    // This will have a value of 2.
-    High
+    High,
+    Urgent
 }

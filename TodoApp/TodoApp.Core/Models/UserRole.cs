@@ -1,5 +1,4 @@
-﻿// The namespace should match the project and folder structure.
-namespace TodoApp.Core.Models;
+﻿namespace TodoApp.Core.Models;
 
 /// <summary>
 /// Defines the roles a user can have within the system,
@@ -7,9 +6,6 @@ namespace TodoApp.Core.Models;
 /// </summary>
 public enum UserRole
 {
-    // Standard user with limited permissions.
     User,
-
-    // Administrator with full permissions.
     Admin
 }

@@ -1,6 +1,6 @@
 #nullable enable
-using System.ComponentModel;
 using System.Reflection;
+using System.ComponentModel;
 using TodoApp.Core.Models;
 using TodoApp.Core.Services;
 using TodoApp.WinForms.ViewModels;
@@ -154,21 +154,16 @@ public partial class MainForm : Form
 
     private async void TsbChangePassword_Click(object? sender, EventArgs e)
     {
-        // 1. Create an instance of our new dialog.
         using (var passwordDialog = new PasswordInputDialog("修改密碼", "請輸入並確認您的新密碼："))
         {
-            // 2. Show the dialog and check the result.
             if (passwordDialog.ShowDialog(this) == DialogResult.OK)
             {
-                // 3. Get the validated password from the dialog's public property.
                 string? newPassword = passwordDialog.NewPassword;
 
-                // This check is for extra safety, though the dialog's logic should prevent this.
                 if (string.IsNullOrEmpty(newPassword)) return;
 
                 try
                 {
-                    // 4. Call the service with the new password.
                     bool success = await _userService.ResetPasswordAsync(_currentUser.Id, newPassword);
 
                     if (success)
@@ -188,7 +183,6 @@ public partial class MainForm : Form
         }
     }
 
-    // --- Requirement 2: Switch User ---
     private void TsbSwitchUser_Click(object? sender, EventArgs e)
     {
         // Show a confirmation dialog before logging out.
@@ -345,8 +339,6 @@ public partial class MainForm : Form
         _allUsers = await _userService.GetAllUsersAsync();
         var userFilterItems = new List<UserDisplayItem>
         {
-            // --- FIXED: Use the sentinel value 0 instead of null for the 'All' option's Id. ---
-            // This aligns with the non-nullable 'int' type of the UserDisplayItem.Id property.
             new UserDisplayItem { Username = "所有人", Id = 0 }
         };
 
@@ -455,7 +447,7 @@ public partial class MainForm : Form
     private async void Filter_Changed(object? sender, EventArgs e)
     {
         if (_isUpdatingUI) return;
-        _currentPage = 1; // Reset to the first page when filters change
+        _currentPage = 1;
         await LoadTasksAsync();
     }
 
@@ -465,22 +457,18 @@ public partial class MainForm : Form
     /// </summary>
     private void UpdatePaginationUI()
     {
-        // If there are no tasks, display a simple message.
         lblPageInfo.Text = (_totalTasks == 0) ? "沒有符合條件的任務" : $"第 {_currentPage} / {_totalPages} 頁 (共 {_totalTasks} 筆)";
 
-        // Update the text box without triggering its own event.
         _isUpdatingUI = true;
         txtCurrentPage.Text = _currentPage.ToString();
         _isUpdatingUI = false;
 
-        // Enable or disable navigation buttons based on the current page.
         btnFirstPage.Enabled = _currentPage > 1;
         btnPreviousPage.Enabled = _currentPage > 1;
         btnNextPage.Enabled = _currentPage < _totalPages;
         btnLastPage.Enabled = _currentPage < _totalPages;
     }
 
-    // --- NEW: Method to handle page changes ---
     private async void ChangePage(int newPageNumber)
     {
         if (newPageNumber >= 1 && newPageNumber <= _totalPages && newPageNumber != _currentPage)
@@ -490,12 +478,11 @@ public partial class MainForm : Form
         }
     }
 
-    // --- NEW: Event handlers for pagination controls ---
     private async void CmbPageSize_Changed(object? sender, EventArgs e)
     {
         if (_isUpdatingUI) return;
         _pageSize = (int)cmbPageSize.SelectedItem!;
-        _currentPage = 1; // Reset to first page when page size changes
+        _currentPage = 1;
         await LoadTasksAsync();
     }
 
@@ -543,7 +530,6 @@ public partial class MainForm : Form
         tsbEditTask.Enabled = isRowSelected;
         tsbDeleteTask.Enabled = isRowSelected;
 
-        // This code will now compile and work correctly.
         if (isRowSelected && dgvTasks.SelectedRows[0].DataBoundItem is TodoItem selectedTask)
         {
             txtCommentsPreview.Text = selectedTask.Comments ?? "(此任務沒有備註)";
@@ -556,8 +542,7 @@ public partial class MainForm : Form
 
     private async void DgvTasks_CellValueChanged(object? sender, DataGridViewCellEventArgs e)
     {
-        if (e.RowIndex < 0 || dgvTasks.Columns[e.ColumnIndex].Name != "Status") return;
-        if (dgvTasks.Rows[e.RowIndex].DataBoundItem is not TodoItem changedTask) return;
+        if (e.RowIndex < 0 || dgvTasks.Columns[e.ColumnIndex].Name != "Status" || dgvTasks.Rows[e.RowIndex].DataBoundItem is not TodoItem changedTask) return;
 
         try
         {
@@ -598,37 +583,45 @@ public partial class MainForm : Form
 
     private void DgvTasks_RowPrePaint(object? sender, DataGridViewRowPrePaintEventArgs e)
     {
-        // Ignore the row for new records if it's visible.
         if (e.RowIndex < 0 || e.RowIndex == dgvTasks.NewRowIndex) return;
-
-        // Get the underlying TodoItem for the current row.
         if (dgvTasks.Rows[e.RowIndex].DataBoundItem is not TodoItem task) return;
-
-        // --- Requirement #5: Conditional Row Styling Logic ---
-        var now = DateTime.UtcNow;
-        bool isOverdue = task.DueDate.HasValue && task.DueDate < now && task.Status != TodoStatus.Completed;
-        bool isDueSoon = task.DueDate.HasValue && task.DueDate >= now && task.DueDate < now.AddDays(2) && task.Status != TodoStatus.Completed;
 
         var row = dgvTasks.Rows[e.RowIndex];
 
-        if (isOverdue)
+        var defaultStyle = new DataGridViewCellStyle { BackColor = SystemColors.Window, ForeColor = SystemColors.ControlText, Font = new Font(this.Font, FontStyle.Regular) };
+        var overdueStyle = new DataGridViewCellStyle { BackColor = Color.MistyRose, ForeColor = Color.DarkRed, Font = new Font(this.Font, FontStyle.Bold) };
+        var dueSoonStyle = new DataGridViewCellStyle { BackColor = Color.LightYellow, ForeColor = Color.DarkGoldenrod, Font = new Font(this.Font, FontStyle.Regular) };
+        var completedStyle = new DataGridViewCellStyle { BackColor = Color.Honeydew, ForeColor = Color.DarkGray, Font = new Font(this.Font, FontStyle.Strikeout) };
+        var urgentStyle = new DataGridViewCellStyle { BackColor = Color.Plum, ForeColor = Color.White, Font = new Font(this.Font, FontStyle.Bold) }; // New style for Urgent
+
+        DataGridViewCellStyle targetStyle = defaultStyle;
+
+        var now = DateTime.Now;
+        bool isOverdue = task.DueDate.HasValue && task.DueDate < now && task.Status != TodoStatus.Completed;
+        bool isDueSoon = task.DueDate.HasValue && task.DueDate >= now && task.DueDate < now.AddDays(3) && task.Status != TodoStatus.Completed;
+
+        if (task.Status == TodoStatus.Completed)
         {
-            row.DefaultCellStyle.BackColor = Color.MistyRose;
-            row.DefaultCellStyle.ForeColor = Color.DarkRed;
-            row.DefaultCellStyle.Font = new Font(this.Font, FontStyle.Bold);
+            targetStyle = completedStyle;
+        }
+        else if (task.Priority == PriorityLevel.Urgent)
+        {
+            targetStyle = urgentStyle;
+        }
+        else if (isOverdue)
+        {
+            targetStyle = overdueStyle;
         }
         else if (isDueSoon)
         {
-            row.DefaultCellStyle.BackColor = Color.Yellow;
-            row.DefaultCellStyle.ForeColor = Color.Orange;
-            row.DefaultCellStyle.Font = new Font(this.Font, FontStyle.Regular);
+            targetStyle = dueSoonStyle;
         }
-        else
+
+        if (row.DefaultCellStyle.BackColor != targetStyle.BackColor ||
+            row.DefaultCellStyle.ForeColor != targetStyle.ForeColor ||
+            !row.DefaultCellStyle.Font.Equals(targetStyle.Font))
         {
-            // --- CRITICAL: Reset to default style for all other rows ---
-            row.DefaultCellStyle.BackColor = SystemColors.Window;
-            row.DefaultCellStyle.ForeColor = SystemColors.ControlText;
-            row.DefaultCellStyle.Font = new Font(this.Font, FontStyle.Regular);
+            row.DefaultCellStyle = targetStyle;
         }
     }
 

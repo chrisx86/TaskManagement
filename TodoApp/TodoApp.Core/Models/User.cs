@@ -1,5 +1,4 @@
-﻿// The namespace should match the project and folder structure.
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace TodoApp.Core.Models;
 
