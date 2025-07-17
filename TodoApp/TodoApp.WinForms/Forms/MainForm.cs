@@ -74,6 +74,7 @@ public partial class MainForm : Form
         this.dgvTasks.CellClick += DgvTasks_CellClick;
         this.dgvTasks.CellValueChanged += DgvTasks_CellValueChanged;
         this.dgvTasks.CellBeginEdit += DgvTasks_CellBeginEdit;
+        this.dgvTasks.CellToolTipTextNeeded += DgvTasks_CellToolTipTextNeeded;
 
         // ToolStrip Events
         this.tsbNewTask.Click += TsbNewTask_Click;
@@ -122,10 +123,32 @@ public partial class MainForm : Form
 
     private void SetupDataGridView()
     {
+        // --- PERFORMANCE OPTIMIZATION ---
+        // Use Double-Buffering to reduce flicker during repaint.
+        // This requires setting the property via reflection as it's protected.
+        typeof(DataGridView).InvokeMember(
+            "DoubleBuffered",
+            BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.SetProperty,
+            null,
+            this.dgvTasks,
+            new object[] { true }
+        );
+
         dgvTasks.AutoGenerateColumns = false;
         dgvTasks.DataSource = _tasksBindingList;
+
+        // --- CRITICAL FIX: Disable automatic row sizing ---
+        // Change from AllCells to None. We will manage row height manually if needed,
+        // or use a ToolTip to show full text. This is the single biggest performance gain.
+        dgvTasks.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None;
+
+        // Set a reasonable, fixed row height.
+        dgvTasks.RowTemplate.Height = 30; // Adjust as needed
+
+        // Keep WrapMode for individual cells, but it won't affect row height anymore.
+        // Text will wrap if the cell is tall enough (e.g., if manually resized).
         dgvTasks.DefaultCellStyle.WrapMode = DataGridViewTriState.True;
-        dgvTasks.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
+
         dgvTasks.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
         dgvTasks.RowHeadersVisible = false;
         dgvTasks.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
@@ -144,18 +167,18 @@ public partial class MainForm : Form
         };
         dgvTasks.Columns.Add(statusColumn);
 
-        dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "Title", HeaderText = "標題", DataPropertyName = "Title", Width = 300, SortMode = DataGridViewColumnSortMode.Programmatic });
-        dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "Priority", HeaderText = "優先級", DataPropertyName = "Priority", Width = 80, SortMode = DataGridViewColumnSortMode.Programmatic });
-        dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "DueDate", HeaderText = "到期日", DataPropertyName = "DueDate", Width = 110, DefaultCellStyle = { Format = "yyyy-MM-dd" }, SortMode = DataGridViewColumnSortMode.Programmatic });
-        dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "AssignedTo", HeaderText = "指派給", DataPropertyName = "AssignedTo", Width = 100, SortMode = DataGridViewColumnSortMode.Programmatic });
-        dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "Creator", HeaderText = "建立者", DataPropertyName = "Creator", Width = 100, SortMode = DataGridViewColumnSortMode.Programmatic });
-        dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "CreationDate", HeaderText = "建立日期", DataPropertyName = "CreationDate", Width = 140, DefaultCellStyle = { Format = "yyyy-MM-dd HH:mm" }, ReadOnly = true, SortMode = DataGridViewColumnSortMode.Programmatic });
-        dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "LastModifiedDate", HeaderText = "最後更新", DataPropertyName = "LastModifiedDate", Width = 140, DefaultCellStyle = { Format = "yyyy-MM-dd HH:mm" }, ReadOnly = true, SortMode = DataGridViewColumnSortMode.Programmatic });
+        dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "Title", HeaderText = "標題", DataPropertyName = "Title", Width = 520, SortMode = DataGridViewColumnSortMode.Programmatic });
+        dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "Priority", HeaderText = "優先級", DataPropertyName = "Priority", Width = 70, SortMode = DataGridViewColumnSortMode.Programmatic });
+        dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "DueDate", HeaderText = "到期日", DataPropertyName = "DueDate", Width = 80, DefaultCellStyle = { Format = "yyyy-MM-dd" }, SortMode = DataGridViewColumnSortMode.Programmatic });
+        dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "AssignedTo", HeaderText = "指派給", DataPropertyName = "AssignedTo", Width = 80, SortMode = DataGridViewColumnSortMode.Programmatic });
+        dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "Creator", HeaderText = "建立者", DataPropertyName = "Creator", Width = 80, SortMode = DataGridViewColumnSortMode.Programmatic });
+        dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "CreationDate", HeaderText = "建立日期", DataPropertyName = "CreationDate", Width = 80, DefaultCellStyle = { Format = "yyyy-MM-dd" }, ReadOnly = true, SortMode = DataGridViewColumnSortMode.Programmatic });
+        dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "LastModifiedDate", HeaderText = "最後更新", DataPropertyName = "LastModifiedDate", Width = 120, DefaultCellStyle = { Format = "yyyy-MM-dd HH:mm" }, ReadOnly = true, SortMode = DataGridViewColumnSortMode.Programmatic });
     }
 
     private void SetupUIPermissions()
     {
-        bool isAdmin = _currentUser.Role == UserRole.Admin;
+        var isAdmin = _currentUser.Role == UserRole.Admin;
         tsbUserManagement.Visible = isAdmin;
         tsbAdminDashboard.Visible = isAdmin;
         lblFilterByAssignedUser.Visible = isAdmin;
@@ -349,7 +372,6 @@ public partial class MainForm : Form
         Color targetBackColor = SystemColors.Window;
         Color targetForeColor = SystemColors.ControlText;
 
-        // Determine the target style based on task properties
         var now = DateTime.Now;
         if (task.Status == TodoStatus.Completed)
         {
@@ -372,7 +394,6 @@ public partial class MainForm : Form
             targetForeColor = Color.DarkGoldenrod;
         }
 
-        // --- The most robust fix: Apply style only when it has changed ---
         if (row.DefaultCellStyle.BackColor != targetBackColor)
         {
             row.DefaultCellStyle.BackColor = targetBackColor;
@@ -382,8 +403,6 @@ public partial class MainForm : Form
             row.DefaultCellStyle.ForeColor = targetForeColor;
         }
 
-        // For now, let's avoid changing the Font object here as it's a common source of flickering.
-        // If strikeout/bold is critical, it should be applied carefully in CellFormatting.
         Font expectedFont;
         if (task.Status == TodoStatus.Completed)
         {
@@ -452,6 +471,31 @@ public partial class MainForm : Form
             {
                 e.Cancel = true;
                 lblStatus.Text = "您沒有權限修改此任務的狀態。";
+            }
+        }
+    }
+
+    private void DgvTasks_CellToolTipTextNeeded(object? sender, DataGridViewCellToolTipTextNeededEventArgs e)
+    {
+        // Ignore headers and invalid rows
+        if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
+
+        // Get the cell and its value
+        var cell = dgvTasks.Rows[e.RowIndex].Cells[e.ColumnIndex];
+        var cellValue = cell.Value?.ToString();
+
+        if (string.IsNullOrEmpty(cellValue)) return;
+
+        // Use the graphics object to measure the size of the text
+        using (Graphics g = this.CreateGraphics())
+        {
+            // Get the size required to display the full text
+            var textSize = g.MeasureString(cellValue, dgvTasks.Font);
+
+            // If the required width is greater than the cell's width, show the tooltip.
+            if (textSize.Width > cell.Size.Width)
+            {
+                e.ToolTipText = cellValue;
             }
         }
     }

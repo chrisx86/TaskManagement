@@ -410,9 +410,9 @@ namespace TodoApp.WinForms.Forms
             // 
             // MainForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1264, 761);
+            this.ClientSize = new System.Drawing.Size(1000, 600);
             this.Controls.Add(this.splitContainerMain);
             this.Controls.Add(this.panelPagination);
             this.Controls.Add(this.panelFilters);
@@ -420,7 +420,7 @@ namespace TodoApp.WinForms.Forms
             this.Controls.Add(this.toolStrip1);
             this.MinimumSize = new System.Drawing.Size(1024, 600);
             this.Name = "MainForm";
-            this.Text = "待辦事項清單";
+            this.Text = "Task Management";
             this.toolStrip1.ResumeLayout(false);
             this.toolStrip1.PerformLayout();
             this.statusStrip1.ResumeLayout(false);
