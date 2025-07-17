@@ -168,13 +168,19 @@ public partial class TaskDetailDialog : Form
         }
         try
         {
-            if (_editingTask == null)
+            var currentUser = _userContext.CurrentUser;
+            if (currentUser == null)
             {
-                // --- CREATE MODE ---
+                MessageBox.Show("無法獲取當前使用者資訊，請重新登入。");
+                return;
+            }
+
+            if (_editingTask == null) // CREATE MODE
+            {
                 await _taskService.CreateTaskAsync(
+                    currentUser,
                     txtTitle.Text.Trim(),
                     txtComments.Text.Trim(),
-                    _userContext.CurrentUser!.Id,
                     priority,
                     dueDate,
                     assignedToId
@@ -189,7 +195,7 @@ public partial class TaskDetailDialog : Form
                 _editingTask.AssignedToId = assignedToId;
                 _editingTask.DueDate = dueDate;
 
-                await _taskService.UpdateTaskAsync(_editingTask);
+                await _taskService.UpdateTaskAsync(currentUser, _editingTask);
             }
 
             this.DialogResult = DialogResult.OK;

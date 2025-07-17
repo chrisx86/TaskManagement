@@ -105,7 +105,7 @@ namespace TodoApp.WinForms.Forms
             this.btnSaveUser.Name = "btnSaveUser";
             this.btnSaveUser.Size = new System.Drawing.Size(75, 23);
             this.btnSaveUser.TabIndex = 9;
-            this.btnSaveUser.Text = "儲存";
+            this.btnSaveUser.Text = "新增使用者";
             this.btnSaveUser.UseVisualStyleBackColor = true;
             this.btnSaveUser.Click += new System.EventHandler(this.btnSaveUser_Click);
             // 
@@ -194,9 +194,9 @@ namespace TodoApp.WinForms.Forms
             this.btnClear.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnClear.Location = new System.Drawing.Point(207, 249);
             this.btnClear.Name = "btnClear";
-            this.btnClear.Size = new System.Drawing.Size(100, 23);
+            this.btnClear.Size = new System.Drawing.Size(75, 23);
             this.btnClear.TabIndex = 10;
-            this.btnClear.Text = "新增使用者模式";
+            this.btnClear.Text = "清除";
             this.btnClear.UseVisualStyleBackColor = true;
             this.btnClear.Click += new System.EventHandler(this.btnClear_Click);
             // 

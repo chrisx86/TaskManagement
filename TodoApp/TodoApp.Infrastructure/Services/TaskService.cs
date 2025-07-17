@@ -2,33 +2,36 @@
 using TodoApp.Core.Models;
 using TodoApp.Core.Services;
 using TodoApp.Infrastructure.Data;
+using TodoApp.Infrastructure.Comparers;
 using Microsoft.EntityFrameworkCore;
 
 namespace TodoApp.Infrastructure.Services;
 
 /// <summary>
-/// Implements the ITaskService interface, providing concrete business logic for task management.
+/// Implements the ITaskService, providing concrete business logic for task management.
 /// </summary>
 public class TaskService : ITaskService
 {
     private readonly AppDbContext _context;
+    private readonly IEmailService _emailService;
+    private readonly IUserService _userService;
 
-    public TaskService(AppDbContext context)
+    public TaskService(AppDbContext context, IEmailService emailService, IUserService userService)
     {
         _context = context;
+        _emailService = emailService;
+        _userService = userService;
     }
+
     public async Task<TodoItem?> GetTaskByIdAsync(int taskId)
     {
-        // Find the task and include all necessary related data for editing.
         return await _context.TodoItems
             .Include(t => t.Creator)
             .Include(t => t.AssignedTo)
+            .AsNoTracking() // Use AsNoTracking for read-only queries
             .FirstOrDefaultAsync(t => t.Id == taskId);
     }
 
-    /// <summary>
-    /// Retrieves a list of to-do items based on specified filter criteria.
-    /// </summary>
     public async Task<List<TodoItem>> GetAllTasksAsync(
         TodoStatus? statusFilter,
         UserTaskFilter userFilter,
@@ -39,14 +42,10 @@ public class TaskService : ITaskService
     {
         var query = BuildFilteredQuery(statusFilter, userFilter, currentUserId, assignedToUserIdFilter);
 
-        // Apply ordering BEFORE pagination
-        var orderedQuery = query
-            .OrderBy(t => t.Status == TodoStatus.InProgress ? 0 : (t.Status == TodoStatus.Pending ? 1 : 2))
-            .ThenByDescending(t => t.Priority)
-            .ThenBy(t => t.DueDate ?? DateTime.MaxValue);
-
-        // Apply pagination. EF Core will translate this to efficient SQL.
-        return await orderedQuery
+        // Sorting is now handled by the client (MainForm).
+        // A default, stable order by Id is good practice for consistent paging.
+        return await query
+            .OrderBy(t => t.Id)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .Include(t => t.Creator)
@@ -61,23 +60,19 @@ public class TaskService : ITaskService
         int? assignedToUserIdFilter)
     {
         var query = BuildFilteredQuery(statusFilter, userFilter, currentUserId, assignedToUserIdFilter);
-        // CountAsync is highly optimized at the database level.
         return await query.CountAsync();
     }
 
-    /// <summary>
-    /// Creates a new to-do item.
-    /// </summary>
-    public async Task<TodoItem> CreateTaskAsync(string title, string? comments, int creatorId, PriorityLevel priority, DateTime? dueDate, int? assignedToId)
+    public async Task<TodoItem> CreateTaskAsync(User currentUser, string title, string? comments, PriorityLevel priority, DateTime? dueDate, int? assignedToId)
     {
         var now = DateTime.Now;
         var newTask = new TodoItem
         {
             Title = title,
             Comments = comments,
-            CreatorId = creatorId,
+            CreatorId = currentUser.Id,
             Priority = priority,
-            DueDate = dueDate,
+            DueDate = dueDate?.Date,
             AssignedToId = assignedToId,
             Status = TodoStatus.Pending,
             CreationDate = now,
@@ -87,33 +82,26 @@ public class TaskService : ITaskService
         _context.TodoItems.Add(newTask);
         await _context.SaveChangesAsync();
 
-        return await _context.TodoItems
-            .Include(t => t.Creator)
-            .Include(t => t.AssignedTo)
-            .AsNoTracking()
-            .FirstAsync(t => t.Id == newTask.Id);
+        _ = NotifyTaskChangeAsync(newTask, currentUser, "建立");
+
+        return await GetTaskByIdAsync(newTask.Id) ?? newTask;
     }
 
-    /// <summary>
-    /// Updates an existing to-do item, handling concurrency.
-    /// </summary>
-    public async Task UpdateTaskAsync(TodoItem taskFromUI)
+    public async Task UpdateTaskAsync(User currentUser, TodoItem taskFromUI)
     {
-        // We still use the "Find then Update" pattern as it's the most robust.
         var trackedTask = await _context.TodoItems.FindAsync(taskFromUI.Id);
-
         if (trackedTask == null)
         {
-            throw new Exception($"操作失敗：找不到 ID 為 {taskFromUI.Id} 的任務，它可能已被刪除。");
+            throw new DbUpdateConcurrencyException($"操作失敗：找不到 ID 為 {taskFromUI.Id} 的任務，它可能已被刪除。");
         }
 
         _context.Entry(trackedTask).CurrentValues.SetValues(taskFromUI);
-
         trackedTask.LastModifiedDate = DateTime.Now;
 
         try
         {
             await _context.SaveChangesAsync();
+            _ = NotifyTaskChangeAsync(trackedTask, currentUser, "更新");
         }
         catch (DbUpdateConcurrencyException ex)
         {
@@ -121,90 +109,72 @@ public class TaskService : ITaskService
         }
     }
 
-    /// <summary>
-    /// Deletes a to-do item after checking permissions.
-    /// </summary>
-    public async Task DeleteTaskAsync(int taskId, int currentUserId, bool isCurrentUserAdmin)
+    public async Task DeleteTaskAsync(User currentUser, int taskId)
     {
-        var task = await _context.TodoItems.FindAsync(taskId);
-        if (task == null)
+        var taskToDelete = await _context.TodoItems.FindAsync(taskId);
+        if (taskToDelete is null) return;
+
+        if (currentUser.Role != UserRole.Admin && taskToDelete.CreatorId != currentUser.Id)
         {
-            // If the task is already deleted, we can just return.
-            return;
+            throw new UnauthorizedAccessException("您沒有權限刪除此任務。");
         }
 
-        // --- Permission Check ---
-        if (!isCurrentUserAdmin && task.CreatorId != currentUserId)
+        var tombstone = new TodoItem
         {
-            throw new UnauthorizedAccessException("您沒有權限刪除此任務，只有任務建立者或管理員可以刪除。");
-        }
+            Id = taskToDelete.Id,
+            Title = taskToDelete.Title,
+            Status = taskToDelete.Status,
+            Priority = taskToDelete.Priority,
+            DueDate = taskToDelete.DueDate,
+            AssignedToId = taskToDelete.AssignedToId
+        };
 
-        _context.TodoItems.Remove(task);
+        _context.TodoItems.Remove(taskToDelete);
         await _context.SaveChangesAsync();
+        _ = NotifyTaskChangeTombstoneAsync(tombstone, currentUser, "刪除");
     }
 
-    /// <summary>
-    /// Gets all tasks grouped by user, optimized for the admin dashboard.
-    /// </summary>
+    // --- THIS IS THE MISSING METHOD IMPLEMENTATION ---
     public async Task<Dictionary<User, List<TodoItem>>> GetTasksGroupedByUserAsync()
     {
-        // Fetch all users that have any relation to tasks (creator or assignee)
-        // This is more efficient than loading all users.
-        var relevantUserIds = await _context.TodoItems
-            .Select(t => t.CreatorId)
-            .Union(_context.TodoItems.Where(t => t.AssignedToId.HasValue).Select(t => t.AssignedToId!.Value))
-            .Distinct()
-            .ToListAsync();
-
-        var relevantUsers = await _context.Users
-            .Where(u => relevantUserIds.Contains(u.Id))
-            .ToDictionaryAsync(u => u.Id);
-
-        // Fetch all tasks and group them in memory.
+        var allUsers = await _context.Users.AsNoTracking().ToListAsync();
         var allTasks = await _context.TodoItems
+            .Include(t => t.Creator)
+            .Include(t => t.AssignedTo)
             .AsNoTracking()
             .ToListAsync();
 
-        var tasksByUser = relevantUsers.Values.ToDictionary(user => user, user => new List<TodoItem>());
+        var tasksByUser = allUsers.ToDictionary(
+            user => user,
+            user => new List<TodoItem>(),
+            new UserEqualityComparer()
+        );
 
         foreach (var task in allTasks)
         {
-            // The task belongs to the user it is assigned to.
-            if (task.AssignedToId.HasValue && relevantUsers.TryGetValue(task.AssignedToId.Value, out var assignee))
+            User? owner = task.AssignedTo ?? task.Creator;
+            if (owner != null)
             {
-                if (!tasksByUser.ContainsKey(assignee))
+                if (tasksByUser.TryGetValue(owner, out var taskList))
                 {
-                    tasksByUser[assignee] = new List<TodoItem>();
+                    taskList.Add(task);
                 }
-                tasksByUser[assignee].Add(task);
-            }
-            // If not assigned, it belongs to the creator.
-            else if (relevantUsers.TryGetValue(task.CreatorId, out var creator))
-            {
-                if (!tasksByUser.ContainsKey(creator))
-                {
-                    tasksByUser[creator] = new List<TodoItem>();
-                }
-                tasksByUser[creator].Add(task);
             }
         }
-
         return tasksByUser;
     }
 
-    // A private helper method to build the base query with filters
+    #region Private Helpers
+
     private IQueryable<TodoItem> BuildFilteredQuery(
-        TodoStatus? statusFilter, // Use the alias
+        TodoStatus? statusFilter,
         UserTaskFilter userFilter,
         int currentUserId,
         int? assignedToUserIdFilter)
     {
         var query = _context.TodoItems.AsNoTracking();
 
-        if (statusFilter.HasValue)
-        {
-            query = query.Where(t => t.Status == statusFilter.Value);
-        }
+        if (statusFilter.HasValue) { query = query.Where(t => t.Status == statusFilter.Value); }
 
         switch (userFilter)
         {
@@ -216,9 +186,144 @@ public class TaskService : ITaskService
                 break;
         }
 
-        if (assignedToUserIdFilter.HasValue)
-            query = query.Where(t => t.AssignedToId == assignedToUserIdFilter.Value);
+        if (assignedToUserIdFilter.HasValue) { query = query.Where(t => t.AssignedToId == assignedToUserIdFilter.Value); }
 
         return query;
     }
+    #region Private Notification Helpers
+
+    /// <summary>
+    /// Notifies relevant users about a change (Create/Update) to a task.
+    /// This method runs in the background ("fire and forget") to not block the main operation.
+    /// </summary>
+    /// <param name="task">The task that was changed. It should have navigation properties loaded if needed.</param>
+    /// <param name="currentUser">The user who performed the action.</param>
+    /// <param name="action">The action performed (e.g., "建立", "更新").</param>
+    private async Task NotifyTaskChangeAsync(TodoItem task, User currentUser, string action)
+    {
+        try
+        {
+            var subject = $"任務通知: '{task.Title}' 已被{action}";
+            var body = BuildEmailBody(task, currentUser, action);
+
+            if (currentUser.Role == UserRole.Admin)
+            {
+                // If an admin makes a change, notify the person the task is assigned to.
+                if (task.AssignedTo?.Email != null)
+                {
+                    await _emailService.SendEmailAsync(task.AssignedTo.Email, subject, body);
+                }
+            }
+            else // A regular user made the change.
+            {
+                // Notify all administrators.
+                var admins = (await _userService.GetAllUsersAsync())
+                    .Where(u => u.Role == UserRole.Admin && !string.IsNullOrEmpty(u.Email));
+
+                var notificationTasks = admins.Select(admin =>
+                    _emailService.SendEmailAsync(admin.Email!, subject, body)
+                );
+                await Task.WhenAll(notificationTasks);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ERROR] Failed to send task change notification: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Notifies relevant users about a task that has been deleted.
+    /// </summary>
+    /// <param name="deletedTask">The task object right before it was deleted (a "tombstone").</param>
+    /// <param name="currentUser">The user who performed the deletion.</param>
+    /// <param name="action">The action performed (typically "刪除").</param>
+    private async Task NotifyTaskChangeTombstoneAsync(TodoItem deletedTask, User currentUser, string action)
+    {
+        try
+        {
+            var subject = $"任務通知: '{deletedTask.Title}' 已被{action}";
+            var body = BuildEmailBody(deletedTask, currentUser, action, isDeleted: true);
+
+            if (currentUser.Role == UserRole.Admin)
+            {
+                if (deletedTask.AssignedToId.HasValue)
+                {
+                    var assignee = await _context.Users
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(u => u.Id == deletedTask.AssignedToId.Value);
+
+                    if (assignee?.Email != null)
+                    {
+                        await _emailService.SendEmailAsync(assignee.Email, subject, body);
+                    }
+                }
+            }
+            else // Regular user deleted the task.
+            {
+                var admins = (await _userService.GetAllUsersAsync())
+                    .Where(u => u.Role == UserRole.Admin && !string.IsNullOrEmpty(u.Email));
+
+                var notificationTasks = admins.Select(admin =>
+                    _emailService.SendEmailAsync(admin.Email!, subject, body)
+                );
+                await Task.WhenAll(notificationTasks);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ERROR] Failed to send task deletion notification: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// A helper method to build a standardized HTML body for the notification email.
+    /// </summary>
+    /// <param name="task">The task object containing the details.</param>
+    /// <param name="performedBy">The user who performed the action.</param>
+    /// <param name="action">The string representing the action (e.g., "更新").</param>
+    /// <param name="isDeleted">A flag to indicate if the task was deleted, for different formatting.</param>
+    /// <returns>A formatted HTML string.</returns>
+    private string BuildEmailBody(TodoItem task, User performedBy, string action, bool isDeleted = false)
+    {
+        var assignedToText = isDeleted
+            ? (task.AssignedToId.HasValue ? $"(原指派給 UserID: {task.AssignedToId})" : "(未指派)")
+            : (task.AssignedTo?.Username ?? "(未指派)");
+
+        var body = $@"
+            <html>
+            <head>
+                <style>
+                    body {{ font-family: 'Segoe UI', sans-serif; }}
+                    .container {{ border: 1px solid #ddd; padding: 20px; border-radius: 5px; max-width: 600px; }}
+                    h3 {{ color: #005A9E; }}
+                    ul {{ list-style-type: none; padding-left: 0; }}
+                    li {{ margin-bottom: 10px; }}
+                    b {{ color: #333; }}
+                    i {{ color: #888; font-size: 0.9em; }}
+                </style>
+            </head>
+            <body>
+                <div class='container'>
+                    <p>您好，</p>
+                    <p>任務 <b>{System.Web.HttpUtility.HtmlEncode(task.Title)}</b> (ID: {task.Id}) 已被使用者 <b>{performedBy.Username}</b> {action}。</p>
+                    <hr>
+                    <h3>任務詳情：</h3>
+                    <ul>
+                        <li><b>狀態:</b> {task.Status}</li>
+                        <li><b>優先級:</b> {task.Priority}</li>
+                        <li><b>到期日:</b> {task.DueDate?.ToShortDateString() ?? "無"}</li>
+                        <li><b>指派給:</b> {assignedToText}</li>
+                    </ul>
+                    <br>
+                    <p><i>這是一封自動通知郵件，請勿直接回覆。</i></p>
+                </div>
+            </body>
+            </html>";
+
+        return body;
+    }
+
+    #endregion
+    #endregion
 }

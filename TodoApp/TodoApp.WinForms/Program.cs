@@ -3,10 +3,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using TodoApp.Core.Models;
 using TodoApp.Core.Services;
-using TodoApp.WinForms.Forms;
 using TodoApp.Infrastructure.Data;
 using TodoApp.Infrastructure.Services;
+using TodoApp.WinForms.Forms;
 
 namespace TodoApp.WinForms;
 
@@ -15,40 +16,31 @@ internal static class Program
     [STAThread]
     static void Main()
     {
-        // Use the modern hosting model which handles application lifecycle gracefully.
         var host = CreateHostBuilder().Build();
-
-        // The service provider should be retrieved from the host.
         var services = host.Services;
 
-        // --- Global Exception Handling Setup ---
+        // Global Exception Handling Setup
         Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
         Application.ThreadException += (sender, args) => HandleException(args.Exception, "UI Thread");
         AppDomain.CurrentDomain.UnhandledException += (sender, args) => HandleException(args.ExceptionObject as Exception, "Non-UI Thread");
 
         ApplicationConfiguration.Initialize();
 
-        // --- Clean Application Startup Flow ---
-        // We use a using statement to ensure the scope is properly disposed.
+        // Clean Application Startup Flow
         using (var serviceScope = services.CreateScope())
         {
             var scopedServices = serviceScope.ServiceProvider;
             try
             {
-                // Resolve the login form from the scope.
                 var loginForm = scopedServices.GetRequiredService<LoginForm>();
 
-                // Show the login form. If login is successful...
                 if (loginForm.ShowDialog() == DialogResult.OK)
                 {
-                    // ...the main form is resolved and run.
-                    // The IUserContext already holds the user info, no need for ApplicationState.
                     Application.Run(scopedServices.GetRequiredService<MainForm>());
                 }
             }
             catch (Exception ex)
             {
-                // This catch block handles critical DI or startup failures.
                 HandleException(ex, "Application Startup");
             }
         }
@@ -64,60 +56,80 @@ internal static class Program
             })
             .ConfigureServices((context, services) =>
             {
-                // --- Configure all dependencies here ---
                 ConfigureDependencies(context.Configuration, services);
             });
     }
 
-    // --- NEW: Centralized dependency configuration method ---
+    /// <summary>
+    /// Centralized method for configuring all dependency injection services.
+    /// </summary>
     private static void ConfigureDependencies(IConfiguration configuration, IServiceCollection services)
     {
+        // --- Configuration Models ---
+        // Bind the SmtpSettings section from appsettings.json to the SmtpSettings class.
+        // This makes it available via IOptions<SmtpSettings> to any service that needs it.
+        services.Configure<SmtpSettings>(configuration.GetSection("SmtpSettings"));
+
+        // --- Database Context ---
         string? connectionString = configuration.GetConnectionString("DefaultConnection");
         if (string.IsNullOrEmpty(connectionString))
         {
             throw new InvalidOperationException("Fatal: ConnectionString is not configured.");
         }
-
-        // DbContext
         services.AddDbContext<AppDbContext>(options =>
-                options.UseSqlite(connectionString),
-                ServiceLifetime.Transient);
-        // Core Services
+            options.UseSqlite(connectionString),
+            ServiceLifetime.Transient);
+
+        // --- Core Services ---
         services.AddSingleton<IUserContext, UserContext>();
         services.AddTransient<IUserService, UserService>();
         services.AddTransient<ITaskService, TaskService>();
         services.AddTransient<IAdminDashboardService, AdminDashboardService>();
+        services.AddTransient<IEmailService, EmailService>();
 
-        // Forms (all forms that are resolved via DI)
+        // --- Forms ---
         services.AddTransient<LoginForm>();
         services.AddTransient<MainForm>();
         services.AddTransient<TaskDetailDialog>();
         services.AddTransient<UserManagementDialog>();
         services.AddTransient<AdminDashboardForm>();
+        // PasswordInputDialog is created manually, so no need to register it here.
     }
 
-    // --- MODIFIED: HandleException should try to close gracefully first ---
+    /// <summary>
+    /// Handles all unhandled exceptions gracefully.
+    /// </summary>
     private static void HandleException(Exception? ex, string source)
     {
         if (ex == null) return;
 
-        // Log the error (your existing logic is fine)
-        // ... File.AppendAllText(...) ...
+        try
+        {
+            var logFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "error_log.txt");
+            var errorDetails =
+                $"============================================================\r\n" +
+                $"Timestamp: {DateTime.Now:yyyy-MM-dd HH:mm:ss}\r\n" +
+                $"Source: {source}\r\n" +
+                $"Exception Type: {ex.GetType().FullName}\r\n" +
+                $"Message: {ex.Message}\r\n" +
+                $"Stack Trace:\r\n{ex}\r\n\r\n";
+
+            File.AppendAllText(logFilePath, errorDetails);
+        }
+        catch (Exception logEx)
+        {
+            MessageBox.Show(
+                $"A critical error occurred, and the error could not be logged.\n\n" +
+                $"Original Error: {ex.Message}\n\n" +
+                $"Logging Error: {logEx.Message}",
+                "Critical System Failure", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+        }
 
         const string friendlyMessage = "應用程式發生未預期的錯誤，即將關閉。\n\n" +
                                        "詳細資訊已記錄供開發團隊參考。";
         MessageBox.Show(friendlyMessage, "系統錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
-        // --- Try to exit gracefully first ---
-        // This gives the application a chance to clean up resources.
-        try
-        {
-            Application.Exit();
-        }
-        catch
-        {
-            // If graceful exit fails, use the hammer.
-            Environment.Exit(1);
-        }
+        try { Application.Exit(); }
+        catch { Environment.Exit(1); }
     }
 }

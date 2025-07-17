@@ -436,7 +436,6 @@ public partial class AdminDashboardForm : Form
             var currentUser = _userContext.CurrentUser;
             if (currentUser == null)
             {
-                // This should not happen if the user is on this form, but it's a safe check.
                 MessageBox.Show("無法驗證使用者身分，請重新登入。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
@@ -445,11 +444,7 @@ public partial class AdminDashboardForm : Form
             SetLoadingState(true);
             lblStatus.Text = "正在刪除任務...";
 
-            await _taskService.DeleteTaskAsync(
-                selectedTask.Id,
-                currentUser.Id,
-                currentUser.Role == UserRole.Admin
-            );
+            await _taskService.DeleteTaskAsync(currentUser, selectedTask.Id);
 
             lblStatus.Text = "任務已刪除，正在重新整理儀表板...";
 
@@ -476,7 +471,6 @@ public partial class AdminDashboardForm : Form
 
     private async void BtnDetailReassign_Click(object? sender, EventArgs e)
     {
-        // 1. Get the currently selected task.
         if (tvTasks.SelectedNode?.Tag is not TodoItem selectedTask)
         {
             MessageBox.Show("請先在樹狀圖中選擇一個要重新指派的任務。", "無效操作", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -495,8 +489,9 @@ public partial class AdminDashboardForm : Form
                 // 3. If the user selects a new user and clicks "OK"...
                 if (userDialog.ShowDialog(this) == DialogResult.OK && userDialog.SelectedUser != null)
                 {
+                    var currentUser = _userContext.CurrentUser;
+                    if (currentUser == null) return;
                     var newAssignee = userDialog.SelectedUser;
-
                     // Prevent reassigning to the same user.
                     if (selectedTask.AssignedToId == newAssignee.Id)
                     {
@@ -511,7 +506,7 @@ public partial class AdminDashboardForm : Form
                     lblStatus.Text = $"正在將任務指派給 {newAssignee.Username}...";
 
                     // This now correctly uses the injected _taskService.
-                    await _taskService.UpdateTaskAsync(selectedTask);
+                    await _taskService.UpdateTaskAsync(currentUser, selectedTask);
 
                     lblStatus.Text = "任務已重新指派，正在重新整理儀表板...";
 
