@@ -64,6 +64,10 @@ namespace TodoApp.WinForms.Forms
             this.lblTotalTasksTitle = new System.Windows.Forms.Label();
             this.panelRight = new System.Windows.Forms.Panel();
             this.panelTaskDetails = new System.Windows.Forms.Panel();
+            this.lblDetailLastModified = new System.Windows.Forms.Label();
+            this.lblDetailLastModifiedTitle = new System.Windows.Forms.Label();
+            this.lblDetailCreationDate = new System.Windows.Forms.Label();
+            this.lblDetailCreationDateTitle = new System.Windows.Forms.Label();
             this.panelDetailActions = new System.Windows.Forms.Panel();
             this.btnDetailDelete = new System.Windows.Forms.Button();
             this.btnDetailReassign = new System.Windows.Forms.Button();
@@ -109,6 +113,7 @@ namespace TodoApp.WinForms.Forms
             this.panelFilters.Dock = System.Windows.Forms.DockStyle.Top;
             this.panelFilters.Location = new System.Drawing.Point(0, 140);
             this.panelFilters.Name = "panelFilters";
+            this.panelFilters.Padding = new System.Windows.Forms.Padding(5);
             this.panelFilters.Size = new System.Drawing.Size(296, 180);
             this.panelFilters.TabIndex = 0;
             // 
@@ -216,7 +221,6 @@ namespace TodoApp.WinForms.Forms
             this.tvTasks.ShowLines = true;
             this.tvTasks.Size = new System.Drawing.Size(586, 533);
             this.tvTasks.TabIndex = 0;
-            this.tvTasks.MouseUp += new System.Windows.Forms.MouseEventHandler(this.TvTasks_MouseUp);
             // 
             // treeViewContextMenu
             // 
@@ -226,7 +230,6 @@ namespace TodoApp.WinForms.Forms
             this.ctxDeleteTask});
             this.treeViewContextMenu.Name = "treeViewContextMenu";
             this.treeViewContextMenu.Size = new System.Drawing.Size(137, 70);
-            this.treeViewContextMenu.Opening += new System.ComponentModel.CancelEventHandler(this.TreeViewContextMenu_Opening);
             // 
             // ctxEditTask
             // 
@@ -413,6 +416,10 @@ namespace TodoApp.WinForms.Forms
             // 
             // panelTaskDetails
             // 
+            this.panelTaskDetails.Controls.Add(this.lblDetailLastModified);
+            this.panelTaskDetails.Controls.Add(this.lblDetailLastModifiedTitle);
+            this.panelTaskDetails.Controls.Add(this.lblDetailCreationDate);
+            this.panelTaskDetails.Controls.Add(this.lblDetailCreationDateTitle);
             this.panelTaskDetails.Controls.Add(this.panelDetailActions);
             this.panelTaskDetails.Controls.Add(this.txtDetailComments);
             this.panelTaskDetails.Controls.Add(this.lblDetailCommentsTitle);
@@ -433,6 +440,44 @@ namespace TodoApp.WinForms.Forms
             this.panelTaskDetails.Size = new System.Drawing.Size(264, 513);
             this.panelTaskDetails.TabIndex = 0;
             this.panelTaskDetails.Visible = false;
+            // 
+            // lblDetailLastModified
+            // 
+            this.lblDetailLastModified.AutoSize = true;
+            this.lblDetailLastModified.Location = new System.Drawing.Point(70, 200);
+            this.lblDetailLastModified.Name = "lblDetailLastModified";
+            this.lblDetailLastModified.Size = new System.Drawing.Size(12, 15);
+            this.lblDetailLastModified.TabIndex = 16;
+            this.lblDetailLastModified.Text = "-";
+            // 
+            // lblDetailLastModifiedTitle
+            // 
+            this.lblDetailLastModifiedTitle.AutoSize = true;
+            this.lblDetailLastModifiedTitle.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
+            this.lblDetailLastModifiedTitle.Location = new System.Drawing.Point(0, 200);
+            this.lblDetailLastModifiedTitle.Name = "lblDetailLastModifiedTitle";
+            this.lblDetailLastModifiedTitle.Size = new System.Drawing.Size(55, 15);
+            this.lblDetailLastModifiedTitle.TabIndex = 15;
+            this.lblDetailLastModifiedTitle.Text = "最後更新";
+            // 
+            // lblDetailCreationDate
+            // 
+            this.lblDetailCreationDate.AutoSize = true;
+            this.lblDetailCreationDate.Location = new System.Drawing.Point(70, 175);
+            this.lblDetailCreationDate.Name = "lblDetailCreationDate";
+            this.lblDetailCreationDate.Size = new System.Drawing.Size(12, 15);
+            this.lblDetailCreationDate.TabIndex = 14;
+            this.lblDetailCreationDate.Text = "-";
+            // 
+            // lblDetailCreationDateTitle
+            // 
+            this.lblDetailCreationDateTitle.AutoSize = true;
+            this.lblDetailCreationDateTitle.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
+            this.lblDetailCreationDateTitle.Location = new System.Drawing.Point(0, 175);
+            this.lblDetailCreationDateTitle.Name = "lblDetailCreationDateTitle";
+            this.lblDetailCreationDateTitle.Size = new System.Drawing.Size(55, 15);
+            this.lblDetailCreationDateTitle.TabIndex = 13;
+            this.lblDetailCreationDateTitle.Text = "建立時間";
             // 
             // panelDetailActions
             // 
@@ -479,18 +524,18 @@ namespace TodoApp.WinForms.Forms
             | System.Windows.Forms.AnchorStyles.Right)));
             this.txtDetailComments.BackColor = System.Drawing.SystemColors.Window;
             this.txtDetailComments.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtDetailComments.Location = new System.Drawing.Point(0, 198);
+            this.txtDetailComments.Location = new System.Drawing.Point(0, 248);
             this.txtDetailComments.Multiline = true;
             this.txtDetailComments.Name = "txtDetailComments";
             this.txtDetailComments.ReadOnly = true;
             this.txtDetailComments.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtDetailComments.Size = new System.Drawing.Size(264, 269);
+            this.txtDetailComments.Size = new System.Drawing.Size(264, 219);
             this.txtDetailComments.TabIndex = 12;
             // 
             // lblDetailCommentsTitle
             // 
             this.lblDetailCommentsTitle.AutoSize = true;
-            this.lblDetailCommentsTitle.Location = new System.Drawing.Point(0, 180);
+            this.lblDetailCommentsTitle.Location = new System.Drawing.Point(0, 230);
             this.lblDetailCommentsTitle.Name = "lblDetailCommentsTitle";
             this.lblDetailCommentsTitle.Size = new System.Drawing.Size(31, 15);
             this.lblDetailCommentsTitle.TabIndex = 11;
@@ -686,5 +731,9 @@ namespace TodoApp.WinForms.Forms
         private System.Windows.Forms.ToolStripMenuItem ctxEditTask;
         private System.Windows.Forms.ToolStripMenuItem ctxReassignTask;
         private System.Windows.Forms.ToolStripMenuItem ctxDeleteTask;
+        private System.Windows.Forms.Label lblDetailLastModified;
+        private System.Windows.Forms.Label lblDetailLastModifiedTitle;
+        private System.Windows.Forms.Label lblDetailCreationDate;
+        private System.Windows.Forms.Label lblDetailCreationDateTitle;
     }
 }

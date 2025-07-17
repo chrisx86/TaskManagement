@@ -2,12 +2,10 @@
 using System.ComponentModel;
 using System.Data;
 using System.Reflection;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using TodoApp.Core.Models;
 using TodoApp.Core.Services;
 using TodoApp.WinForms.ViewModels;
-using TodoStatus = TodoApp.Core.Models.TodoStatus;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace TodoApp.WinForms.Forms;
 
@@ -116,17 +114,10 @@ public partial class MainForm : Form
 
     private void SetWindowTitleWithVersion()
     {
-        try
-        {
-            var mainAssembly = Assembly.GetExecutingAssembly();
-            var version = mainAssembly.GetName().Version;
-            var versionString = version != null ? $"V {version.Major}.{version.Minor}.{version.Build}" : "V ?.?.?";
-            this.Text = $"待辦事項清單 - [{_currentUser.Username}] - {versionString} Beta";
-        }
-        catch
-        {
-            this.Text = $"待辦事項清單 - [{_currentUser.Username}]";
-        }
+        var mainAssembly = Assembly.GetExecutingAssembly();
+        var version = mainAssembly.GetName().Version;
+        var versionString = version != null ? $"V {version.Major}.{version.Minor}.{version.Build}" : "V ?.?.?";
+        this.Text = $"Task Management App - Login : [{_currentUser.Username}] - {versionString} Beta";
     }
 
     private void SetupDataGridView()
@@ -351,9 +342,7 @@ public partial class MainForm : Form
     private void DgvTasks_RowPrePaint(object? sender, DataGridViewRowPrePaintEventArgs e)
     {
         if (e.RowIndex < 0 || dgvTasks.Rows.Count <= e.RowIndex || dgvTasks.Rows[e.RowIndex].DataBoundItem is not TodoItem task)
-        {
             return;
-        }
 
         var row = dgvTasks.Rows[e.RowIndex];
 
@@ -369,8 +358,8 @@ public partial class MainForm : Form
         }
         else if (task.Priority == PriorityLevel.Urgent)
         {
-            targetBackColor = Color.Plum;
-            targetForeColor = Color.White;
+            targetBackColor = Color.LightPink;
+            targetForeColor = Color.DarkRed;
         }
         else if (task.DueDate.HasValue && task.DueDate < now)
         {
