@@ -83,13 +83,13 @@ public partial class TaskDetailDialog : Form
         try
         {
             var currentUser = _userContext.CurrentUser;
-            if (currentUser == null)
+            if (currentUser is null)
             {
                 MessageBox.Show("無法獲取當前使用者資訊，請重新登入。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
-            if (_editingTask == null) // CREATE MODE
+            if (_editingTask is null) // CREATE MODE
             {
                 var newTask = new TodoItem();
                 UpdateTaskFromControls(newTask);
@@ -155,7 +155,6 @@ public partial class TaskDetailDialog : Form
             txtTitle.Text = task.Title;
             txtComments.Text = task.Comments;
 
-            // --- NEW: Set the selected status ---
             cmbStatus.SelectedItem = task.Status;
 
             cmbPriority.SelectedItem = task.Priority;
@@ -184,11 +183,7 @@ public partial class TaskDetailDialog : Form
         task.Status = (TodoStatus)cmbStatus.SelectedItem;
         task.Priority = (PriorityLevel)cmbPriority.SelectedItem;
         task.DueDate = dtpDueDate.Checked ? dtpDueDate.Value.Date : null;
-        if (cmbAssignedTo.SelectedValue is int selectedId && selectedId > 0)
-        {
-            task.AssignedToId = selectedId;
-        }
-        else { task.AssignedToId = null; }
+        task.AssignedToId = (cmbAssignedTo.SelectedValue is int selectedId && selectedId > 0) ? selectedId : null;
     }
 
     private bool TryValidateInput(out string errorMessage)

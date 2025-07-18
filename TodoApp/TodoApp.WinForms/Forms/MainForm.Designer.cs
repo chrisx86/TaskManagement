@@ -1,5 +1,7 @@
 ﻿#nullable disable
 
+using Org.BouncyCastle.Pqc.Crypto.Lms;
+
 namespace TodoApp.WinForms.Forms
 {
     partial class MainForm
@@ -65,6 +67,8 @@ namespace TodoApp.WinForms.Forms
             this.splitContainerMain = new System.Windows.Forms.SplitContainer();
             this.dgvTasks = new System.Windows.Forms.DataGridView();
             this.txtCommentsPreview = new System.Windows.Forms.TextBox();
+            this.btnSaveChanges = new System.Windows.Forms.Button();
+
             this.toolStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.panelFilters.SuspendLayout();
@@ -75,6 +79,8 @@ namespace TodoApp.WinForms.Forms
             this.splitContainerMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvTasks)).BeginInit();
             this.SuspendLayout();
+
+            this.splitContainerMain.Panel2.Controls.Add(this.btnSaveChanges);
             // 
             // toolStrip1
             // 
@@ -403,10 +409,21 @@ namespace TodoApp.WinForms.Forms
             this.txtCommentsPreview.Location = new System.Drawing.Point(0, 0);
             this.txtCommentsPreview.Multiline = true;
             this.txtCommentsPreview.Name = "txtCommentsPreview";
-            this.txtCommentsPreview.ReadOnly = true;
+            this.txtCommentsPreview.ReadOnly = false;
             this.txtCommentsPreview.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtCommentsPreview.Size = new System.Drawing.Size(1264, 143);
+            this.txtCommentsPreview.Size = new System.Drawing.Size(1264, 108);
             this.txtCommentsPreview.TabIndex = 0;
+            // 
+            // btnSaveChanges
+            // 
+            this.btnSaveChanges.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnSaveChanges.Enabled = false; // Initially disabled
+            this.btnSaveChanges.Location = new System.Drawing.Point(1177, 114); // Position it at the bottom right
+            this.btnSaveChanges.Name = "btnSaveChanges";
+            this.btnSaveChanges.Size = new System.Drawing.Size(75, 23);
+            this.btnSaveChanges.TabIndex = 1;
+            this.btnSaveChanges.Text = "儲存";
+            this.btnSaveChanges.UseVisualStyleBackColor = true;
             // 
             // MainForm
             // 
@@ -474,5 +491,6 @@ namespace TodoApp.WinForms.Forms
         private System.Windows.Forms.ToolStripButton tsbSwitchUser;
         private System.Windows.Forms.SplitContainer splitContainerMain;
         private System.Windows.Forms.TextBox txtCommentsPreview;
+        private System.Windows.Forms.Button btnSaveChanges;
     }
 }

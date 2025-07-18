@@ -87,10 +87,10 @@ public class TaskService : ITaskService
         return await GetTaskByIdAsync(newTask.Id) ?? newTask;
     }
 
-    public async Task UpdateTaskAsync(User currentUser, TodoItem taskFromUI)
+    public async Task<TodoItem> UpdateTaskAsync(User currentUser, TodoItem taskFromUI)
     {
         var trackedTask = await _context.TodoItems.FindAsync(taskFromUI.Id);
-        if (trackedTask == null)
+        if (trackedTask is null)
         {
             throw new DbUpdateConcurrencyException($"操作失敗：找不到 ID 為 {taskFromUI.Id} 的任務。");
         }
@@ -120,6 +120,7 @@ public class TaskService : ITaskService
             await _context.SaveChangesAsync();
             // Pass the updated, tracked entity to the notification service.
             _ = NotifyTaskChangeAsync(trackedTask, currentUser, "更新");
+            return trackedTask;
         }
         catch (DbUpdateConcurrencyException ex)
         {

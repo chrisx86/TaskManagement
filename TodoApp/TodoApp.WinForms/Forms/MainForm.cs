@@ -38,6 +38,7 @@ public partial class MainForm : Form
 
     // --- Control Flags ---
     private bool _isUpdatingUI;
+    private TodoItem? _selectedTaskForEditing = null;
 
     public MainForm(
         IServiceProvider serviceProvider,
@@ -100,6 +101,9 @@ public partial class MainForm : Form
         this.btnLastPage.Click += (s, e) => ChangePage(_totalPages);
         this.cmbPageSize.SelectedIndexChanged += CmbPageSize_Changed;
         this.txtCurrentPage.KeyDown += TxtCurrentPage_KeyDown;
+
+        this.txtCommentsPreview.TextChanged += TxtCommentsPreview_TextChanged;
+        this.btnSaveChanges.Click += BtnSaveChanges_Click;
     }
 
     private async void MainForm_Load(object? sender, EventArgs e)
@@ -350,9 +354,35 @@ public partial class MainForm : Form
         tsbDeleteTask.Enabled = isRowSelected;
 
         if (isRowSelected && dgvTasks.SelectedRows[0].DataBoundItem is TodoItem selectedTask)
-            txtCommentsPreview.Text = selectedTask.Comments ?? "(此任務沒有備註)";
+        {
+            _selectedTaskForEditing = selectedTask; // Store the selected task
+
+            // Prevent the TextChanged event from firing while we are setting the text.
+            _isUpdatingUI = true;
+            txtCommentsPreview.Text = selectedTask.Comments ?? "";
+            txtCommentsPreview.Enabled = true;
+            _isUpdatingUI = false;
+
+            // After setting text, reset the save button to disabled.
+            btnSaveChanges.Enabled = false;
+        }
         else
-            txtCommentsPreview.Text = string.Empty;
+        {
+            _selectedTaskForEditing = null;
+
+            _isUpdatingUI = true;
+            txtCommentsPreview.Clear();
+            txtCommentsPreview.Enabled = false;
+            _isUpdatingUI = false;
+
+            btnSaveChanges.Enabled = false;
+        }
+    }
+
+    private void TxtCommentsPreview_TextChanged(object? sender, EventArgs e)
+    {
+        // Only enable the button if the change was made by the user, not by code.
+        if (!_isUpdatingUI) btnSaveChanges.Enabled = true;
     }
 
     private void DgvTasks_ColumnHeaderMouseClick(object? sender, DataGridViewCellMouseEventArgs e)
@@ -379,7 +409,6 @@ public partial class MainForm : Form
 
         var row = dgvTasks.Rows[e.RowIndex];
 
-        // --- Determine target style properties ---
         Color targetBackColor = SystemColors.Window;
         Color targetForeColor = SystemColors.ControlText;
         Font targetFont = _regularFont;
@@ -387,7 +416,7 @@ public partial class MainForm : Form
         var now = DateTime.Now;
         var isOverdue = task.DueDate.HasValue && task.DueDate < now && task.Status != TodoStatus.Completed && task.Status != TodoStatus.Reject;
         var isDueSoon = task.DueDate.HasValue && task.DueDate >= now && task.DueDate < now.AddDays(2) && task.Status != TodoStatus.Completed && task.Status != TodoStatus.Reject;
-        // --- Apply styles based on a clear priority ---
+        
         if (task.Status == TodoStatus.Completed)
         {
             targetBackColor = Color.Honeydew;
@@ -471,7 +500,7 @@ public partial class MainForm : Form
         if (dgvTasks.Columns[e.ColumnIndex].Name != "Status") { e.Cancel = true; return; }
         if (dgvTasks.Rows[e.RowIndex].DataBoundItem is TodoItem task)
         {
-            bool hasPermission = _currentUser.Role == UserRole.Admin || task.CreatorId == _currentUser.Id || task.AssignedToId == _currentUser.Id;
+            var hasPermission = _currentUser.Role == UserRole.Admin || task.CreatorId == _currentUser.Id || task.AssignedToId == _currentUser.Id;
             if (!hasPermission)
             {
                 e.Cancel = true;
@@ -498,16 +527,13 @@ public partial class MainForm : Form
             var textSize = g.MeasureString(cellValue, dgvTasks.Font);
 
             // If the required width is greater than the cell's width, show the tooltip.
-            if (textSize.Width > cell.Size.Width)
-            {
-                e.ToolTipText = cellValue;
-            }
+            if (textSize.Width > cell.Size.Width) e.ToolTipText = cellValue;
         }
     }
 
     private void DgvTasks_CellDoubleClick(object? sender, DataGridViewCellEventArgs e)
     {
-        if (e.RowIndex >= 0) { TsbEditTask_Click(sender, e); }
+        if (e.RowIndex >= 0) TsbEditTask_Click(sender, e);
     }
 
     #endregion
@@ -557,6 +583,74 @@ public partial class MainForm : Form
         }
     }
 
+    private async void BtnSaveChanges_Click(object? sender, EventArgs e)
+    {
+        if (_selectedTaskForEditing == null) return;
+
+        // Check if the comments have actually changed.
+        if (_selectedTaskForEditing.Comments == txtCommentsPreview.Text.Trim())
+        {
+            btnSaveChanges.Enabled = false;
+            return;
+        }
+
+        try
+        {
+            SetLoadingState(true);
+
+            _selectedTaskForEditing.Comments = txtCommentsPreview.Text.Trim();
+
+            var updatedTask = await _taskService.UpdateTaskAsync(_currentUser, _selectedTaskForEditing);
+
+            // Replace our stale, in-memory object with the fresh one from the database.
+            _selectedTaskForEditing = updatedTask;
+
+            int indexInList = -1;
+            for (int i = 0; i < _tasksBindingList.Count; i++)
+            {
+                if (_tasksBindingList[i].Id == updatedTask.Id)
+                {
+                    indexInList = i;
+                    break;
+                }
+            }
+
+            if (indexInList != -1)
+            {
+                // Update the object in the BindingList to ensure the grid has the latest data.
+                // Temporarily disable events to prevent unwanted side effects.
+                _isUpdatingUI = true;
+                _tasksBindingList[indexInList] = updatedTask;
+                _isUpdatingUI = false;
+
+                // Calling ResetItem is more efficient than InvalidateRow or ResetBindings in this case.
+                _tasksBindingList.ResetItem(indexInList);
+            }
+            else
+            {
+                // Fallback to a full reload if the item wasn't found (should be rare).
+                await LoadTasksAsync();
+            }
+
+            btnSaveChanges.Enabled = false;
+            lblStatus.Text = "備註已成功儲存。";
+
+            // InvalidateRow is still a good, efficient way to repaint.
+            // The underlying data is now fresh.
+            if (dgvTasks.SelectedRows.Count > 0)
+            {
+                dgvTasks.InvalidateRow(dgvTasks.SelectedRows[0].Index);
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"儲存備註時發生錯誤: {ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+        finally
+        {
+            SetLoadingState(false);
+        }
+    }
     #endregion
 
     #region --- ToolStrip Button Event Handlers ---

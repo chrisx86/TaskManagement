@@ -29,7 +29,7 @@ public interface ITaskService
     );
     Task<TodoItem> CreateTaskAsync(User currentUser, string title, string? comments, PriorityLevel priority, DateTime? dueDate, int? assignedToId);
 
-    Task UpdateTaskAsync(User currentUser, TodoItem taskToUpdate);
+    Task<TodoItem> UpdateTaskAsync(User currentUser, TodoItem taskToUpdate);
 
     Task DeleteTaskAsync(User currentUser, int taskId);
 

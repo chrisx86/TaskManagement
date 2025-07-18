@@ -264,13 +264,13 @@ public partial class AdminDashboardForm : Form
 
     private void PopulateStatisticCards(List<TodoItem> tasks)
     {
-        if (_dashboardViewModel == null) return;
+        if (_dashboardViewModel is null) return;
         var sourceTasks = tasks ?? _dashboardViewModel.GroupedTasks.SelectMany(kv => kv.Value).ToList();
         var totalCount = sourceTasks.Count;
         var completedCount = sourceTasks.Count(t => t.Status == TodoStatus.Completed || t.Status == TodoStatus.Reject);
         var uncompletedCount = sourceTasks.Count(t => t.Status != TodoStatus.Completed && t.Status != TodoStatus.Reject);
         var overdueCount = sourceTasks.Count(t => t.DueDate < DateTime.UtcNow && t.Status != TodoStatus.Completed && t.Status != TodoStatus.Reject);
-        var unassignedCount = sourceTasks.Count(t => t.AssignedToId == null);
+        var unassignedCount = sourceTasks.Count(t => t.AssignedToId is null);
         var rejectedCount = sourceTasks.Count(t => t.Status == TodoStatus.Reject);
 
         // --- Update the UI Labels ---
@@ -344,7 +344,7 @@ public partial class AdminDashboardForm : Form
         try
         {
             var taskToEdit = await _taskService.GetTaskByIdAsync(selectedTaskInfo.Id);
-            if (taskToEdit == null)
+            if (taskToEdit is null)
             {
                 MessageBox.Show("找不到該任務，可能已被其他使用者刪除。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 await LoadAndDisplayDataAsync();
@@ -372,7 +372,7 @@ public partial class AdminDashboardForm : Form
                 if (userDialog.ShowDialog(this) == DialogResult.OK && userDialog.SelectedUser != null)
                 {
                     var currentUser = _userContext.CurrentUser;
-                    if (currentUser == null) return;
+                    if (currentUser is null) return;
 
                     var newAssignee = userDialog.SelectedUser;
                     if (selectedTask.AssignedToId == newAssignee.Id) return;
@@ -401,7 +401,7 @@ public partial class AdminDashboardForm : Form
         try
         {
             var currentUser = _userContext.CurrentUser;
-            if (currentUser == null) return;
+            if (currentUser is null) return;
 
             SetLoadingState(true);
             await _taskService.DeleteTaskAsync(currentUser, selectedTask.Id);
