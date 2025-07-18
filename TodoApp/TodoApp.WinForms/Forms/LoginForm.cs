@@ -58,40 +58,32 @@ namespace TodoApp.WinForms.Forms
             }
             catch (Exception ex)
             {
-                // Handle potential exceptions from the service layer (e.g., database connection error).
                 MessageBox.Show($"登入過程中發生未預期的錯誤: {ex.Message}", "系統錯誤", MessageBoxButtons.OK, MessageBoxIcon.Stop);
             }
             finally
             {
-                ToggleControls(true);
+                SetLoadingState(false);
             }
         }
         private void SetLoadingState(bool isLoading)
         {
+            // Ensure the cursor state is always managed by this method.
             this.UseWaitCursor = isLoading;
+
+            // Toggle control enablement
             txtUsername.Enabled = !isLoading;
             txtPassword.Enabled = !isLoading;
             btnLogin.Enabled = !isLoading;
+            btnCancel.Enabled = !isLoading;
+
+            // Optional: Provide visual feedback on the login button.
+            btnLogin.Text = isLoading ? "登入中..." : "登入(&L)";
         }
         private void BtnCancel_Click(object sender, EventArgs e)
         {
             // Set the DialogResult to Cancel and close the form.
             this.DialogResult = DialogResult.Cancel;
             this.Close();
-        }
-
-        /// <summary>
-        /// A helper method to enable or disable controls during async operations
-        /// to prevent user from clicking multiple times.
-        /// </summary>
-        private void ToggleControls(bool isEnabled)
-        {
-            txtUsername.Enabled = isEnabled;
-            txtPassword.Enabled = isEnabled;
-            btnLogin.Enabled = isEnabled;
-            btnCancel.Enabled = isEnabled;
-            // Show a waiting cursor when controls are disabled.
-            this.Cursor = isEnabled ? Cursors.Default : Cursors.WaitCursor;
         }
     }
 }
