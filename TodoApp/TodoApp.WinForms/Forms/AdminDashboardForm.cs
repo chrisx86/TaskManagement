@@ -310,7 +310,6 @@ public partial class AdminDashboardForm : Form
 
         try
         {
-            // --- THIS IS THE KEY FIX ---
             // Before populating the details panel, re-fetch the full entity from the database.
             // This guarantees that all navigation properties (Creator, AssignedTo) are loaded.
             var fullTaskDetails = await _taskService.GetTaskByIdAsync(selectedTaskInfo.Id);
@@ -346,17 +345,13 @@ public partial class AdminDashboardForm : Form
             ? task.DueDate.Value.ToLocalTime().ToString("yyyy-MM-dd")
             : "(未設定)";
 
-        // --- These lines will now work correctly ---
         lblDetailCreator.Text = task.Creator?.Username ?? "N/A";
         lblDetailAssignedTo.Text = task.AssignedTo?.Username ?? "(未指派)";
 
         lblDetailCreationDate.Text = task.CreationDate.ToLocalTime().ToString("yyyy-MM-dd HH:mm");
         lblDetailLastModified.Text = task.LastModifiedDate.ToLocalTime().ToString("yyyy-MM-dd HH:mm");
 
-        // The ReadOnly property is set in the designer, but we can confirm it here.
-        _isUpdatingUI = true;
         txtDetailComments.Text = task.Comments ?? string.Empty;
-        txtDetailComments.ReadOnly = false; // Allow editing
         _isUpdatingUI = false;
         btnSaveComment.Enabled = false;
 
@@ -389,7 +384,7 @@ public partial class AdminDashboardForm : Form
     private async void BtnDetailEdit_Click(object? sender, EventArgs e)
     {
         if (tvTasks.SelectedNode?.Tag is not TodoItem selectedTaskInfo) return;
-        int taskIdToSelect = selectedTaskInfo.Id;
+        var taskIdToSelect = selectedTaskInfo.Id;
         try
         {
             var taskToEdit = await _taskService.GetTaskByIdAsync(selectedTaskInfo.Id);
@@ -406,10 +401,10 @@ public partial class AdminDashboardForm : Form
 
             if (taskDialog.ShowDialog(this) == DialogResult.OK)
             {
-                // --- STEP 2: Perform the full reload. ---
+                // Perform the full reload. ---
                 await LoadAndDisplayDataAsync();
 
-                // --- STEP 3: Restore the selection after reload. ---
+                // Restore the selection after reload. ---
                 SelectTaskInTreeView(taskIdToSelect);
             }
         }
