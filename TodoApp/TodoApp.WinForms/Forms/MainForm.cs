@@ -312,7 +312,13 @@ public partial class MainForm : Form
         else // Default sort
         {
             items = items
-                .OrderBy(t => t.Status == TodoStatus.InProgress ? 0 : (t.Status == TodoStatus.Pending ? 1 : 2))
+                .OrderBy(t => t.Status switch {
+                    TodoStatus.InProgress => 0,
+                    TodoStatus.Pending => 1,
+                    TodoStatus.Reject => 2,
+                    TodoStatus.Completed => 3,
+                    _ => 4 
+                })
                 .ThenByDescending(t => t.Priority)
                 .ThenBy(t => t.DueDate ?? DateTime.MaxValue)
                 .ToList();
