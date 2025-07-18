@@ -1,7 +1,7 @@
 #nullable enable
-using System.ComponentModel;
 using System.Data;
 using System.Reflection;
+using System.ComponentModel;
 using TodoApp.Core.Models;
 using TodoApp.Core.Services;
 using TodoApp.WinForms.ViewModels;
@@ -605,7 +605,7 @@ public partial class MainForm : Form
             // Replace our stale, in-memory object with the fresh one from the database.
             _selectedTaskForEditing = updatedTask;
 
-            int indexInList = -1;
+            var indexInList = -1;
             for (int i = 0; i < _tasksBindingList.Count; i++)
             {
                 if (_tasksBindingList[i].Id == updatedTask.Id)
@@ -664,7 +664,14 @@ public partial class MainForm : Form
 
     private async void TsbEditTask_Click(object? sender, EventArgs e)
     {
-        if (dgvTasks.SelectedRows.Count == 0 || dgvTasks.SelectedRows[0].DataBoundItem is not TodoItem selectedTaskInfo) return;
+        if (dgvTasks.SelectedRows.Count == 0 || dgvTasks.SelectedRows[0].DataBoundItem is not TodoItem selectedTaskInfo)
+        {
+            return;
+        }
+
+        // --- STEP 1: Remember the ID and the current page of the task being edited. ---
+        var taskIdToSelect = selectedTaskInfo.Id;
+        var pageToRestore = _currentPage;
 
         try
         {
@@ -682,16 +689,48 @@ public partial class MainForm : Form
 
             if (taskDialog.ShowDialog(this) == DialogResult.OK)
             {
+                lblStatus.Text = "任務已成功更新，正在重新整理...";
+
+                // --- STEP 2: Perform the full reload on the *same page*. ---
+                _currentPage = pageToRestore; // Ensure we load the same page
                 await LoadTasksAsync();
-                lblStatus.Text = "任務已成功更新！";
+
+                // --- STEP 3: Restore the selection after the grid has been reloaded. ---
+                SelectTaskInDataGridView(taskIdToSelect);
             }
         }
-        catch (Exception ex) { MessageBox.Show($"打開編輯視窗時發生錯誤: {ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error); }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"打開編輯視窗時發生錯誤: {ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+    }
+
+    private void SelectTaskInDataGridView(int taskId)
+    {
+        // Clear previous selections to avoid confusion.
+        dgvTasks.ClearSelection();
+
+        // Iterate through the rows to find the one with the matching task ID.
+        foreach (DataGridViewRow row in dgvTasks.Rows)
+        {
+            if (row.DataBoundItem is TodoItem item && item.Id == taskId)
+            {
+                row.Selected = true;
+
+                // Scroll the grid to make the selected row visible.
+                // This is especially important in a paged view.
+                dgvTasks.FirstDisplayedScrollingRowIndex = row.Index;
+
+                return;
+            }
+        }
     }
 
     private async void TsbDeleteTask_Click(object? sender, EventArgs e)
     {
         if (dgvTasks.SelectedRows.Count == 0 || dgvTasks.SelectedRows[0].DataBoundItem is not TodoItem selectedTask) return;
+
+        var originalRowIndex = dgvTasks.SelectedRows[0].Index;
 
         var confirmResult = MessageBox.Show($"您確定要刪除任務 '{selectedTask.Title}' 嗎？", "確認刪除", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
         if (confirmResult != DialogResult.Yes) return;
@@ -699,10 +738,15 @@ public partial class MainForm : Form
         try
         {
             await _taskService.DeleteTaskAsync(_currentUser, selectedTask.Id);
-            _tasksBindingList.Remove(selectedTask);
-            _totalTasks--;
-            UpdatePaginationUI();
-            lblStatus.Text = "任務已成功刪除！";
+
+            await LoadTasksAsync();
+
+            if (dgvTasks.Rows.Count > 0)
+            {
+                var newIndex = Math.Min(originalRowIndex, dgvTasks.Rows.Count - 1);
+                dgvTasks.Rows[newIndex].Selected = true;
+                dgvTasks.FirstDisplayedScrollingRowIndex = newIndex;
+            }
         }
         catch (Exception ex)
         {
