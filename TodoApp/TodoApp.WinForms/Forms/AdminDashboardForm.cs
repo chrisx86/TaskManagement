@@ -4,6 +4,7 @@ using TodoApp.Core.Services;
 using TodoApp.Core.ViewModels;
 using TodoApp.WinForms.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
 
 namespace TodoApp.WinForms.Forms;
 
@@ -17,6 +18,7 @@ public partial class AdminDashboardForm : Form
 
     private DashboardViewModel? _dashboardViewModel;
     private bool _isUpdatingUI;
+    private TodoItem? _selectedTaskForDetails;
 
     public AdminDashboardForm(
         IAdminDashboardService dashboardService,
@@ -61,6 +63,9 @@ public partial class AdminDashboardForm : Form
         this.ctxEditTask.Click += BtnDetailEdit_Click;
         this.ctxReassignTask.Click += BtnDetailReassign_Click;
         this.ctxDeleteTask.Click += BtnDetailDelete_Click;
+
+        this.txtDetailComments.TextChanged += TxtDetailComments_TextChanged;
+        this.btnSaveComment.Click += BtnSaveComment_Click;
     }
 
     private async void AdminDashboardForm_Load(object? sender, EventArgs e)
@@ -295,16 +300,38 @@ public partial class AdminDashboardForm : Form
 
     #region --- Detail Panel and Actions ---
 
-    private void TvTasks_AfterSelect(object? sender, TreeViewEventArgs e)
+    private async void TvTasks_AfterSelect(object? sender, TreeViewEventArgs e)
     {
-        if (e.Node?.Tag is TodoItem selectedTask)
+        if (e.Node?.Tag is not TodoItem selectedTaskInfo)
         {
-            PopulateTaskDetails(selectedTask);
-            panelTaskDetails.Visible = true;
-            SetActionButtonsState(true);
+            ClearAndHideDetails();
+            return;
         }
-        else
+
+        try
         {
+            // --- THIS IS THE KEY FIX ---
+            // Before populating the details panel, re-fetch the full entity from the database.
+            // This guarantees that all navigation properties (Creator, AssignedTo) are loaded.
+            var fullTaskDetails = await _taskService.GetTaskByIdAsync(selectedTaskInfo.Id);
+
+            if (fullTaskDetails != null)
+            {
+                _selectedTaskForDetails = fullTaskDetails; // Update the cache for editing actions
+                PopulateTaskDetails(fullTaskDetails);
+                panelTaskDetails.Visible = true;
+                SetActionButtonsState(true);
+            }
+            else
+            {
+                // The task might have been deleted by another user in the meantime.
+                MessageBox.Show("無法獲取任務詳情，該任務可能已被刪除。視圖將會刷新。", "找不到任務", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                await LoadAndDisplayDataAsync(); // Refresh the entire dashboard
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"獲取任務詳情時發生錯誤: {ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
             ClearAndHideDetails();
         }
     }
@@ -314,20 +341,40 @@ public partial class AdminDashboardForm : Form
         lblDetailTitle.Text = task.Title;
         lblDetailStatus.Text = task.Status.ToString();
         lblDetailPriority.Text = task.Priority.ToString();
-        lblDetailDueDate.Text = task.DueDate.HasValue ? task.DueDate.Value.ToLocalTime().ToString("yyyy-MM-dd") : "(未設定)";
+
+        lblDetailDueDate.Text = task.DueDate.HasValue
+            ? task.DueDate.Value.ToLocalTime().ToString("yyyy-MM-dd")
+            : "(未設定)";
+
+        // --- These lines will now work correctly ---
         lblDetailCreator.Text = task.Creator?.Username ?? "N/A";
         lblDetailAssignedTo.Text = task.AssignedTo?.Username ?? "(未指派)";
+
         lblDetailCreationDate.Text = task.CreationDate.ToLocalTime().ToString("yyyy-MM-dd HH:mm");
         lblDetailLastModified.Text = task.LastModifiedDate.ToLocalTime().ToString("yyyy-MM-dd HH:mm");
-        txtDetailComments.Text = task.Comments ?? string.Empty;
 
-        lblDetailDueDate.ForeColor = (task.DueDate < DateTime.UtcNow && task.Status != TodoStatus.Completed) ? Color.Red : SystemColors.ControlText;
+        // The ReadOnly property is set in the designer, but we can confirm it here.
+        _isUpdatingUI = true;
+        txtDetailComments.Text = task.Comments ?? string.Empty;
+        txtDetailComments.ReadOnly = false; // Allow editing
+        _isUpdatingUI = false;
+        btnSaveComment.Enabled = false;
+
+        // Color coding logic
+        lblDetailDueDate.ForeColor = (task.DueDate < DateTime.UtcNow && task.Status != TodoStatus.Completed)
+            ? Color.Red
+            : SystemColors.ControlText;
+    }
+
+    private void TxtDetailComments_TextChanged(object? sender, EventArgs e)
+    {
+        if (!_isUpdatingUI) btnSaveComment.Enabled = true;
     }
 
     private void ClearAndHideDetails()
     {
-        panelTaskDetails.Visible = false;
         SetActionButtonsState(false);
+        _selectedTaskForDetails = null;
     }
 
     private void SetActionButtonsState(bool enabled)
@@ -335,18 +382,20 @@ public partial class AdminDashboardForm : Form
         btnDetailEdit.Enabled = enabled;
         btnDetailReassign.Enabled = enabled;
         btnDetailDelete.Enabled = enabled;
+        btnSaveComment.Enabled = false;
+
     }
 
     private async void BtnDetailEdit_Click(object? sender, EventArgs e)
     {
         if (tvTasks.SelectedNode?.Tag is not TodoItem selectedTaskInfo) return;
-
+        int taskIdToSelect = selectedTaskInfo.Id;
         try
         {
             var taskToEdit = await _taskService.GetTaskByIdAsync(selectedTaskInfo.Id);
-            if (taskToEdit is null)
+            if (taskToEdit == null)
             {
-                MessageBox.Show("找不到該任務，可能已被其他使用者刪除。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("找不到該任務，可能已被刪除。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 await LoadAndDisplayDataAsync();
                 return;
             }
@@ -355,9 +404,37 @@ public partial class AdminDashboardForm : Form
             var taskDialog = scope.ServiceProvider.GetRequiredService<TaskDetailDialog>();
             taskDialog.SetTaskForEdit(taskToEdit);
 
-            if (taskDialog.ShowDialog(this) == DialogResult.OK) { await LoadAndDisplayDataAsync(); }
+            if (taskDialog.ShowDialog(this) == DialogResult.OK)
+            {
+                // --- STEP 2: Perform the full reload. ---
+                await LoadAndDisplayDataAsync();
+
+                // --- STEP 3: Restore the selection after reload. ---
+                SelectTaskInTreeView(taskIdToSelect);
+            }
         }
         catch (Exception ex) { MessageBox.Show($"打開編輯視窗時發生錯誤: {ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error); }
+    }
+
+    private void SelectTaskInTreeView(int taskId)
+    {
+        foreach (TreeNode userNode in tvTasks.Nodes)
+        {
+            foreach (TreeNode taskNode in userNode.Nodes)
+            {
+                if (taskNode.Tag is TodoItem item && item.Id == taskId)
+                {
+                    // Found the node. Select it.
+                    tvTasks.SelectedNode = taskNode;
+
+                    // Ensure it's visible to the user.
+                    taskNode.EnsureVisible();
+
+                    // Once found, we can exit the loops.
+                    return;
+                }
+            }
+        }
     }
 
     private async void BtnDetailReassign_Click(object? sender, EventArgs e)
@@ -415,6 +492,69 @@ public partial class AdminDashboardForm : Form
         finally { SetLoadingState(false); }
     }
 
+    private async void BtnSaveComment_Click(object? sender, EventArgs e)
+    {
+        if (_selectedTaskForDetails == null || _userContext.CurrentUser == null) return;
+
+        var newComments = txtDetailComments.Text.Trim();
+        if (_selectedTaskForDetails.Comments == newComments)
+        {
+            btnSaveComment.Enabled = false;
+            return;
+        }
+
+        try
+        {
+            SetLoadingState(true);
+
+            // Use the currently selected task object directly.
+            var taskToUpdate = _selectedTaskForDetails;
+            taskToUpdate.Comments = newComments;
+
+            // Call the update service. It will return the latest version of the task.
+            var updatedTask = await _taskService.UpdateTaskAsync(_userContext.CurrentUser, taskToUpdate);
+
+            // --- Local Update Logic ---
+
+            // 1. Update the cached object for the details panel.
+            _selectedTaskForDetails = updatedTask;
+
+            // 2. Update the object in the master ViewModel cache.
+            var owner = updatedTask.AssignedTo ?? updatedTask.Creator;
+            if (owner != null && _dashboardViewModel.GroupedTasks.TryGetValue(owner, out var taskList))
+            {
+                var index = taskList.FindIndex(t => t.Id == updatedTask.Id);
+                if (index != -1)
+                {
+                    taskList[index] = updatedTask;
+                }
+            }
+
+            // 3. Update the object in the TreeView node's Tag and refresh the details panel.
+            if (tvTasks.SelectedNode != null && tvTasks.SelectedNode.Tag is TodoItem)
+            {
+                tvTasks.SelectedNode.Tag = updatedTask;
+                // Re-populate the details panel with the absolutely latest data.
+                PopulateTaskDetails(updatedTask);
+            }
+
+            btnSaveComment.Enabled = false;
+            lblStatus.Text = "備註已成功儲存。";
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            MessageBox.Show($"儲存備註失敗: {ex.Message}", "並行衝突", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            await LoadAndDisplayDataAsync(); // Fallback to full reload on error
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"儲存備註時發生錯誤: {ex.Message}", "系統錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+        finally
+        {
+            SetLoadingState(false);
+        }
+    }
     #endregion
 
     #region --- Context Menu Handlers ---
@@ -426,10 +566,7 @@ public partial class AdminDashboardForm : Form
 
     private void TvTasks_MouseUp(object? sender, MouseEventArgs e)
     {
-        if (e.Button == MouseButtons.Right)
-        {
-            tvTasks.SelectedNode = tvTasks.GetNodeAt(e.X, e.Y);
-        }
+        if (e.Button == MouseButtons.Right) tvTasks.SelectedNode = tvTasks.GetNodeAt(e.X, e.Y);
     }
 
     #endregion

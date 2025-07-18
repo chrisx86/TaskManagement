@@ -30,85 +30,86 @@ namespace TodoApp.WinForms.Forms
         /// </summary>
         private void InitializeComponent()
         {
-            components = new System.ComponentModel.Container();
-            panelFilters = new Panel();
-            cmbFilterByUser = new ComboBox();
-            lblFilterByUser = new Label();
-            chkFilterOverdue = new CheckBox();
-            cmbFilterStatus = new ComboBox();
-            lblFilterStatus = new Label();
-            btnClearFilter = new Button();
-            cmbFilterPriority = new ComboBox();
-            lblFilterPriority = new Label();
-            txtSearch = new TextBox();
-            lblSearch = new Label();
-            statusStrip1 = new StatusStrip();
-            lblStatus = new ToolStripStatusLabel();
-            tvTasks = new TreeView();
-            treeViewContextMenu = new ContextMenuStrip(components);
-            ctxEditTask = new ToolStripMenuItem();
-            ctxReassignTask = new ToolStripMenuItem();
-            ctxDeleteTask = new ToolStripMenuItem();
-            mainTableLayoutPanel = new TableLayoutPanel();
-            panelLeft = new Panel();
-            panelStatistics = new Panel();
-            cardCompleted = new Panel();
-            lblCompletedValue = new Label();
-            lblCompletedTitle = new Label();
-            cardRejected = new Panel();
-            lblRejectedValue = new Label();
-            lblRejectedTitle = new Label();
-            cardUnassigned = new Panel();
-            lblUnassignedValue = new Label();
-            lblUnassignedTitle = new Label();
-            cardOverdue = new Panel();
-            lblOverdueValue = new Label();
-            lblOverdueTitle = new Label();
-            cardUncompleted = new Panel();
-            lblUncompletedValue = new Label();
-            lblUncompletedTitle = new Label();
-            cardTotalTasks = new Panel();
-            lblTotalTasksValue = new Label();
-            lblTotalTasksTitle = new Label();
-            panelRight = new Panel();
-            panelTaskDetails = new Panel();
-            lblDetailLastModified = new Label();
-            lblDetailLastModifiedTitle = new Label();
-            lblDetailCreationDate = new Label();
-            lblDetailCreationDateTitle = new Label();
-            panelDetailActions = new Panel();
-            btnDetailDelete = new Button();
-            btnDetailReassign = new Button();
-            btnDetailEdit = new Button();
-            txtDetailComments = new TextBox();
-            lblDetailCommentsTitle = new Label();
-            lblDetailAssignedTo = new Label();
-            lblDetailAssignedToTitle = new Label();
-            lblDetailCreator = new Label();
-            lblDetailCreatorTitle = new Label();
-            lblDetailDueDate = new Label();
-            lblDetailDueDateTitle = new Label();
-            lblDetailPriority = new Label();
-            lblDetailPriorityTitle = new Label();
-            lblDetailStatus = new Label();
-            lblDetailStatusTitle = new Label();
-            lblDetailTitle = new Label();
-            panelFilters.SuspendLayout();
-            statusStrip1.SuspendLayout();
-            treeViewContextMenu.SuspendLayout();
-            mainTableLayoutPanel.SuspendLayout();
-            panelLeft.SuspendLayout();
-            panelStatistics.SuspendLayout();
-            cardCompleted.SuspendLayout();
-            cardRejected.SuspendLayout();
-            cardUnassigned.SuspendLayout();
-            cardOverdue.SuspendLayout();
-            cardUncompleted.SuspendLayout();
-            cardTotalTasks.SuspendLayout();
-            panelRight.SuspendLayout();
-            panelTaskDetails.SuspendLayout();
-            panelDetailActions.SuspendLayout();
-            SuspendLayout();
+            this.components = new System.ComponentModel.Container();
+            this.panelFilters = new System.Windows.Forms.Panel();
+            this.cmbFilterByUser = new System.Windows.Forms.ComboBox();
+            this.lblFilterByUser = new System.Windows.Forms.Label();
+            this.chkFilterOverdue = new System.Windows.Forms.CheckBox();
+            this.cmbFilterStatus = new System.Windows.Forms.ComboBox();
+            this.lblFilterStatus = new System.Windows.Forms.Label();
+            this.btnClearFilter = new System.Windows.Forms.Button();
+            this.cmbFilterPriority = new System.Windows.Forms.ComboBox();
+            this.lblFilterPriority = new System.Windows.Forms.Label();
+            this.txtSearch = new System.Windows.Forms.TextBox();
+            this.lblSearch = new System.Windows.Forms.Label();
+            this.statusStrip1 = new System.Windows.Forms.StatusStrip();
+            this.lblStatus = new System.Windows.Forms.ToolStripStatusLabel();
+            this.tvTasks = new System.Windows.Forms.TreeView();
+            this.treeViewContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.ctxEditTask = new System.Windows.Forms.ToolStripMenuItem();
+            this.ctxReassignTask = new System.Windows.Forms.ToolStripMenuItem();
+            this.ctxDeleteTask = new System.Windows.Forms.ToolStripMenuItem();
+            this.mainTableLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
+            this.panelLeft = new System.Windows.Forms.Panel();
+            this.panelStatistics = new System.Windows.Forms.Panel();
+            this.cardCompleted = new System.Windows.Forms.Panel();
+            this.lblCompletedValue = new System.Windows.Forms.Label();
+            this.lblCompletedTitle = new System.Windows.Forms.Label();
+            this.cardRejected = new System.Windows.Forms.Panel();
+            this.lblRejectedValue = new System.Windows.Forms.Label();
+            this.lblRejectedTitle = new System.Windows.Forms.Label();
+            this.cardUnassigned = new System.Windows.Forms.Panel();
+            this.lblUnassignedValue = new System.Windows.Forms.Label();
+            this.lblUnassignedTitle = new System.Windows.Forms.Label();
+            this.cardOverdue = new System.Windows.Forms.Panel();
+            this.lblOverdueValue = new System.Windows.Forms.Label();
+            this.lblOverdueTitle = new System.Windows.Forms.Label();
+            this.cardUncompleted = new System.Windows.Forms.Panel();
+            this.lblUncompletedValue = new System.Windows.Forms.Label();
+            this.lblUncompletedTitle = new System.Windows.Forms.Label();
+            this.cardTotalTasks = new System.Windows.Forms.Panel();
+            this.lblTotalTasksValue = new System.Windows.Forms.Label();
+            this.lblTotalTasksTitle = new System.Windows.Forms.Label();
+            this.panelRight = new System.Windows.Forms.Panel();
+            this.panelTaskDetails = new System.Windows.Forms.Panel();
+            this.lblDetailLastModified = new System.Windows.Forms.Label();
+            this.lblDetailLastModifiedTitle = new System.Windows.Forms.Label();
+            this.lblDetailCreationDate = new System.Windows.Forms.Label();
+            this.lblDetailCreationDateTitle = new System.Windows.Forms.Label();
+            this.panelDetailActions = new System.Windows.Forms.Panel();
+            this.btnDetailDelete = new System.Windows.Forms.Button();
+            this.btnDetailReassign = new System.Windows.Forms.Button();
+            this.btnDetailEdit = new System.Windows.Forms.Button();
+            this.txtDetailComments = new System.Windows.Forms.TextBox();
+            this.lblDetailCommentsTitle = new System.Windows.Forms.Label();
+            this.lblDetailAssignedTo = new System.Windows.Forms.Label();
+            this.lblDetailAssignedToTitle = new System.Windows.Forms.Label();
+            this.lblDetailCreator = new System.Windows.Forms.Label();
+            this.lblDetailCreatorTitle = new System.Windows.Forms.Label();
+            this.lblDetailDueDate = new System.Windows.Forms.Label();
+            this.lblDetailDueDateTitle = new System.Windows.Forms.Label();
+            this.lblDetailPriority = new System.Windows.Forms.Label();
+            this.lblDetailPriorityTitle = new System.Windows.Forms.Label();
+            this.lblDetailStatus = new System.Windows.Forms.Label();
+            this.lblDetailStatusTitle = new System.Windows.Forms.Label();
+            this.lblDetailTitle = new System.Windows.Forms.Label();
+            this.btnSaveComment = new System.Windows.Forms.Button();
+            this.panelFilters.SuspendLayout();
+            this.statusStrip1.SuspendLayout();
+            this.treeViewContextMenu.SuspendLayout();
+            this.mainTableLayoutPanel.SuspendLayout();
+            this.panelLeft.SuspendLayout();
+            this.panelStatistics.SuspendLayout();
+            this.cardCompleted.SuspendLayout();
+            this.cardRejected.SuspendLayout();
+            this.cardUnassigned.SuspendLayout();
+            this.cardOverdue.SuspendLayout();
+            this.cardUncompleted.SuspendLayout();
+            this.cardTotalTasks.SuspendLayout();
+            this.panelRight.SuspendLayout();
+            this.panelTaskDetails.SuspendLayout();
+            this.panelDetailActions.SuspendLayout();
+            this.SuspendLayout();
             // 
             // panelFilters
             // 
@@ -511,6 +512,7 @@ namespace TodoApp.WinForms.Forms
             // 
             // panelTaskDetails
             // 
+            panelTaskDetails.Controls.Add(btnSaveComment);
             panelTaskDetails.Controls.Add(lblDetailLastModified);
             panelTaskDetails.Controls.Add(lblDetailLastModifiedTitle);
             panelTaskDetails.Controls.Add(lblDetailCreationDate);
@@ -532,9 +534,9 @@ namespace TodoApp.WinForms.Forms
             panelTaskDetails.Dock = DockStyle.Fill;
             panelTaskDetails.Location = new Point(10, 10);
             panelTaskDetails.Name = "panelTaskDetails";
-            panelTaskDetails.Size = new Size(277, 513);
+            panelTaskDetails.Size = new System.Drawing.Size(277, 513);
             panelTaskDetails.TabIndex = 0;
-            panelTaskDetails.Visible = false;
+            panelTaskDetails.Visible = true;
             // 
             // lblDetailLastModified
             // 
@@ -585,6 +587,17 @@ namespace TodoApp.WinForms.Forms
             panelDetailActions.Size = new Size(277, 40);
             panelDetailActions.TabIndex = 13;
             // 
+            // btnSaveComment
+            // 
+            this.btnSaveComment.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnSaveComment.Enabled = false;
+            this.btnSaveComment.Location = new System.Drawing.Point(199, 444);
+            this.btnSaveComment.Name = "btnSaveComment";
+            this.btnSaveComment.Size = new System.Drawing.Size(75, 23);
+            this.btnSaveComment.TabIndex = 17;
+            this.btnSaveComment.Text = "儲存備註";
+            this.btnSaveComment.UseVisualStyleBackColor = true;
+            // 
             // btnDetailDelete
             // 
             btnDetailDelete.Location = new Point(175, 8);
@@ -620,9 +633,9 @@ namespace TodoApp.WinForms.Forms
             txtDetailComments.Location = new Point(0, 248);
             txtDetailComments.Multiline = true;
             txtDetailComments.Name = "txtDetailComments";
-            txtDetailComments.ReadOnly = true;
+            txtDetailComments.ReadOnly = false;
             txtDetailComments.ScrollBars = ScrollBars.Vertical;
-            txtDetailComments.Size = new Size(277, 219);
+            txtDetailComments.Size = new Size(277, 180);
             txtDetailComments.TabIndex = 12;
             // 
             // lblDetailCommentsTitle
@@ -837,5 +850,6 @@ namespace TodoApp.WinForms.Forms
         private System.Windows.Forms.Panel cardCompleted;
         private System.Windows.Forms.Label lblCompletedValue;
         private System.Windows.Forms.Label lblCompletedTitle;
+        private System.Windows.Forms.Button btnSaveComment;
     }
 }
