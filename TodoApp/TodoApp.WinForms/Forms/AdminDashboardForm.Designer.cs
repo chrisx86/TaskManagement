@@ -30,712 +30,747 @@ namespace TodoApp.WinForms.Forms
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
-            this.panelFilters = new System.Windows.Forms.Panel();
-            this.cmbFilterByUser = new System.Windows.Forms.ComboBox();
-            this.lblFilterByUser = new System.Windows.Forms.Label();
-            this.chkFilterOverdue = new System.Windows.Forms.CheckBox();
-            this.cmbFilterStatus = new System.Windows.Forms.ComboBox();
-            this.lblFilterStatus = new System.Windows.Forms.Label();
-            this.btnClearFilter = new System.Windows.Forms.Button();
-            this.cmbFilterPriority = new System.Windows.Forms.ComboBox();
-            this.lblFilterPriority = new System.Windows.Forms.Label();
-            this.txtSearch = new System.Windows.Forms.TextBox();
-            this.lblSearch = new System.Windows.Forms.Label();
-            this.statusStrip1 = new System.Windows.Forms.StatusStrip();
-            this.lblStatus = new System.Windows.Forms.ToolStripStatusLabel();
-            this.tvTasks = new System.Windows.Forms.TreeView();
-            this.treeViewContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.ctxEditTask = new System.Windows.Forms.ToolStripMenuItem();
-            this.ctxReassignTask = new System.Windows.Forms.ToolStripMenuItem();
-            this.ctxDeleteTask = new System.Windows.Forms.ToolStripMenuItem();
-            this.mainTableLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
-            this.panelLeft = new System.Windows.Forms.Panel();
-            this.panelStatistics = new System.Windows.Forms.Panel();
-            this.cardRejected = new System.Windows.Forms.Panel();
-            this.lblRejectedValue = new System.Windows.Forms.Label();
-            this.lblRejectedTitle = new System.Windows.Forms.Label();
-            this.cardUnassigned = new System.Windows.Forms.Panel();
-            this.lblUnassignedValue = new System.Windows.Forms.Label();
-            this.lblUnassignedTitle = new System.Windows.Forms.Label();
-            this.cardOverdue = new System.Windows.Forms.Panel();
-            this.lblOverdueValue = new System.Windows.Forms.Label();
-            this.lblOverdueTitle = new System.Windows.Forms.Label();
-            this.cardUncompleted = new System.Windows.Forms.Panel();
-            this.lblUncompletedValue = new System.Windows.Forms.Label();
-            this.lblUncompletedTitle = new System.Windows.Forms.Label();
-            this.cardTotalTasks = new System.Windows.Forms.Panel();
-            this.lblTotalTasksValue = new System.Windows.Forms.Label();
-            this.lblTotalTasksTitle = new System.Windows.Forms.Label();
-            this.panelRight = new System.Windows.Forms.Panel();
-            this.panelTaskDetails = new System.Windows.Forms.Panel();
-            this.lblDetailLastModified = new System.Windows.Forms.Label();
-            this.lblDetailLastModifiedTitle = new System.Windows.Forms.Label();
-            this.lblDetailCreationDate = new System.Windows.Forms.Label();
-            this.lblDetailCreationDateTitle = new System.Windows.Forms.Label();
-            this.panelDetailActions = new System.Windows.Forms.Panel();
-            this.btnDetailDelete = new System.Windows.Forms.Button();
-            this.btnDetailReassign = new System.Windows.Forms.Button();
-            this.btnDetailEdit = new System.Windows.Forms.Button();
-            this.txtDetailComments = new System.Windows.Forms.TextBox();
-            this.lblDetailCommentsTitle = new System.Windows.Forms.Label();
-            this.lblDetailAssignedTo = new System.Windows.Forms.Label();
-            this.lblDetailAssignedToTitle = new System.Windows.Forms.Label();
-            this.lblDetailCreator = new System.Windows.Forms.Label();
-            this.lblDetailCreatorTitle = new System.Windows.Forms.Label();
-            this.lblDetailDueDate = new System.Windows.Forms.Label();
-            this.lblDetailDueDateTitle = new System.Windows.Forms.Label();
-            this.lblDetailPriority = new System.Windows.Forms.Label();
-            this.lblDetailPriorityTitle = new System.Windows.Forms.Label();
-            this.lblDetailStatus = new System.Windows.Forms.Label();
-            this.lblDetailStatusTitle = new System.Windows.Forms.Label();
-            this.lblDetailTitle = new System.Windows.Forms.Label();
-            this.panelFilters.SuspendLayout();
-            this.statusStrip1.SuspendLayout();
-            this.treeViewContextMenu.SuspendLayout();
-            this.mainTableLayoutPanel.SuspendLayout();
-            this.panelLeft.SuspendLayout();
-            this.panelStatistics.SuspendLayout();
-            this.cardRejected.SuspendLayout();
-            this.cardUnassigned.SuspendLayout();
-            this.cardOverdue.SuspendLayout();
-            this.cardUncompleted.SuspendLayout();
-            this.cardTotalTasks.SuspendLayout();
-            this.panelRight.SuspendLayout();
-            this.panelTaskDetails.SuspendLayout();
-            this.panelDetailActions.SuspendLayout();
-            this.SuspendLayout();
+            components = new System.ComponentModel.Container();
+            panelFilters = new Panel();
+            cmbFilterByUser = new ComboBox();
+            lblFilterByUser = new Label();
+            chkFilterOverdue = new CheckBox();
+            cmbFilterStatus = new ComboBox();
+            lblFilterStatus = new Label();
+            btnClearFilter = new Button();
+            cmbFilterPriority = new ComboBox();
+            lblFilterPriority = new Label();
+            txtSearch = new TextBox();
+            lblSearch = new Label();
+            statusStrip1 = new StatusStrip();
+            lblStatus = new ToolStripStatusLabel();
+            tvTasks = new TreeView();
+            treeViewContextMenu = new ContextMenuStrip(components);
+            ctxEditTask = new ToolStripMenuItem();
+            ctxReassignTask = new ToolStripMenuItem();
+            ctxDeleteTask = new ToolStripMenuItem();
+            mainTableLayoutPanel = new TableLayoutPanel();
+            panelLeft = new Panel();
+            panelStatistics = new Panel();
+            cardCompleted = new Panel();
+            lblCompletedValue = new Label();
+            lblCompletedTitle = new Label();
+            cardRejected = new Panel();
+            lblRejectedValue = new Label();
+            lblRejectedTitle = new Label();
+            cardUnassigned = new Panel();
+            lblUnassignedValue = new Label();
+            lblUnassignedTitle = new Label();
+            cardOverdue = new Panel();
+            lblOverdueValue = new Label();
+            lblOverdueTitle = new Label();
+            cardUncompleted = new Panel();
+            lblUncompletedValue = new Label();
+            lblUncompletedTitle = new Label();
+            cardTotalTasks = new Panel();
+            lblTotalTasksValue = new Label();
+            lblTotalTasksTitle = new Label();
+            panelRight = new Panel();
+            panelTaskDetails = new Panel();
+            lblDetailLastModified = new Label();
+            lblDetailLastModifiedTitle = new Label();
+            lblDetailCreationDate = new Label();
+            lblDetailCreationDateTitle = new Label();
+            panelDetailActions = new Panel();
+            btnDetailDelete = new Button();
+            btnDetailReassign = new Button();
+            btnDetailEdit = new Button();
+            txtDetailComments = new TextBox();
+            lblDetailCommentsTitle = new Label();
+            lblDetailAssignedTo = new Label();
+            lblDetailAssignedToTitle = new Label();
+            lblDetailCreator = new Label();
+            lblDetailCreatorTitle = new Label();
+            lblDetailDueDate = new Label();
+            lblDetailDueDateTitle = new Label();
+            lblDetailPriority = new Label();
+            lblDetailPriorityTitle = new Label();
+            lblDetailStatus = new Label();
+            lblDetailStatusTitle = new Label();
+            lblDetailTitle = new Label();
+            panelFilters.SuspendLayout();
+            statusStrip1.SuspendLayout();
+            treeViewContextMenu.SuspendLayout();
+            mainTableLayoutPanel.SuspendLayout();
+            panelLeft.SuspendLayout();
+            panelStatistics.SuspendLayout();
+            cardCompleted.SuspendLayout();
+            cardRejected.SuspendLayout();
+            cardUnassigned.SuspendLayout();
+            cardOverdue.SuspendLayout();
+            cardUncompleted.SuspendLayout();
+            cardTotalTasks.SuspendLayout();
+            panelRight.SuspendLayout();
+            panelTaskDetails.SuspendLayout();
+            panelDetailActions.SuspendLayout();
+            SuspendLayout();
             // 
             // panelFilters
             // 
-            this.panelFilters.Controls.Add(this.cmbFilterByUser);
-            this.panelFilters.Controls.Add(this.lblFilterByUser);
-            this.panelFilters.Controls.Add(this.chkFilterOverdue);
-            this.panelFilters.Controls.Add(this.cmbFilterStatus);
-            this.panelFilters.Controls.Add(this.lblFilterStatus);
-            this.panelFilters.Controls.Add(this.btnClearFilter);
-            this.panelFilters.Controls.Add(this.cmbFilterPriority);
-            this.panelFilters.Controls.Add(this.lblFilterPriority);
-            this.panelFilters.Controls.Add(this.txtSearch);
-            this.panelFilters.Controls.Add(this.lblSearch);
-            this.panelFilters.Dock = System.Windows.Forms.DockStyle.Top;
-            this.panelFilters.Location = new System.Drawing.Point(0, 200);
-            this.panelFilters.Name = "panelFilters";
-            this.panelFilters.Padding = new System.Windows.Forms.Padding(5);
-            this.panelFilters.Size = new System.Drawing.Size(296, 215);
-            this.panelFilters.TabIndex = 0;
+            panelFilters.Controls.Add(cmbFilterByUser);
+            panelFilters.Controls.Add(lblFilterByUser);
+            panelFilters.Controls.Add(chkFilterOverdue);
+            panelFilters.Controls.Add(cmbFilterStatus);
+            panelFilters.Controls.Add(lblFilterStatus);
+            panelFilters.Controls.Add(btnClearFilter);
+            panelFilters.Controls.Add(cmbFilterPriority);
+            panelFilters.Controls.Add(lblFilterPriority);
+            panelFilters.Controls.Add(txtSearch);
+            panelFilters.Controls.Add(lblSearch);
+            panelFilters.Dock = DockStyle.Top;
+            panelFilters.Location = new Point(0, 200);
+            panelFilters.Name = "panelFilters";
+            panelFilters.Padding = new Padding(5);
+            panelFilters.Size = new Size(295, 215);
+            panelFilters.TabIndex = 0;
             // 
             // cmbFilterByUser
             // 
-            this.cmbFilterByUser.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.cmbFilterByUser.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cmbFilterByUser.FormattingEnabled = true;
-            this.cmbFilterByUser.Location = new System.Drawing.Point(100, 117);
-            this.cmbFilterByUser.Name = "cmbFilterByUser";
-            this.cmbFilterByUser.Size = new System.Drawing.Size(184, 23);
-            this.cmbFilterByUser.TabIndex = 9;
+            cmbFilterByUser.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            cmbFilterByUser.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbFilterByUser.FormattingEnabled = true;
+            cmbFilterByUser.Location = new Point(100, 117);
+            cmbFilterByUser.Name = "cmbFilterByUser";
+            cmbFilterByUser.Size = new Size(183, 23);
+            cmbFilterByUser.TabIndex = 9;
             // 
             // lblFilterByUser
             // 
-            this.lblFilterByUser.AutoSize = true;
-            this.lblFilterByUser.Location = new System.Drawing.Point(12, 120);
-            this.lblFilterByUser.Name = "lblFilterByUser";
-            this.lblFilterByUser.Size = new System.Drawing.Size(55, 15);
-            this.lblFilterByUser.TabIndex = 8;
-            this.lblFilterByUser.Text = "使用者：";
+            lblFilterByUser.AutoSize = true;
+            lblFilterByUser.Location = new Point(12, 120);
+            lblFilterByUser.Name = "lblFilterByUser";
+            lblFilterByUser.Size = new Size(55, 15);
+            lblFilterByUser.TabIndex = 8;
+            lblFilterByUser.Text = "使用者：";
             // 
             // chkFilterOverdue
             // 
-            this.chkFilterOverdue.AutoSize = true;
-            this.chkFilterOverdue.Location = new System.Drawing.Point(100, 152);
-            this.chkFilterOverdue.Name = "chkFilterOverdue";
-            this.chkFilterOverdue.Size = new System.Drawing.Size(110, 19);
-            this.chkFilterOverdue.TabIndex = 7;
-            this.chkFilterOverdue.Text = "僅顯示逾期任務";
-            this.chkFilterOverdue.UseVisualStyleBackColor = true;
+            chkFilterOverdue.AutoSize = true;
+            chkFilterOverdue.Location = new Point(100, 152);
+            chkFilterOverdue.Name = "chkFilterOverdue";
+            chkFilterOverdue.Size = new Size(110, 19);
+            chkFilterOverdue.TabIndex = 7;
+            chkFilterOverdue.Text = "僅顯示逾期任務";
+            chkFilterOverdue.UseVisualStyleBackColor = true;
             // 
             // cmbFilterStatus
             // 
-            this.cmbFilterStatus.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.cmbFilterStatus.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cmbFilterStatus.FormattingEnabled = true;
-            this.cmbFilterStatus.Location = new System.Drawing.Point(100, 85);
-            this.cmbFilterStatus.Name = "cmbFilterStatus";
-            this.cmbFilterStatus.Size = new System.Drawing.Size(184, 23);
-            this.cmbFilterStatus.TabIndex = 6;
+            cmbFilterStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            cmbFilterStatus.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbFilterStatus.FormattingEnabled = true;
+            cmbFilterStatus.Location = new Point(100, 85);
+            cmbFilterStatus.Name = "cmbFilterStatus";
+            cmbFilterStatus.Size = new Size(183, 23);
+            cmbFilterStatus.TabIndex = 6;
             // 
             // lblFilterStatus
             // 
-            this.lblFilterStatus.AutoSize = true;
-            this.lblFilterStatus.Location = new System.Drawing.Point(12, 88);
-            this.lblFilterStatus.Name = "lblFilterStatus";
-            this.lblFilterStatus.Size = new System.Drawing.Size(43, 15);
-            this.lblFilterStatus.TabIndex = 5;
-            this.lblFilterStatus.Text = "狀態：";
+            lblFilterStatus.AutoSize = true;
+            lblFilterStatus.Location = new Point(12, 88);
+            lblFilterStatus.Name = "lblFilterStatus";
+            lblFilterStatus.Size = new Size(43, 15);
+            lblFilterStatus.TabIndex = 5;
+            lblFilterStatus.Text = "狀態：";
             // 
             // btnClearFilter
             // 
-            this.btnClearFilter.Location = new System.Drawing.Point(100, 177);
-            this.btnClearFilter.Name = "btnClearFilter";
-            this.btnClearFilter.Size = new System.Drawing.Size(75, 23);
-            this.btnClearFilter.TabIndex = 4;
-            this.btnClearFilter.Text = "清除篩選";
-            this.btnClearFilter.UseVisualStyleBackColor = true;
+            btnClearFilter.Location = new Point(100, 177);
+            btnClearFilter.Name = "btnClearFilter";
+            btnClearFilter.Size = new Size(75, 23);
+            btnClearFilter.TabIndex = 4;
+            btnClearFilter.Text = "清除篩選";
+            btnClearFilter.UseVisualStyleBackColor = true;
             // 
             // cmbFilterPriority
             // 
-            this.cmbFilterPriority.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.cmbFilterPriority.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cmbFilterPriority.FormattingEnabled = true;
-            this.cmbFilterPriority.Location = new System.Drawing.Point(100, 50);
-            this.cmbFilterPriority.Name = "cmbFilterPriority";
-            this.cmbFilterPriority.Size = new System.Drawing.Size(184, 23);
-            this.cmbFilterPriority.TabIndex = 3;
+            cmbFilterPriority.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            cmbFilterPriority.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbFilterPriority.FormattingEnabled = true;
+            cmbFilterPriority.Location = new Point(100, 50);
+            cmbFilterPriority.Name = "cmbFilterPriority";
+            cmbFilterPriority.Size = new Size(183, 23);
+            cmbFilterPriority.TabIndex = 3;
             // 
             // lblFilterPriority
             // 
-            this.lblFilterPriority.AutoSize = true;
-            this.lblFilterPriority.Location = new System.Drawing.Point(12, 53);
-            this.lblFilterPriority.Name = "lblFilterPriority";
-            this.lblFilterPriority.Size = new System.Drawing.Size(59, 15);
-            this.lblFilterPriority.TabIndex = 2;
-            this.lblFilterPriority.Text = "優先級：";
+            lblFilterPriority.AutoSize = true;
+            lblFilterPriority.Location = new Point(12, 53);
+            lblFilterPriority.Name = "lblFilterPriority";
+            lblFilterPriority.Size = new Size(55, 15);
+            lblFilterPriority.TabIndex = 2;
+            lblFilterPriority.Text = "優先級：";
             // 
             // txtSearch
             // 
-            this.txtSearch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtSearch.Location = new System.Drawing.Point(100, 14);
-            this.txtSearch.Name = "txtSearch";
-            this.txtSearch.Size = new System.Drawing.Size(184, 23);
-            this.txtSearch.TabIndex = 1;
+            txtSearch.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            txtSearch.Location = new Point(100, 14);
+            txtSearch.Name = "txtSearch";
+            txtSearch.Size = new Size(183, 23);
+            txtSearch.TabIndex = 1;
             // 
             // lblSearch
             // 
-            this.lblSearch.AutoSize = true;
-            this.lblSearch.Location = new System.Drawing.Point(12, 17);
-            this.lblSearch.Name = "lblSearch";
-            this.lblSearch.Size = new System.Drawing.Size(43, 15);
-            this.lblSearch.TabIndex = 0;
-            this.lblSearch.Text = "搜尋：";
+            lblSearch.AutoSize = true;
+            lblSearch.Location = new Point(12, 17);
+            lblSearch.Name = "lblSearch";
+            lblSearch.Size = new Size(43, 15);
+            lblSearch.TabIndex = 0;
+            lblSearch.Text = "搜尋：";
             // 
             // statusStrip1
             // 
-            this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.lblStatus});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 539);
-            this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(1184, 22);
-            this.statusStrip1.TabIndex = 1;
-            this.statusStrip1.Text = "statusStrip1";
+            statusStrip1.Items.AddRange(new ToolStripItem[] { lblStatus });
+            statusStrip1.Location = new Point(0, 539);
+            statusStrip1.Name = "statusStrip1";
+            statusStrip1.Size = new Size(1184, 22);
+            statusStrip1.TabIndex = 1;
+            statusStrip1.Text = "statusStrip1";
             // 
             // lblStatus
             // 
-            this.lblStatus.Name = "lblStatus";
-            this.lblStatus.Size = new System.Drawing.Size(58, 17);
-            this.lblStatus.Text = "準備就緒";
+            lblStatus.Name = "lblStatus";
+            lblStatus.Size = new Size(55, 17);
+            lblStatus.Text = "準備就緒";
             // 
             // tvTasks
             // 
-            this.tvTasks.ContextMenuStrip = this.treeViewContextMenu;
-            this.tvTasks.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tvTasks.FullRowSelect = true;
-            this.tvTasks.HideSelection = false;
-            this.tvTasks.Location = new System.Drawing.Point(305, 3);
-            this.tvTasks.Name = "tvTasks";
-            this.tvTasks.ShowLines = true;
-            this.tvTasks.Size = new System.Drawing.Size(586, 533);
-            this.tvTasks.TabIndex = 0;
+            tvTasks.ContextMenuStrip = treeViewContextMenu;
+            tvTasks.Dock = DockStyle.Fill;
+            tvTasks.FullRowSelect = true;
+            tvTasks.HideSelection = false;
+            tvTasks.Location = new Point(304, 3);
+            tvTasks.Name = "tvTasks";
+            tvTasks.Size = new Size(574, 533);
+            tvTasks.TabIndex = 0;
             // 
             // treeViewContextMenu
             // 
-            this.treeViewContextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.ctxEditTask,
-            this.ctxReassignTask,
-            this.ctxDeleteTask});
-            this.treeViewContextMenu.Name = "treeViewContextMenu";
-            this.treeViewContextMenu.Size = new System.Drawing.Size(137, 70);
+            treeViewContextMenu.Items.AddRange(new ToolStripItem[] { ctxEditTask, ctxReassignTask, ctxDeleteTask });
+            treeViewContextMenu.Name = "treeViewContextMenu";
+            treeViewContextMenu.Size = new Size(140, 70);
             // 
             // ctxEditTask
             // 
-            this.ctxEditTask.Name = "ctxEditTask";
-            this.ctxEditTask.Size = new System.Drawing.Size(136, 22);
-            this.ctxEditTask.Text = "編輯任務(&E)";
+            ctxEditTask.Name = "ctxEditTask";
+            ctxEditTask.Size = new Size(139, 22);
+            ctxEditTask.Text = "編輯任務(&E)";
             // 
             // ctxReassignTask
             // 
-            this.ctxReassignTask.Name = "ctxReassignTask";
-            this.ctxReassignTask.Size = new System.Drawing.Size(136, 22);
-            this.ctxReassignTask.Text = "重新指派(&R)";
+            ctxReassignTask.Name = "ctxReassignTask";
+            ctxReassignTask.Size = new Size(139, 22);
+            ctxReassignTask.Text = "重新指派(&R)";
             // 
             // ctxDeleteTask
             // 
-            this.ctxDeleteTask.Name = "ctxDeleteTask";
-            this.ctxDeleteTask.Size = new System.Drawing.Size(136, 22);
-            this.ctxDeleteTask.Text = "刪除任務(&D)";
+            ctxDeleteTask.Name = "ctxDeleteTask";
+            ctxDeleteTask.Size = new Size(139, 22);
+            ctxDeleteTask.Text = "刪除任務(&D)";
             // 
             // mainTableLayoutPanel
             // 
-            this.mainTableLayoutPanel.ColumnCount = 3;
-            this.mainTableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25.5F));
-            this.mainTableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 49F));
-            this.mainTableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25.5F));
-            this.mainTableLayoutPanel.Controls.Add(this.tvTasks, 1, 0);
-            this.mainTableLayoutPanel.Controls.Add(this.panelLeft, 0, 0);
-            this.mainTableLayoutPanel.Controls.Add(this.panelRight, 2, 0);
-            this.mainTableLayoutPanel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.mainTableLayoutPanel.Location = new System.Drawing.Point(0, 0);
-            this.mainTableLayoutPanel.Name = "mainTableLayoutPanel";
-            this.mainTableLayoutPanel.RowCount = 1;
-            this.mainTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.mainTableLayoutPanel.Size = new System.Drawing.Size(1184, 539);
-            this.mainTableLayoutPanel.TabIndex = 2;
+            mainTableLayoutPanel.ColumnCount = 3;
+            mainTableLayoutPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25.5F));
+            mainTableLayoutPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 49F));
+            mainTableLayoutPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25.5F));
+            mainTableLayoutPanel.Controls.Add(tvTasks, 1, 0);
+            mainTableLayoutPanel.Controls.Add(panelLeft, 0, 0);
+            mainTableLayoutPanel.Controls.Add(panelRight, 2, 0);
+            mainTableLayoutPanel.Dock = DockStyle.Fill;
+            mainTableLayoutPanel.Location = new Point(0, 0);
+            mainTableLayoutPanel.Name = "mainTableLayoutPanel";
+            mainTableLayoutPanel.RowCount = 1;
+            mainTableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            mainTableLayoutPanel.Size = new Size(1184, 539);
+            mainTableLayoutPanel.TabIndex = 2;
             // 
             // panelLeft
             // 
-            this.panelLeft.Controls.Add(this.panelFilters);
-            this.panelLeft.Controls.Add(this.panelStatistics);
-            this.panelLeft.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panelLeft.Location = new System.Drawing.Point(3, 3);
-            this.panelLeft.Name = "panelLeft";
-            this.panelLeft.Size = new System.Drawing.Size(296, 533);
-            this.panelLeft.TabIndex = 1;
+            panelLeft.Controls.Add(panelFilters);
+            panelLeft.Controls.Add(panelStatistics);
+            panelLeft.Dock = DockStyle.Fill;
+            panelLeft.Location = new Point(3, 3);
+            panelLeft.Name = "panelLeft";
+            panelLeft.Size = new Size(295, 533);
+            panelLeft.TabIndex = 1;
             // 
             // panelStatistics
             // 
-            this.panelStatistics.Controls.Add(this.cardRejected);
-            this.panelStatistics.Controls.Add(this.cardUnassigned);
-            this.panelStatistics.Controls.Add(this.cardOverdue);
-            this.panelStatistics.Controls.Add(this.cardUncompleted);
-            this.panelStatistics.Controls.Add(this.cardTotalTasks);
-            this.panelStatistics.Dock = System.Windows.Forms.DockStyle.Top;
-            this.panelStatistics.Location = new System.Drawing.Point(0, 0);
-            this.panelStatistics.Name = "panelStatistics";
-            this.panelStatistics.Padding = new System.Windows.Forms.Padding(5);
-            this.panelStatistics.Size = new System.Drawing.Size(296, 200);
-            this.panelStatistics.TabIndex = 1;
+            panelStatistics.Controls.Add(cardCompleted);
+            panelStatistics.Controls.Add(cardRejected);
+            panelStatistics.Controls.Add(cardUnassigned);
+            panelStatistics.Controls.Add(cardOverdue);
+            panelStatistics.Controls.Add(cardUncompleted);
+            panelStatistics.Controls.Add(cardTotalTasks);
+            panelStatistics.Dock = DockStyle.Top;
+            panelStatistics.Location = new Point(0, 0);
+            panelStatistics.Name = "panelStatistics";
+            panelStatistics.Padding = new Padding(5);
+            panelStatistics.Size = new Size(295, 200);
+            panelStatistics.TabIndex = 1;
+            // 
+            // cardCompleted
+            // 
+            cardCompleted.BorderStyle = BorderStyle.FixedSingle;
+            cardCompleted.Controls.Add(lblCompletedValue);
+            cardCompleted.Controls.Add(lblCompletedTitle);
+            cardCompleted.Location = new Point(10, 73);
+            cardCompleted.Name = "cardCompleted";
+            cardCompleted.Size = new Size(130, 55);
+            cardCompleted.TabIndex = 5;
+            // 
+            // lblCompletedValue
+            // 
+            lblCompletedValue.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold);
+            lblCompletedValue.ForeColor = Color.Green;
+            lblCompletedValue.Location = new Point(3, 20);
+            lblCompletedValue.Name = "lblCompletedValue";
+            lblCompletedValue.Size = new Size(122, 25);
+            lblCompletedValue.TabIndex = 0;
+            lblCompletedValue.Text = "0";
+            lblCompletedValue.TextAlign = ContentAlignment.MiddleCenter;
+            // 
+            // lblCompletedTitle
+            // 
+            lblCompletedTitle.Dock = DockStyle.Top;
+            lblCompletedTitle.Location = new Point(0, 0);
+            lblCompletedTitle.Name = "lblCompletedTitle";
+            lblCompletedTitle.Size = new Size(128, 20);
+            lblCompletedTitle.TabIndex = 1;
+            lblCompletedTitle.Text = "已完成任務";
+            lblCompletedTitle.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // cardRejected
             // 
-            this.cardRejected.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.cardRejected.Controls.Add(this.lblRejectedValue);
-            this.cardRejected.Controls.Add(this.lblRejectedTitle);
-            this.cardRejected.Location = new System.Drawing.Point(10, 140);
-            this.cardRejected.Name = "cardRejected";
-            this.cardRejected.Size = new System.Drawing.Size(130, 55);
-            this.cardRejected.TabIndex = 4;
+            cardRejected.BorderStyle = BorderStyle.FixedSingle;
+            cardRejected.Controls.Add(lblRejectedValue);
+            cardRejected.Controls.Add(lblRejectedTitle);
+            cardRejected.Location = new Point(154, 136);
+            cardRejected.Name = "cardRejected";
+            cardRejected.Size = new Size(130, 55);
+            cardRejected.TabIndex = 4;
             // 
             // lblRejectedValue
             // 
-            this.lblRejectedValue.Font = new System.Drawing.Font("Segoe UI", 14.25F, System.Drawing.FontStyle.Bold);
-            this.lblRejectedValue.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.lblRejectedValue.Location = new System.Drawing.Point(3, 20);
-            this.lblRejectedValue.Name = "lblRejectedValue";
-            this.lblRejectedValue.Size = new System.Drawing.Size(122, 25);
-            this.lblRejectedValue.Text = "0";
-            this.lblRejectedValue.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            lblRejectedValue.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold);
+            lblRejectedValue.ForeColor = SystemColors.ControlDarkDark;
+            lblRejectedValue.Location = new Point(3, 20);
+            lblRejectedValue.Name = "lblRejectedValue";
+            lblRejectedValue.Size = new Size(122, 25);
+            lblRejectedValue.TabIndex = 0;
+            lblRejectedValue.Text = "0";
+            lblRejectedValue.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // lblRejectedTitle
             // 
-            this.lblRejectedTitle.Dock = System.Windows.Forms.DockStyle.Top;
-            this.lblRejectedTitle.Location = new System.Drawing.Point(0, 0);
-            this.lblRejectedTitle.Name = "lblRejectedTitle";
-            this.lblRejectedTitle.Size = new System.Drawing.Size(128, 20);
-            this.lblRejectedTitle.Text = "已拒絕任務";
-            this.lblRejectedTitle.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            lblRejectedTitle.Dock = DockStyle.Top;
+            lblRejectedTitle.Location = new Point(0, 0);
+            lblRejectedTitle.Name = "lblRejectedTitle";
+            lblRejectedTitle.Size = new Size(128, 20);
+            lblRejectedTitle.TabIndex = 1;
+            lblRejectedTitle.Text = "已拒絕任務";
+            lblRejectedTitle.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // cardUnassigned
             // 
-            this.cardUnassigned.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.cardUnassigned.Controls.Add(this.lblUnassignedValue);
-            this.cardUnassigned.Controls.Add(this.lblUnassignedTitle);
-            this.cardUnassigned.Location = new System.Drawing.Point(155, 75);
-            this.cardUnassigned.Name = "cardUnassigned";
-            this.cardUnassigned.Size = new System.Drawing.Size(130, 55);
-            this.cardUnassigned.TabIndex = 3;
+            cardUnassigned.BorderStyle = BorderStyle.FixedSingle;
+            cardUnassigned.Controls.Add(lblUnassignedValue);
+            cardUnassigned.Controls.Add(lblUnassignedTitle);
+            cardUnassigned.Location = new Point(10, 136);
+            cardUnassigned.Name = "cardUnassigned";
+            cardUnassigned.Size = new Size(130, 55);
+            cardUnassigned.TabIndex = 3;
             // 
             // lblUnassignedValue
             // 
-            this.lblUnassignedValue.Font = new System.Drawing.Font("Segoe UI", 14.25F, System.Drawing.FontStyle.Bold);
-            this.lblUnassignedValue.ForeColor = System.Drawing.Color.Orange;
-            this.lblUnassignedValue.Location = new System.Drawing.Point(3, 20);
-            this.lblUnassignedValue.Name = "lblUnassignedValue";
-            this.lblUnassignedValue.Size = new System.Drawing.Size(122, 25);
-            this.lblUnassignedValue.Text = "0";
-            this.lblUnassignedValue.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            lblUnassignedValue.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold);
+            lblUnassignedValue.ForeColor = Color.Orange;
+            lblUnassignedValue.Location = new Point(3, 20);
+            lblUnassignedValue.Name = "lblUnassignedValue";
+            lblUnassignedValue.Size = new Size(122, 25);
+            lblUnassignedValue.TabIndex = 0;
+            lblUnassignedValue.Text = "0";
+            lblUnassignedValue.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // lblUnassignedTitle
             // 
-            this.lblUnassignedTitle.Dock = System.Windows.Forms.DockStyle.Top;
-            this.lblUnassignedTitle.Location = new System.Drawing.Point(0, 0);
-            this.lblUnassignedTitle.Name = "lblUnassignedTitle";
-            this.lblUnassignedTitle.Size = new System.Drawing.Size(128, 20);
-            this.lblUnassignedTitle.Text = "未指派任務";
-            this.lblUnassignedTitle.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            lblUnassignedTitle.Dock = DockStyle.Top;
+            lblUnassignedTitle.Location = new Point(0, 0);
+            lblUnassignedTitle.Name = "lblUnassignedTitle";
+            lblUnassignedTitle.Size = new Size(128, 20);
+            lblUnassignedTitle.TabIndex = 1;
+            lblUnassignedTitle.Text = "待指派任務";
+            lblUnassignedTitle.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // cardOverdue
             // 
-            this.cardOverdue.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.cardOverdue.Controls.Add(this.lblOverdueValue);
-            this.cardOverdue.Controls.Add(this.lblOverdueTitle);
-            this.cardOverdue.Location = new System.Drawing.Point(10, 75);
-            this.cardOverdue.Name = "cardOverdue";
-            this.cardOverdue.Size = new System.Drawing.Size(130, 55);
-            this.cardOverdue.TabIndex = 2;
+            cardOverdue.BorderStyle = BorderStyle.FixedSingle;
+            cardOverdue.Controls.Add(lblOverdueValue);
+            cardOverdue.Controls.Add(lblOverdueTitle);
+            cardOverdue.Location = new Point(154, 9);
+            cardOverdue.Name = "cardOverdue";
+            cardOverdue.Size = new Size(130, 55);
+            cardOverdue.TabIndex = 2;
             // 
             // lblOverdueValue
             // 
-            this.lblOverdueValue.Font = new System.Drawing.Font("Segoe UI", 14.25F, System.Drawing.FontStyle.Bold);
-            this.lblOverdueValue.ForeColor = System.Drawing.Color.Red;
-            this.lblOverdueValue.Location = new System.Drawing.Point(3, 20);
-            this.lblOverdueValue.Name = "lblOverdueValue";
-            this.lblOverdueValue.Size = new System.Drawing.Size(122, 25);
-            this.lblOverdueValue.Text = "0";
-            this.lblOverdueValue.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            lblOverdueValue.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold);
+            lblOverdueValue.ForeColor = Color.Red;
+            lblOverdueValue.Location = new Point(3, 20);
+            lblOverdueValue.Name = "lblOverdueValue";
+            lblOverdueValue.Size = new Size(122, 25);
+            lblOverdueValue.TabIndex = 0;
+            lblOverdueValue.Text = "0";
+            lblOverdueValue.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // lblOverdueTitle
             // 
-            this.lblOverdueTitle.Dock = System.Windows.Forms.DockStyle.Top;
-            this.lblOverdueTitle.Location = new System.Drawing.Point(0, 0);
-            this.lblOverdueTitle.Name = "lblOverdueTitle";
-            this.lblOverdueTitle.Size = new System.Drawing.Size(128, 20);
-            this.lblOverdueTitle.Text = "已逾期任務";
-            this.lblOverdueTitle.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            lblOverdueTitle.Dock = DockStyle.Top;
+            lblOverdueTitle.Location = new Point(0, 0);
+            lblOverdueTitle.Name = "lblOverdueTitle";
+            lblOverdueTitle.Size = new Size(128, 20);
+            lblOverdueTitle.TabIndex = 1;
+            lblOverdueTitle.Text = "已逾期任務";
+            lblOverdueTitle.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // cardUncompleted
             // 
-            this.cardUncompleted.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.cardUncompleted.Controls.Add(this.lblUncompletedValue);
-            this.cardUncompleted.Controls.Add(this.lblUncompletedTitle);
-            this.cardUncompleted.Location = new System.Drawing.Point(155, 10);
-            this.cardUncompleted.Name = "cardUncompleted";
-            this.cardUncompleted.Size = new System.Drawing.Size(130, 55);
-            this.cardUncompleted.TabIndex = 1;
+            cardUncompleted.BorderStyle = BorderStyle.FixedSingle;
+            cardUncompleted.Controls.Add(lblUncompletedValue);
+            cardUncompleted.Controls.Add(lblUncompletedTitle);
+            cardUncompleted.Location = new Point(154, 73);
+            cardUncompleted.Name = "cardUncompleted";
+            cardUncompleted.Size = new Size(130, 55);
+            cardUncompleted.TabIndex = 1;
             // 
             // lblUncompletedValue
             // 
-            this.lblUncompletedValue.Font = new System.Drawing.Font("Segoe UI", 14.25F, System.Drawing.FontStyle.Bold);
-            this.lblUncompletedValue.Location = new System.Drawing.Point(3, 20);
-            this.lblUncompletedValue.Name = "lblUncompletedValue";
-            this.lblUncompletedValue.Size = new System.Drawing.Size(122, 25);
-            this.lblUncompletedValue.Text = "0";
-            this.lblUncompletedValue.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            lblUncompletedValue.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold);
+            lblUncompletedValue.Location = new Point(3, 20);
+            lblUncompletedValue.Name = "lblUncompletedValue";
+            lblUncompletedValue.Size = new Size(122, 25);
+            lblUncompletedValue.TabIndex = 0;
+            lblUncompletedValue.Text = "0";
+            lblUncompletedValue.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // lblUncompletedTitle
             // 
-            this.lblUncompletedTitle.Dock = System.Windows.Forms.DockStyle.Top;
-            this.lblUncompletedTitle.Location = new System.Drawing.Point(0, 0);
-            this.lblUncompletedTitle.Name = "lblUncompletedTitle";
-            this.lblUncompletedTitle.Size = new System.Drawing.Size(128, 20);
-            this.lblUncompletedTitle.Text = "未完成任務";
-            this.lblUncompletedTitle.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            lblUncompletedTitle.Dock = DockStyle.Top;
+            lblUncompletedTitle.Location = new Point(0, 0);
+            lblUncompletedTitle.Name = "lblUncompletedTitle";
+            lblUncompletedTitle.Size = new Size(128, 20);
+            lblUncompletedTitle.TabIndex = 1;
+            lblUncompletedTitle.Text = "待完成任務";
+            lblUncompletedTitle.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // cardTotalTasks
             // 
-            this.cardTotalTasks.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.cardTotalTasks.Controls.Add(this.lblTotalTasksValue);
-            this.cardTotalTasks.Controls.Add(this.lblTotalTasksTitle);
-            this.cardTotalTasks.Location = new System.Drawing.Point(10, 10);
-            this.cardTotalTasks.Name = "cardTotalTasks";
-            this.cardTotalTasks.Size = new System.Drawing.Size(130, 55);
-            this.cardTotalTasks.TabIndex = 0;
+            cardTotalTasks.BorderStyle = BorderStyle.FixedSingle;
+            cardTotalTasks.Controls.Add(lblTotalTasksValue);
+            cardTotalTasks.Controls.Add(lblTotalTasksTitle);
+            cardTotalTasks.Location = new Point(10, 10);
+            cardTotalTasks.Name = "cardTotalTasks";
+            cardTotalTasks.Size = new Size(130, 55);
+            cardTotalTasks.TabIndex = 0;
             // 
             // lblTotalTasksValue
             // 
-            this.lblTotalTasksValue.Font = new System.Drawing.Font("Segoe UI", 14.25F, System.Drawing.FontStyle.Bold);
-            this.lblTotalTasksValue.Location = new System.Drawing.Point(3, 20);
-            this.lblTotalTasksValue.Name = "lblTotalTasksValue";
-            this.lblTotalTasksValue.Size = new System.Drawing.Size(122, 25);
-            this.lblTotalTasksValue.Text = "0";
-            this.lblTotalTasksValue.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            lblTotalTasksValue.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold);
+            lblTotalTasksValue.Location = new Point(3, 20);
+            lblTotalTasksValue.Name = "lblTotalTasksValue";
+            lblTotalTasksValue.Size = new Size(122, 25);
+            lblTotalTasksValue.TabIndex = 0;
+            lblTotalTasksValue.Text = "0";
+            lblTotalTasksValue.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // lblTotalTasksTitle
             // 
-            this.lblTotalTasksTitle.Dock = System.Windows.Forms.DockStyle.Top;
-            this.lblTotalTasksTitle.Location = new System.Drawing.Point(0, 0);
-            this.lblTotalTasksTitle.Name = "lblTotalTasksTitle";
-            this.lblTotalTasksTitle.Size = new System.Drawing.Size(128, 20);
-            this.lblTotalTasksTitle.Text = "總任務數";
-            this.lblTotalTasksTitle.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            lblTotalTasksTitle.Dock = DockStyle.Top;
+            lblTotalTasksTitle.Location = new Point(0, 0);
+            lblTotalTasksTitle.Name = "lblTotalTasksTitle";
+            lblTotalTasksTitle.Size = new Size(128, 20);
+            lblTotalTasksTitle.TabIndex = 1;
+            lblTotalTasksTitle.Text = "總任務數";
+            lblTotalTasksTitle.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // panelRight
             // 
-            this.panelRight.BackColor = System.Drawing.SystemColors.Window;
-            this.panelRight.Controls.Add(this.panelTaskDetails);
-            this.panelRight.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panelRight.Location = new System.Drawing.Point(897, 3);
-            this.panelRight.Name = "panelRight";
-            this.panelRight.Padding = new System.Windows.Forms.Padding(10);
-            this.panelRight.Size = new System.Drawing.Size(284, 533);
-            this.panelRight.TabIndex = 2;
+            panelRight.BackColor = SystemColors.Window;
+            panelRight.Controls.Add(panelTaskDetails);
+            panelRight.Dock = DockStyle.Fill;
+            panelRight.Location = new Point(884, 3);
+            panelRight.Name = "panelRight";
+            panelRight.Padding = new Padding(10);
+            panelRight.Size = new Size(297, 533);
+            panelRight.TabIndex = 2;
             // 
             // panelTaskDetails
             // 
-            this.panelTaskDetails.Controls.Add(this.lblDetailLastModified);
-            this.panelTaskDetails.Controls.Add(this.lblDetailLastModifiedTitle);
-            this.panelTaskDetails.Controls.Add(this.lblDetailCreationDate);
-            this.panelTaskDetails.Controls.Add(this.lblDetailCreationDateTitle);
-            this.panelTaskDetails.Controls.Add(this.panelDetailActions);
-            this.panelTaskDetails.Controls.Add(this.txtDetailComments);
-            this.panelTaskDetails.Controls.Add(this.lblDetailCommentsTitle);
-            this.panelTaskDetails.Controls.Add(this.lblDetailAssignedTo);
-            this.panelTaskDetails.Controls.Add(this.lblDetailAssignedToTitle);
-            this.panelTaskDetails.Controls.Add(this.lblDetailCreator);
-            this.panelTaskDetails.Controls.Add(this.lblDetailCreatorTitle);
-            this.panelTaskDetails.Controls.Add(this.lblDetailDueDate);
-            this.panelTaskDetails.Controls.Add(this.lblDetailDueDateTitle);
-            this.panelTaskDetails.Controls.Add(this.lblDetailPriority);
-            this.panelTaskDetails.Controls.Add(this.lblDetailPriorityTitle);
-            this.panelTaskDetails.Controls.Add(this.lblDetailStatus);
-            this.panelTaskDetails.Controls.Add(this.lblDetailStatusTitle);
-            this.panelTaskDetails.Controls.Add(this.lblDetailTitle);
-            this.panelTaskDetails.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panelTaskDetails.Location = new System.Drawing.Point(10, 10);
-            this.panelTaskDetails.Name = "panelTaskDetails";
-            this.panelTaskDetails.Size = new System.Drawing.Size(264, 513);
-            this.panelTaskDetails.TabIndex = 0;
-            this.panelTaskDetails.Visible = false;
+            panelTaskDetails.Controls.Add(lblDetailLastModified);
+            panelTaskDetails.Controls.Add(lblDetailLastModifiedTitle);
+            panelTaskDetails.Controls.Add(lblDetailCreationDate);
+            panelTaskDetails.Controls.Add(lblDetailCreationDateTitle);
+            panelTaskDetails.Controls.Add(panelDetailActions);
+            panelTaskDetails.Controls.Add(txtDetailComments);
+            panelTaskDetails.Controls.Add(lblDetailCommentsTitle);
+            panelTaskDetails.Controls.Add(lblDetailAssignedTo);
+            panelTaskDetails.Controls.Add(lblDetailAssignedToTitle);
+            panelTaskDetails.Controls.Add(lblDetailCreator);
+            panelTaskDetails.Controls.Add(lblDetailCreatorTitle);
+            panelTaskDetails.Controls.Add(lblDetailDueDate);
+            panelTaskDetails.Controls.Add(lblDetailDueDateTitle);
+            panelTaskDetails.Controls.Add(lblDetailPriority);
+            panelTaskDetails.Controls.Add(lblDetailPriorityTitle);
+            panelTaskDetails.Controls.Add(lblDetailStatus);
+            panelTaskDetails.Controls.Add(lblDetailStatusTitle);
+            panelTaskDetails.Controls.Add(lblDetailTitle);
+            panelTaskDetails.Dock = DockStyle.Fill;
+            panelTaskDetails.Location = new Point(10, 10);
+            panelTaskDetails.Name = "panelTaskDetails";
+            panelTaskDetails.Size = new Size(277, 513);
+            panelTaskDetails.TabIndex = 0;
+            panelTaskDetails.Visible = false;
             // 
             // lblDetailLastModified
             // 
-            this.lblDetailLastModified.AutoSize = true;
-            this.lblDetailLastModified.Location = new System.Drawing.Point(70, 200);
-            this.lblDetailLastModified.Name = "lblDetailLastModified";
-            this.lblDetailLastModified.Size = new System.Drawing.Size(12, 15);
-            this.lblDetailLastModified.TabIndex = 16;
-            this.lblDetailLastModified.Text = "-";
+            lblDetailLastModified.AutoSize = true;
+            lblDetailLastModified.Location = new Point(70, 200);
+            lblDetailLastModified.Name = "lblDetailLastModified";
+            lblDetailLastModified.Size = new Size(12, 15);
+            lblDetailLastModified.TabIndex = 16;
+            lblDetailLastModified.Text = "-";
             // 
             // lblDetailLastModifiedTitle
             // 
-            this.lblDetailLastModifiedTitle.AutoSize = true;
-            this.lblDetailLastModifiedTitle.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.lblDetailLastModifiedTitle.Location = new System.Drawing.Point(0, 200);
-            this.lblDetailLastModifiedTitle.Name = "lblDetailLastModifiedTitle";
-            this.lblDetailLastModifiedTitle.Size = new System.Drawing.Size(55, 15);
-            this.lblDetailLastModifiedTitle.TabIndex = 15;
-            this.lblDetailLastModifiedTitle.Text = "最後更新";
+            lblDetailLastModifiedTitle.AutoSize = true;
+            lblDetailLastModifiedTitle.ForeColor = SystemColors.ControlDarkDark;
+            lblDetailLastModifiedTitle.Location = new Point(0, 200);
+            lblDetailLastModifiedTitle.Name = "lblDetailLastModifiedTitle";
+            lblDetailLastModifiedTitle.Size = new Size(55, 15);
+            lblDetailLastModifiedTitle.TabIndex = 15;
+            lblDetailLastModifiedTitle.Text = "最後更新";
             // 
             // lblDetailCreationDate
             // 
-            this.lblDetailCreationDate.AutoSize = true;
-            this.lblDetailCreationDate.Location = new System.Drawing.Point(70, 175);
-            this.lblDetailCreationDate.Name = "lblDetailCreationDate";
-            this.lblDetailCreationDate.Size = new System.Drawing.Size(12, 15);
-            this.lblDetailCreationDate.TabIndex = 14;
-            this.lblDetailCreationDate.Text = "-";
+            lblDetailCreationDate.AutoSize = true;
+            lblDetailCreationDate.Location = new Point(70, 175);
+            lblDetailCreationDate.Name = "lblDetailCreationDate";
+            lblDetailCreationDate.Size = new Size(12, 15);
+            lblDetailCreationDate.TabIndex = 14;
+            lblDetailCreationDate.Text = "-";
             // 
             // lblDetailCreationDateTitle
             // 
-            this.lblDetailCreationDateTitle.AutoSize = true;
-            this.lblDetailCreationDateTitle.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.lblDetailCreationDateTitle.Location = new System.Drawing.Point(0, 175);
-            this.lblDetailCreationDateTitle.Name = "lblDetailCreationDateTitle";
-            this.lblDetailCreationDateTitle.Size = new System.Drawing.Size(55, 15);
-            this.lblDetailCreationDateTitle.TabIndex = 13;
-            this.lblDetailCreationDateTitle.Text = "建立時間";
+            lblDetailCreationDateTitle.AutoSize = true;
+            lblDetailCreationDateTitle.ForeColor = SystemColors.ControlDarkDark;
+            lblDetailCreationDateTitle.Location = new Point(0, 175);
+            lblDetailCreationDateTitle.Name = "lblDetailCreationDateTitle";
+            lblDetailCreationDateTitle.Size = new Size(55, 15);
+            lblDetailCreationDateTitle.TabIndex = 13;
+            lblDetailCreationDateTitle.Text = "建立時間";
             // 
             // panelDetailActions
             // 
-            this.panelDetailActions.Controls.Add(this.btnDetailDelete);
-            this.panelDetailActions.Controls.Add(this.btnDetailReassign);
-            this.panelDetailActions.Controls.Add(this.btnDetailEdit);
-            this.panelDetailActions.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.panelDetailActions.Location = new System.Drawing.Point(0, 473);
-            this.panelDetailActions.Name = "panelDetailActions";
-            this.panelDetailActions.Size = new System.Drawing.Size(264, 40);
-            this.panelDetailActions.TabIndex = 13;
+            panelDetailActions.Controls.Add(btnDetailDelete);
+            panelDetailActions.Controls.Add(btnDetailReassign);
+            panelDetailActions.Controls.Add(btnDetailEdit);
+            panelDetailActions.Dock = DockStyle.Bottom;
+            panelDetailActions.Location = new Point(0, 473);
+            panelDetailActions.Name = "panelDetailActions";
+            panelDetailActions.Size = new Size(277, 40);
+            panelDetailActions.TabIndex = 13;
             // 
             // btnDetailDelete
             // 
-            this.btnDetailDelete.Location = new System.Drawing.Point(175, 8);
-            this.btnDetailDelete.Name = "btnDetailDelete";
-            this.btnDetailDelete.Size = new System.Drawing.Size(75, 23);
-            this.btnDetailDelete.TabIndex = 2;
-            this.btnDetailDelete.Text = "刪除";
-            this.btnDetailDelete.UseVisualStyleBackColor = true;
+            btnDetailDelete.Location = new Point(175, 8);
+            btnDetailDelete.Name = "btnDetailDelete";
+            btnDetailDelete.Size = new Size(75, 23);
+            btnDetailDelete.TabIndex = 2;
+            btnDetailDelete.Text = "刪除";
+            btnDetailDelete.UseVisualStyleBackColor = true;
             // 
             // btnDetailReassign
             // 
-            this.btnDetailReassign.Location = new System.Drawing.Point(88, 8);
-            this.btnDetailReassign.Name = "btnDetailReassign";
-            this.btnDetailReassign.Size = new System.Drawing.Size(75, 23);
-            this.btnDetailReassign.TabIndex = 1;
-            this.btnDetailReassign.Text = "重新指派";
-            this.btnDetailReassign.UseVisualStyleBackColor = true;
+            btnDetailReassign.Location = new Point(88, 8);
+            btnDetailReassign.Name = "btnDetailReassign";
+            btnDetailReassign.Size = new Size(75, 23);
+            btnDetailReassign.TabIndex = 1;
+            btnDetailReassign.Text = "重新指派";
+            btnDetailReassign.UseVisualStyleBackColor = true;
             // 
             // btnDetailEdit
             // 
-            this.btnDetailEdit.Location = new System.Drawing.Point(0, 8);
-            this.btnDetailEdit.Name = "btnDetailEdit";
-            this.btnDetailEdit.Size = new System.Drawing.Size(75, 23);
-            this.btnDetailEdit.TabIndex = 0;
-            this.btnDetailEdit.Text = "編輯";
-            this.btnDetailEdit.UseVisualStyleBackColor = true;
+            btnDetailEdit.Location = new Point(0, 8);
+            btnDetailEdit.Name = "btnDetailEdit";
+            btnDetailEdit.Size = new Size(75, 23);
+            btnDetailEdit.TabIndex = 0;
+            btnDetailEdit.Text = "編輯";
+            btnDetailEdit.UseVisualStyleBackColor = true;
             // 
             // txtDetailComments
             // 
-            this.txtDetailComments.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-            | System.Windows.Forms.AnchorStyles.Left)
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtDetailComments.BackColor = System.Drawing.SystemColors.Window;
-            this.txtDetailComments.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtDetailComments.Location = new System.Drawing.Point(0, 248);
-            this.txtDetailComments.Multiline = true;
-            this.txtDetailComments.Name = "txtDetailComments";
-            this.txtDetailComments.ReadOnly = true;
-            this.txtDetailComments.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtDetailComments.Size = new System.Drawing.Size(264, 219);
-            this.txtDetailComments.TabIndex = 12;
+            txtDetailComments.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            txtDetailComments.BackColor = SystemColors.Window;
+            txtDetailComments.BorderStyle = BorderStyle.FixedSingle;
+            txtDetailComments.Location = new Point(0, 248);
+            txtDetailComments.Multiline = true;
+            txtDetailComments.Name = "txtDetailComments";
+            txtDetailComments.ReadOnly = true;
+            txtDetailComments.ScrollBars = ScrollBars.Vertical;
+            txtDetailComments.Size = new Size(277, 219);
+            txtDetailComments.TabIndex = 12;
             // 
             // lblDetailCommentsTitle
             // 
-            this.lblDetailCommentsTitle.AutoSize = true;
-            this.lblDetailCommentsTitle.Location = new System.Drawing.Point(0, 230);
-            this.lblDetailCommentsTitle.Name = "lblDetailCommentsTitle";
-            this.lblDetailCommentsTitle.Size = new System.Drawing.Size(31, 15);
-            this.lblDetailCommentsTitle.TabIndex = 11;
-            this.lblDetailCommentsTitle.Text = "備註";
+            lblDetailCommentsTitle.AutoSize = true;
+            lblDetailCommentsTitle.Location = new Point(0, 230);
+            lblDetailCommentsTitle.Name = "lblDetailCommentsTitle";
+            lblDetailCommentsTitle.Size = new Size(31, 15);
+            lblDetailCommentsTitle.TabIndex = 11;
+            lblDetailCommentsTitle.Text = "備註";
             // 
             // lblDetailAssignedTo
             // 
-            this.lblDetailAssignedTo.AutoSize = true;
-            this.lblDetailAssignedTo.Location = new System.Drawing.Point(70, 150);
-            this.lblDetailAssignedTo.Name = "lblDetailAssignedTo";
-            this.lblDetailAssignedTo.Size = new System.Drawing.Size(12, 15);
-            this.lblDetailAssignedTo.TabIndex = 10;
-            this.lblDetailAssignedTo.Text = "-";
+            lblDetailAssignedTo.AutoSize = true;
+            lblDetailAssignedTo.Location = new Point(70, 150);
+            lblDetailAssignedTo.Name = "lblDetailAssignedTo";
+            lblDetailAssignedTo.Size = new Size(12, 15);
+            lblDetailAssignedTo.TabIndex = 10;
+            lblDetailAssignedTo.Text = "-";
             // 
             // lblDetailAssignedToTitle
             // 
-            this.lblDetailAssignedToTitle.AutoSize = true;
-            this.lblDetailAssignedToTitle.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.lblDetailAssignedToTitle.Location = new System.Drawing.Point(0, 150);
-            this.lblDetailAssignedToTitle.Name = "lblDetailAssignedToTitle";
-            this.lblDetailAssignedToTitle.Size = new System.Drawing.Size(43, 15);
-            this.lblDetailAssignedToTitle.TabIndex = 9;
-            this.lblDetailAssignedToTitle.Text = "指派給";
+            lblDetailAssignedToTitle.AutoSize = true;
+            lblDetailAssignedToTitle.ForeColor = SystemColors.ControlDarkDark;
+            lblDetailAssignedToTitle.Location = new Point(0, 150);
+            lblDetailAssignedToTitle.Name = "lblDetailAssignedToTitle";
+            lblDetailAssignedToTitle.Size = new Size(43, 15);
+            lblDetailAssignedToTitle.TabIndex = 9;
+            lblDetailAssignedToTitle.Text = "指派給";
             // 
             // lblDetailCreator
             // 
-            this.lblDetailCreator.AutoSize = true;
-            this.lblDetailCreator.Location = new System.Drawing.Point(70, 125);
-            this.lblDetailCreator.Name = "lblDetailCreator";
-            this.lblDetailCreator.Size = new System.Drawing.Size(12, 15);
-            this.lblDetailCreator.TabIndex = 8;
-            this.lblDetailCreator.Text = "-";
+            lblDetailCreator.AutoSize = true;
+            lblDetailCreator.Location = new Point(70, 125);
+            lblDetailCreator.Name = "lblDetailCreator";
+            lblDetailCreator.Size = new Size(12, 15);
+            lblDetailCreator.TabIndex = 8;
+            lblDetailCreator.Text = "-";
             // 
             // lblDetailCreatorTitle
             // 
-            this.lblDetailCreatorTitle.AutoSize = true;
-            this.lblDetailCreatorTitle.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.lblDetailCreatorTitle.Location = new System.Drawing.Point(0, 125);
-            this.lblDetailCreatorTitle.Name = "lblDetailCreatorTitle";
-            this.lblDetailCreatorTitle.Size = new System.Drawing.Size(43, 15);
-            this.lblDetailCreatorTitle.TabIndex = 7;
-            this.lblDetailCreatorTitle.Text = "建立者";
+            lblDetailCreatorTitle.AutoSize = true;
+            lblDetailCreatorTitle.ForeColor = SystemColors.ControlDarkDark;
+            lblDetailCreatorTitle.Location = new Point(0, 125);
+            lblDetailCreatorTitle.Name = "lblDetailCreatorTitle";
+            lblDetailCreatorTitle.Size = new Size(43, 15);
+            lblDetailCreatorTitle.TabIndex = 7;
+            lblDetailCreatorTitle.Text = "建立者";
             // 
             // lblDetailDueDate
             // 
-            this.lblDetailDueDate.AutoSize = true;
-            this.lblDetailDueDate.Location = new System.Drawing.Point(70, 100);
-            this.lblDetailDueDate.Name = "lblDetailDueDate";
-            this.lblDetailDueDate.Size = new System.Drawing.Size(12, 15);
-            this.lblDetailDueDate.TabIndex = 6;
-            this.lblDetailDueDate.Text = "-";
+            lblDetailDueDate.AutoSize = true;
+            lblDetailDueDate.Location = new Point(70, 100);
+            lblDetailDueDate.Name = "lblDetailDueDate";
+            lblDetailDueDate.Size = new Size(12, 15);
+            lblDetailDueDate.TabIndex = 6;
+            lblDetailDueDate.Text = "-";
             // 
             // lblDetailDueDateTitle
             // 
-            this.lblDetailDueDateTitle.AutoSize = true;
-            this.lblDetailDueDateTitle.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.lblDetailDueDateTitle.Location = new System.Drawing.Point(0, 100);
-            this.lblDetailDueDateTitle.Name = "lblDetailDueDateTitle";
-            this.lblDetailDueDateTitle.Size = new System.Drawing.Size(43, 15);
-            this.lblDetailDueDateTitle.TabIndex = 5;
-            this.lblDetailDueDateTitle.Text = "到期日";
+            lblDetailDueDateTitle.AutoSize = true;
+            lblDetailDueDateTitle.ForeColor = SystemColors.ControlDarkDark;
+            lblDetailDueDateTitle.Location = new Point(0, 100);
+            lblDetailDueDateTitle.Name = "lblDetailDueDateTitle";
+            lblDetailDueDateTitle.Size = new Size(43, 15);
+            lblDetailDueDateTitle.TabIndex = 5;
+            lblDetailDueDateTitle.Text = "到期日";
             // 
             // lblDetailPriority
             // 
-            this.lblDetailPriority.AutoSize = true;
-            this.lblDetailPriority.Location = new System.Drawing.Point(70, 75);
-            this.lblDetailPriority.Name = "lblDetailPriority";
-            this.lblDetailPriority.Size = new System.Drawing.Size(12, 15);
-            this.lblDetailPriority.TabIndex = 4;
-            this.lblDetailPriority.Text = "-";
+            lblDetailPriority.AutoSize = true;
+            lblDetailPriority.Location = new Point(70, 75);
+            lblDetailPriority.Name = "lblDetailPriority";
+            lblDetailPriority.Size = new Size(12, 15);
+            lblDetailPriority.TabIndex = 4;
+            lblDetailPriority.Text = "-";
             // 
             // lblDetailPriorityTitle
             // 
-            this.lblDetailPriorityTitle.AutoSize = true;
-            this.lblDetailPriorityTitle.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.lblDetailPriorityTitle.Location = new System.Drawing.Point(0, 75);
-            this.lblDetailPriorityTitle.Name = "lblDetailPriorityTitle";
-            this.lblDetailPriorityTitle.Size = new System.Drawing.Size(43, 15);
-            this.lblDetailPriorityTitle.TabIndex = 3;
-            this.lblDetailPriorityTitle.Text = "優先級";
+            lblDetailPriorityTitle.AutoSize = true;
+            lblDetailPriorityTitle.ForeColor = SystemColors.ControlDarkDark;
+            lblDetailPriorityTitle.Location = new Point(0, 75);
+            lblDetailPriorityTitle.Name = "lblDetailPriorityTitle";
+            lblDetailPriorityTitle.Size = new Size(43, 15);
+            lblDetailPriorityTitle.TabIndex = 3;
+            lblDetailPriorityTitle.Text = "優先級";
             // 
             // lblDetailStatus
             // 
-            this.lblDetailStatus.AutoSize = true;
-            this.lblDetailStatus.Location = new System.Drawing.Point(70, 50);
-            this.lblDetailStatus.Name = "lblDetailStatus";
-            this.lblDetailStatus.Size = new System.Drawing.Size(12, 15);
-            this.lblDetailStatus.TabIndex = 2;
-            this.lblDetailStatus.Text = "-";
+            lblDetailStatus.AutoSize = true;
+            lblDetailStatus.Location = new Point(70, 50);
+            lblDetailStatus.Name = "lblDetailStatus";
+            lblDetailStatus.Size = new Size(12, 15);
+            lblDetailStatus.TabIndex = 2;
+            lblDetailStatus.Text = "-";
             // 
             // lblDetailStatusTitle
             // 
-            this.lblDetailStatusTitle.AutoSize = true;
-            this.lblDetailStatusTitle.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.lblDetailStatusTitle.Location = new System.Drawing.Point(0, 50);
-            this.lblDetailStatusTitle.Name = "lblDetailStatusTitle";
-            this.lblDetailStatusTitle.Size = new System.Drawing.Size(31, 15);
-            this.lblDetailStatusTitle.TabIndex = 1;
-            this.lblDetailStatusTitle.Text = "狀態";
+            lblDetailStatusTitle.AutoSize = true;
+            lblDetailStatusTitle.ForeColor = SystemColors.ControlDarkDark;
+            lblDetailStatusTitle.Location = new Point(0, 50);
+            lblDetailStatusTitle.Name = "lblDetailStatusTitle";
+            lblDetailStatusTitle.Size = new Size(31, 15);
+            lblDetailStatusTitle.TabIndex = 1;
+            lblDetailStatusTitle.Text = "狀態";
             // 
             // lblDetailTitle
             // 
-            this.lblDetailTitle.AutoEllipsis = true;
-            this.lblDetailTitle.Dock = System.Windows.Forms.DockStyle.Top;
-            this.lblDetailTitle.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
-            this.lblDetailTitle.Location = new System.Drawing.Point(0, 0);
-            this.lblDetailTitle.Name = "lblDetailTitle";
-            this.lblDetailTitle.Size = new System.Drawing.Size(264, 40);
-            this.lblDetailTitle.TabIndex = 0;
-            this.lblDetailTitle.Text = "請選擇一個任務以查看詳情";
+            lblDetailTitle.AutoEllipsis = true;
+            lblDetailTitle.Dock = DockStyle.Top;
+            lblDetailTitle.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
+            lblDetailTitle.Location = new Point(0, 0);
+            lblDetailTitle.Name = "lblDetailTitle";
+            lblDetailTitle.Size = new Size(277, 40);
+            lblDetailTitle.TabIndex = 0;
+            lblDetailTitle.Text = "請選擇一個任務以查看詳情";
             // 
             // AdminDashboardForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1184, 561);
-            this.Controls.Add(this.mainTableLayoutPanel);
-            this.Controls.Add(this.statusStrip1);
-            this.MinimumSize = new System.Drawing.Size(900, 600);
-            this.Name = "AdminDashboardForm";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "管理員儀表板";
-            this.panelFilters.ResumeLayout(false);
-            this.panelFilters.PerformLayout();
-            this.statusStrip1.ResumeLayout(false);
-            this.statusStrip1.PerformLayout();
-            this.treeViewContextMenu.ResumeLayout(false);
-            this.mainTableLayoutPanel.ResumeLayout(false);
-            this.panelLeft.ResumeLayout(false);
-            this.panelStatistics.ResumeLayout(false);
-            this.cardRejected.ResumeLayout(false);
-            this.cardUnassigned.ResumeLayout(false);
-            this.cardOverdue.ResumeLayout(false);
-            this.cardUncompleted.ResumeLayout(false);
-            this.cardTotalTasks.ResumeLayout(false);
-            this.panelRight.ResumeLayout(false);
-            this.panelTaskDetails.ResumeLayout(false);
-            this.panelTaskDetails.PerformLayout();
-            this.panelDetailActions.ResumeLayout(false);
-            this.ResumeLayout(false);
-            this.PerformLayout();
-
+            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(1184, 561);
+            Controls.Add(mainTableLayoutPanel);
+            Controls.Add(statusStrip1);
+            MinimumSize = new Size(900, 600);
+            Name = "AdminDashboardForm";
+            StartPosition = FormStartPosition.CenterParent;
+            Text = "管理員儀表板";
+            panelFilters.ResumeLayout(false);
+            panelFilters.PerformLayout();
+            statusStrip1.ResumeLayout(false);
+            statusStrip1.PerformLayout();
+            treeViewContextMenu.ResumeLayout(false);
+            mainTableLayoutPanel.ResumeLayout(false);
+            panelLeft.ResumeLayout(false);
+            panelStatistics.ResumeLayout(false);
+            cardCompleted.ResumeLayout(false);
+            cardRejected.ResumeLayout(false);
+            cardUnassigned.ResumeLayout(false);
+            cardOverdue.ResumeLayout(false);
+            cardUncompleted.ResumeLayout(false);
+            cardTotalTasks.ResumeLayout(false);
+            panelRight.ResumeLayout(false);
+            panelTaskDetails.ResumeLayout(false);
+            panelTaskDetails.PerformLayout();
+            panelDetailActions.ResumeLayout(false);
+            ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
@@ -799,5 +834,8 @@ namespace TodoApp.WinForms.Forms
         private System.Windows.Forms.Label lblRejectedTitle;
         private System.Windows.Forms.Label lblFilterByUser;
         private System.Windows.Forms.ComboBox cmbFilterByUser;
+        private System.Windows.Forms.Panel cardCompleted;
+        private System.Windows.Forms.Label lblCompletedValue;
+        private System.Windows.Forms.Label lblCompletedTitle;
     }
 }

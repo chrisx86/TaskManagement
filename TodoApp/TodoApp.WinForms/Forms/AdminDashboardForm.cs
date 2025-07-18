@@ -264,18 +264,28 @@ public partial class AdminDashboardForm : Form
 
     private void PopulateStatisticCards(List<TodoItem> tasks)
     {
-        lblTotalTasksValue.Text = tasks.Count.ToString();
-        lblUncompletedValue.Text = tasks.Count(t => t.Status != TodoStatus.Completed).ToString();
-        lblOverdueValue.Text = tasks.Count(t => t.DueDate < DateTime.UtcNow && t.Status != TodoStatus.Completed).ToString();
-        lblUnassignedValue.Text = tasks.Count(t => t.AssignedToId == null).ToString();
-        lblRejectedValue.Text = tasks.Count(t => t.Status == TodoStatus.Reject).ToString();
-        if (tasks == null && _dashboardViewModel != null)
-        {
-            lblRejectedValue.Text = _dashboardViewModel.RejectedTaskCount.ToString();
-        }
-        cardOverdue.BackColor = int.Parse(lblOverdueValue.Text) > 0 ? Color.MistyRose : SystemColors.Control;
-        cardUnassigned.BackColor = int.Parse(lblUnassignedValue.Text) > 0 ? Color.LightGoldenrodYellow : SystemColors.Control;
-        cardRejected.BackColor = int.Parse(lblRejectedValue.Text) > 0 ? Color.Gainsboro : SystemColors.Control;
+        if (_dashboardViewModel == null) return;
+        var sourceTasks = tasks ?? _dashboardViewModel.GroupedTasks.SelectMany(kv => kv.Value).ToList();
+        var totalCount = sourceTasks.Count;
+        var completedCount = sourceTasks.Count(t => t.Status == TodoStatus.Completed);
+        var uncompletedCount = sourceTasks.Count(t => t.Status != TodoStatus.Completed && t.Status != TodoStatus.Reject);
+        var overdueCount = sourceTasks.Count(t => t.DueDate < DateTime.UtcNow && t.Status != TodoStatus.Completed && t.Status != TodoStatus.Reject);
+        var unassignedCount = sourceTasks.Count(t => t.AssignedToId == null);
+        var rejectedCount = sourceTasks.Count(t => t.Status == TodoStatus.Reject);
+
+        // --- Update the UI Labels ---
+        lblTotalTasksValue.Text = totalCount.ToString();
+        lblCompletedValue.Text = completedCount.ToString(); // New
+        lblUncompletedValue.Text = uncompletedCount.ToString();
+        lblOverdueValue.Text = overdueCount.ToString();
+        lblUnassignedValue.Text = unassignedCount.ToString();
+        lblRejectedValue.Text = rejectedCount.ToString();
+
+        // --- Update the Card background colors for visual cues ---
+        cardOverdue.BackColor = overdueCount > 0 ? Color.MistyRose : SystemColors.Control;
+        cardUnassigned.BackColor = unassignedCount > 0 ? Color.LightGoldenrodYellow : SystemColors.Control;
+        cardRejected.BackColor = rejectedCount > 0 ? Color.Gainsboro : SystemColors.Control;
+        cardCompleted.BackColor = completedCount > 0 ? Color.Honeydew : SystemColors.Control; // New
     }
 
 

@@ -58,7 +58,7 @@ public class AdminDashboardService : IAdminDashboardService
 
         // 2. Create a special "pseudo-user" to hold unassigned tasks.
         //    We give it a unique negative Id to avoid any conflicts with real user Ids.
-        var unassignedUserKey = new User { Id = -1, Username = "(未指派的任務)" };
+        var unassignedUserKey = new User { Id = -1, Username = "(待指派的任務)" };
 
         // 3. Iterate through all tasks and place them in the correct bucket.
         foreach (var task in allTasks)
