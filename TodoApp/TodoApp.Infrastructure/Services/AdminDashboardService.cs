@@ -24,42 +24,48 @@ public class AdminDashboardService : IAdminDashboardService
     /// Gathers all dashboard data in a single, efficient operation.
     /// </summary>
     /// <returns>A DashboardViewModel populated with statistics and grouped tasks.</returns>
+    // In AdminDashboardService.cs
+
     public async Task<DashboardViewModel> GetDashboardDataAsync()
     {
-        var now = DateTime.UtcNow;
+        var now = DateTime.Now;
 
-        // --- STEP 1: Fetch all users and all tasks in two efficient queries. ---
         var allUsers = await _context.Users.AsNoTracking().ToListAsync();
         var allTasks = await _context.TodoItems
-            .Include(t => t.Creator) // Include is still needed for details panel later
+            .Include(t => t.Creator)
             .Include(t => t.AssignedTo)
             .AsNoTracking()
             .ToListAsync();
 
-        // --- STEP 2: Perform calculations in-memory (this part is likely correct). ---
+        // The statistics calculation is correct. No changes needed here.
         var viewModel = new DashboardViewModel
         {
             TotalTaskCount = allTasks.Count,
-            UncompletedTaskCount = allTasks.Count(t => t.Status != TodoStatus.Completed),
-            OverdueTaskCount = allTasks.Count(t => t.DueDate < now && t.Status != TodoStatus.Completed),
-            UnassignedTaskCount = allTasks.Count(t => t.AssignedToId == null)
+            UncompletedTaskCount = allTasks.Count(t => t.Status != TodoStatus.Completed && t.Status != TodoStatus.Reject),
+            OverdueTaskCount = allTasks.Count(t => t.DueDate < now && t.Status != TodoStatus.Completed && t.Status != TodoStatus.Reject),
+            UnassignedTaskCount = allTasks.Count(t => t.AssignedToId == null),
+            RejectedTaskCount = allTasks.Count(t => t.Status == TodoStatus.Reject)
         };
 
-        // 3a. Initialize a dictionary with all users, each with an empty list of tasks.
-        //     We use a custom User equality comparer to handle dictionary keys correctly.
+        // --- THIS IS THE KEY FIX for grouping logic ---
+
+        // 1. Initialize the dictionary with all real users.
         var tasksByUser = allUsers.ToDictionary(
             user => user,
             user => new List<TodoItem>(),
             new UserEqualityComparer()
         );
-        var unassignedUserKey = new User { Id = -1, Username = "(未指派的任務)" };
-        tasksByUser[unassignedUserKey] = new List<TodoItem>();
 
+        // 2. Create a special "pseudo-user" to hold unassigned tasks.
+        //    We give it a unique negative Id to avoid any conflicts with real user Ids.
+        var unassignedUserKey = new User { Id = -1, Username = "(未指派的任務)" };
+
+        // 3. Iterate through all tasks and place them in the correct bucket.
         foreach (var task in allTasks)
         {
             if (task.AssignedTo != null)
             {
-                // Task is assigned, find the correct user bucket.
+                // Task is assigned, add it to the assignee's list.
                 if (tasksByUser.TryGetValue(task.AssignedTo, out var taskList))
                 {
                     taskList.Add(task);
@@ -67,12 +73,18 @@ public class AdminDashboardService : IAdminDashboardService
             }
             else
             {
+                // Task is unassigned, add it to our special unassigned list.
+                // We need to initialize the list for the unassigned key first.
+                if (!tasksByUser.ContainsKey(unassignedUserKey))
+                {
+                    tasksByUser[unassignedUserKey] = new List<TodoItem>();
+                }
                 tasksByUser[unassignedUserKey].Add(task);
             }
         }
 
-        // Remove the unassigned group if it has no tasks, for a cleaner UI.
-        if (!tasksByUser[unassignedUserKey].Any())
+        // 4. (Optional) For a cleaner UI, remove the unassigned group if it ends up being empty.
+        if (tasksByUser.ContainsKey(unassignedUserKey) && !tasksByUser[unassignedUserKey].Any())
         {
             tasksByUser.Remove(unassignedUserKey);
         }

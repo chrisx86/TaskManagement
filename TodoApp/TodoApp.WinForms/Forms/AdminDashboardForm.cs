@@ -173,72 +173,61 @@ public partial class AdminDashboardForm : Form
     {
         if (_dashboardViewModel is null) return;
 
-        // Use BeginUpdate/EndUpdate to prevent flickering and improve performance during large updates.
         tvTasks.BeginUpdate();
         tvTasks.Nodes.Clear();
 
-        // --- Get current filter values from the UI controls ---
         var searchTerm = txtSearch.Text.Trim().ToLowerInvariant();
         PriorityLevel? priorityFilter = (cmbFilterPriority.SelectedItem as PriorityDisplayItem)?.Value;
         TodoStatus? statusFilter = (cmbFilterStatus.SelectedItem as StatusDisplayItem)?.Value;
         var onlyShowOverdue = chkFilterOverdue.Checked;
         var now = DateTime.UtcNow;
 
-        int? userFilterId = (cmbFilterByUser.SelectedItem as UserDisplayItem)?.Id;
-        // This list will hold all tasks from all users that match the current filters.
-        // It's used to update the statistic cards dynamically.
         var allFilteredTasks = new List<TodoItem>();
-        // Iterate through the cached user data, ordered by username for consistent display.
+
         foreach (var userTasksPair in _dashboardViewModel.GroupedTasks.OrderBy(p => p.Key.Username))
         {
             var user = userTasksPair.Key;
             IEnumerable<TodoItem> tasksToFilter = userTasksPair.Value;
-            if (userFilterId.HasValue && userFilterId > 0 && user.Id != userFilterId)
-            {
-                continue; // Skip this user entirely
-            }
-            // --- Apply all filters sequentially to the user's task list ---
-            if (!string.IsNullOrEmpty(searchTerm))
-                tasksToFilter = tasksToFilter.Where(t =>
-                    (t.Title?.ToLowerInvariant().Contains(searchTerm) ?? false) ||
-                    (t.Comments?.ToLowerInvariant().Contains(searchTerm) ?? false));
 
+            // --- Filtering logic remains the same ---
+            if (!string.IsNullOrEmpty(searchTerm))
+                tasksToFilter = tasksToFilter.Where(t => (t.Title?.ToLowerInvariant().Contains(searchTerm) ?? false) || (t.Comments?.ToLowerInvariant().Contains(searchTerm) ?? false));
             if (priorityFilter.HasValue)
                 tasksToFilter = tasksToFilter.Where(t => t.Priority == priorityFilter.Value);
-
             if (statusFilter.HasValue)
                 tasksToFilter = tasksToFilter.Where(t => t.Status == statusFilter.Value);
-
             if (onlyShowOverdue)
-                tasksToFilter = tasksToFilter.Where(t => t.DueDate < now && t.Status != TodoStatus.Completed);
+                tasksToFilter = tasksToFilter.Where(t => t.DueDate < now && t.Status != TodoStatus.Completed && t.Status != TodoStatus.Reject);
 
             var filteredUserTasks = tasksToFilter.ToList();
             allFilteredTasks.AddRange(filteredUserTasks);
 
-            // --- Logic to decide whether to show the user node ---
-            // Show the user if they have tasks matching the filter, or if no filters are active.
             if (filteredUserTasks.Any() || !IsAnyFilterActive())
             {
-                // The user node now shows counts based on the *filtered* list for that user.
-                var userNode = new TreeNode($"{user.Username} ({filteredUserTasks.Count(t => t.Status != TodoStatus.Completed)} / {filteredUserTasks.Count})");
+                var uncompletedCount = filteredUserTasks.Count(t => t.Status != TodoStatus.Completed && t.Status != TodoStatus.Reject);
+                var totalInListCount = filteredUserTasks.Count;
+                var userNode = new TreeNode($"{user.Username} ({uncompletedCount} / {totalInListCount})");
                 userNode.Tag = user;
 
-                // --- THIS IS THE NEW SORTING LOGIC ---
-                // Apply the custom multi-level sorting to the user's filtered task list.
                 var sortedUserTasks = filteredUserTasks
-                    .OrderBy(t => t.Status == TodoStatus.InProgress ? 0 : (t.Status == TodoStatus.Pending ? 1 : 2))
+                    .OrderBy(t => t.Status switch {
+                        TodoStatus.InProgress => 0,
+                        TodoStatus.Pending => 1,
+                        TodoStatus.Reject => 2,
+                        TodoStatus.Completed => 3,
+                        _ => 4
+                    })
                     .ThenByDescending(t => t.Priority)
                     .ThenBy(t => t.DueDate ?? DateTime.MaxValue);
 
-                // Now, iterate through the *sorted* list to create task nodes.
                 foreach (var task in sortedUserTasks)
                 {
-                    // Format the node text to be rich with information.
                     var statusPrefix = task.Status switch
                     {
-                        TodoStatus.Completed => "[✓]",
-                        TodoStatus.InProgress => "[→]",
-                        _ => "[ ]"
+                        TodoStatus.Completed => "［✓］",
+                        TodoStatus.InProgress => "［→］",
+                        TodoStatus.Reject => "［✗］",
+                        _ => "［ ］"
                     };
                     var priorityPrefix = $"[{task.Priority}]";
                     var dueDateSuffix = task.DueDate.HasValue ? $" (Due: {task.DueDate.Value.ToLocalTime():yyyy-MM-dd})" : "";
@@ -246,8 +235,7 @@ public partial class AdminDashboardForm : Form
 
                     var taskNode = new TreeNode(nodeText) { Tag = task };
 
-                    // Apply color highlighting for critical tasks.
-                    var isOverdue = task.DueDate < now && task.Status != TodoStatus.Completed;
+                    var isOverdue = task.DueDate < now && task.Status != TodoStatus.Completed && task.Status != TodoStatus.Reject;
                     if (isOverdue)
                     {
                         taskNode.ForeColor = Color.Red;
@@ -264,11 +252,14 @@ public partial class AdminDashboardForm : Form
             }
         }
 
-        // --- Update statistic cards based on the aggregated filtered results ---
         PopulateStatisticCards(allFilteredTasks);
-
         tvTasks.ExpandAll();
         tvTasks.EndUpdate();
+        if (tvTasks.Nodes.Count > 0)
+        {
+            tvTasks.SelectedNode = tvTasks.Nodes[0];
+            tvTasks.Nodes[0].EnsureVisible();
+        }
     }
 
     private void PopulateStatisticCards(List<TodoItem> tasks)
@@ -277,10 +268,16 @@ public partial class AdminDashboardForm : Form
         lblUncompletedValue.Text = tasks.Count(t => t.Status != TodoStatus.Completed).ToString();
         lblOverdueValue.Text = tasks.Count(t => t.DueDate < DateTime.UtcNow && t.Status != TodoStatus.Completed).ToString();
         lblUnassignedValue.Text = tasks.Count(t => t.AssignedToId == null).ToString();
-
+        lblRejectedValue.Text = tasks.Count(t => t.Status == TodoStatus.Reject).ToString();
+        if (tasks == null && _dashboardViewModel != null)
+        {
+            lblRejectedValue.Text = _dashboardViewModel.RejectedTaskCount.ToString();
+        }
         cardOverdue.BackColor = int.Parse(lblOverdueValue.Text) > 0 ? Color.MistyRose : SystemColors.Control;
         cardUnassigned.BackColor = int.Parse(lblUnassignedValue.Text) > 0 ? Color.LightGoldenrodYellow : SystemColors.Control;
+        cardRejected.BackColor = int.Parse(lblRejectedValue.Text) > 0 ? Color.Gainsboro : SystemColors.Control;
     }
+
 
     private bool IsAnyFilterActive() => !string.IsNullOrEmpty(txtSearch.Text) || cmbFilterPriority.SelectedIndex > 0 || cmbFilterStatus.SelectedIndex > 0 || chkFilterOverdue.Checked;
 

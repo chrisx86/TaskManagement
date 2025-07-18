@@ -35,6 +35,8 @@ public class DashboardViewModel
     /// </summary>
     public int UnassignedTaskCount { get; set; }
 
+    public int RejectedTaskCount { get; set; }
+
     // ===================================================================
     // Main Content Data
     // This property provides the data for the central TreeView.

@@ -20,6 +20,7 @@ public partial class MainForm : Form
     private readonly Font _regularFont;
     private readonly Font _boldFont;
     private readonly Font _strikeoutFont;
+    private readonly Font _italicFont;
 
     // --- UI State & Data Cache ---
     private readonly BindingList<TodoItem> _tasksBindingList = new();
@@ -57,6 +58,7 @@ public partial class MainForm : Form
         _regularFont = new Font(this.Font, FontStyle.Regular);
         _boldFont = new Font(this.Font, FontStyle.Bold);
         _strikeoutFont = new Font(this.Font, FontStyle.Strikeout);
+        _italicFont = new Font(this.Font, FontStyle.Italic);
 
         WireUpEvents();
     }
@@ -278,14 +280,22 @@ public partial class MainForm : Form
                     ? items.OrderBy(t => propName == "AssignedTo" ? t.AssignedTo?.Username : t.Creator.Username).ToList()
                     : items.OrderByDescending(t => propName == "AssignedTo" ? t.AssignedTo?.Username : t.Creator.Username).ToList();
             }
-            else
+            else // Default sort
             {
                 var prop = TypeDescriptor.GetProperties(typeof(TodoItem))[propName];
                 if (prop != null)
                 {
-                    items = (_sortDirection == ListSortDirection.Ascending)
-                        ? items.OrderBy(x => prop.GetValue(x)).ToList()
-                        : items.OrderByDescending(x => prop.GetValue(x)).ToList();
+                    items = items
+                        .OrderBy(t => t.Status switch {
+                            TodoStatus.InProgress => 0,
+                            TodoStatus.Pending => 1,
+                            TodoStatus.Reject => 2,
+                            TodoStatus.Completed => 3,
+                            _ => 4
+                        })
+                        .ThenByDescending(t => t.Priority)
+                        .ThenBy(t => t.DueDate ?? DateTime.MaxValue)
+                        .ToList();
                 }
             }
 
@@ -369,58 +379,53 @@ public partial class MainForm : Form
 
         var row = dgvTasks.Rows[e.RowIndex];
 
+        // --- Determine target style properties ---
         Color targetBackColor = SystemColors.Window;
         Color targetForeColor = SystemColors.ControlText;
+        Font targetFont = _regularFont;
 
         var now = DateTime.Now;
+        var isOverdue = task.DueDate.HasValue && task.DueDate < now && task.Status != TodoStatus.Completed && task.Status != TodoStatus.Reject;
+        var isDueSoon = task.DueDate.HasValue && task.DueDate >= now && task.DueDate < now.AddDays(2) && task.Status != TodoStatus.Completed && task.Status != TodoStatus.Reject;
+        // --- Apply styles based on a clear priority ---
         if (task.Status == TodoStatus.Completed)
         {
             targetBackColor = Color.Honeydew;
             targetForeColor = Color.DarkGray;
+            targetFont = _strikeoutFont;
+        }
+        else if (task.Status == TodoStatus.Reject)
+        {
+            targetBackColor = Color.LightGray;
+            targetForeColor = Color.Black;
+            targetFont = _italicFont;
         }
         else if (task.Priority == PriorityLevel.Urgent)
         {
             targetBackColor = Color.LightPink;
             targetForeColor = Color.DarkRed;
+            targetFont = _boldFont;
         }
-        else if (task.DueDate.HasValue && task.DueDate < now)
+        else if (isOverdue)
         {
             targetBackColor = Color.MistyRose;
             targetForeColor = Color.DarkRed;
+            targetFont = _boldFont;
         }
-        else if (task.DueDate.HasValue && task.DueDate < now.AddDays(2))
+        else if (isDueSoon)
         {
             targetBackColor = Color.LightYellow;
             targetForeColor = Color.DarkGoldenrod;
         }
 
-        if (row.DefaultCellStyle.BackColor != targetBackColor)
-        {
-            row.DefaultCellStyle.BackColor = targetBackColor;
-        }
-        if (row.DefaultCellStyle.ForeColor != targetForeColor)
-        {
-            row.DefaultCellStyle.ForeColor = targetForeColor;
-        }
+        var currentStyle = row.DefaultCellStyle;
+        if (currentStyle.BackColor != targetBackColor) currentStyle.BackColor = targetBackColor;
+        if (currentStyle.ForeColor != targetForeColor) currentStyle.ForeColor = targetForeColor;
 
-        Font expectedFont;
-        if (task.Status == TodoStatus.Completed)
+        Font currentFont = currentStyle.Font ?? dgvTasks.DefaultCellStyle.Font;
+        if (!currentFont.Equals(targetFont))
         {
-            expectedFont = _strikeoutFont;
-        }
-        else if (task.Priority == PriorityLevel.Urgent || (task.DueDate.HasValue && task.DueDate < DateTime.Now && task.Status != TodoStatus.Completed))
-        {
-            expectedFont = _boldFont;
-        }
-        else
-        {
-            expectedFont = _regularFont;
-        }
-
-        Font currentFont = row.DefaultCellStyle.Font ?? dgvTasks.DefaultCellStyle.Font;
-        if (!currentFont.Equals(expectedFont))
-        {
-            row.DefaultCellStyle.Font = expectedFont;
+            currentStyle.Font = targetFont;
         }
     }
 

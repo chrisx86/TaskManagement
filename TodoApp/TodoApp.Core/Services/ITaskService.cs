@@ -3,7 +3,7 @@ using TodoApp.Core.Models;
 
 namespace TodoApp.Core.Services;
 
-public enum TaskStatusFilter { All, Completed, Pending, InProgress }
+public enum TaskStatusFilter { All, Completed, Pending, InProgress, Reject }
 
 public enum UserTaskFilter { All, AssignedToMe, CreatedByMe }
 /// <summary>
