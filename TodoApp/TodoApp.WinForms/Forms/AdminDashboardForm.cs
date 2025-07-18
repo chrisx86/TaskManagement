@@ -267,7 +267,7 @@ public partial class AdminDashboardForm : Form
         if (_dashboardViewModel == null) return;
         var sourceTasks = tasks ?? _dashboardViewModel.GroupedTasks.SelectMany(kv => kv.Value).ToList();
         var totalCount = sourceTasks.Count;
-        var completedCount = sourceTasks.Count(t => t.Status == TodoStatus.Completed);
+        var completedCount = sourceTasks.Count(t => t.Status == TodoStatus.Completed || t.Status == TodoStatus.Reject);
         var uncompletedCount = sourceTasks.Count(t => t.Status != TodoStatus.Completed && t.Status != TodoStatus.Reject);
         var overdueCount = sourceTasks.Count(t => t.DueDate < DateTime.UtcNow && t.Status != TodoStatus.Completed && t.Status != TodoStatus.Reject);
         var unassignedCount = sourceTasks.Count(t => t.AssignedToId == null);

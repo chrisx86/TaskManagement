@@ -3,6 +3,7 @@ using TodoApp.Core.Models;
 using TodoApp.Core.Services;
 using TodoApp.WinForms.ViewModels;
 using Microsoft.EntityFrameworkCore;
+using Org.BouncyCastle.Asn1.Cmp;
 
 namespace TodoApp.WinForms.Forms;
 
@@ -46,7 +47,6 @@ public partial class TaskDetailDialog : Form
         {
             this.Enabled = false;
 
-            // Populate ComboBoxes with their data sources.
             await PopulateComboBoxesAsync();
 
             if (_editingTask != null)
@@ -126,6 +126,8 @@ public partial class TaskDetailDialog : Form
 
     private async Task PopulateComboBoxesAsync()
     {
+        cmbStatus.DataSource = Enum.GetValues<TodoStatus>();
+
         cmbPriority.DataSource = Enum.GetValues<PriorityLevel>();
 
         var allUsers = await _userService.GetAllUsersAsync();
@@ -152,6 +154,10 @@ public partial class TaskDetailDialog : Form
         {
             txtTitle.Text = task.Title;
             txtComments.Text = task.Comments;
+
+            // --- NEW: Set the selected status ---
+            cmbStatus.SelectedItem = task.Status;
+
             cmbPriority.SelectedItem = task.Priority;
             cmbAssignedTo.SelectedValue = task.AssignedToId ?? 0;
 
@@ -175,9 +181,9 @@ public partial class TaskDetailDialog : Form
     {
         task.Title = txtTitle.Text.Trim();
         task.Comments = txtComments.Text.Trim();
+        task.Status = (TodoStatus)cmbStatus.SelectedItem;
         task.Priority = (PriorityLevel)cmbPriority.SelectedItem;
         task.DueDate = dtpDueDate.Checked ? dtpDueDate.Value.Date : null;
-
         if (cmbAssignedTo.SelectedValue is int selectedId && selectedId > 0)
         {
             task.AssignedToId = selectedId;
