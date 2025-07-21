@@ -124,7 +124,7 @@ public partial class MainForm : Form
         var mainAssembly = Assembly.GetExecutingAssembly();
         var version = mainAssembly.GetName().Version;
         var versionString = version != null ? $"V {version.Major}.{version.Minor}.{version.Build}" : "V ?.?.?";
-        this.Text = $"Task Management App - Login : [{_currentUser.Username}] - {versionString} Beta";
+        this.Text = $"Task Management App - Login : [ {_currentUser.Username} ] - {versionString} Beta";
     }
 
     private void SetupDataGridView()
@@ -174,7 +174,17 @@ public partial class MainForm : Form
         dgvTasks.Columns.Add(statusColumn);
 
         dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "Title", HeaderText = "標題", DataPropertyName = "Title", Width = 550, SortMode = DataGridViewColumnSortMode.Programmatic });
-        dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "Priority", HeaderText = "優先級", DataPropertyName = "Priority", Width = 70, SortMode = DataGridViewColumnSortMode.Programmatic });
+        var priorityColumn = new DataGridViewComboBoxColumn
+        {
+            Name = "Priority",
+            HeaderText = "優先級",
+            DataPropertyName = "Priority",
+            DataSource = Enum.GetValues<PriorityLevel>(), // Populate with enum values
+            Width = 100,
+            FlatStyle = FlatStyle.Flat,
+            SortMode = DataGridViewColumnSortMode.Programmatic
+        };
+        dgvTasks.Columns.Add(priorityColumn);
         dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "DueDate", HeaderText = "到期日", DataPropertyName = "DueDate", Width = 80, DefaultCellStyle = { Format = "yyyy-MM-dd" }, SortMode = DataGridViewColumnSortMode.Programmatic });
         dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "AssignedTo", HeaderText = "指派給", DataPropertyName = "AssignedTo", Width = 80, SortMode = DataGridViewColumnSortMode.Programmatic });
         dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "Creator", HeaderText = "建立者", DataPropertyName = "Creator", Width = 80, SortMode = DataGridViewColumnSortMode.Programmatic });
@@ -250,16 +260,17 @@ public partial class MainForm : Form
             if (_totalPages == 0) _totalPages = 1;
             if (_currentPage > _totalPages) _currentPage = _totalPages;
 
-            var tasks = await _taskService.GetAllTasksAsync(statusFilter, userFilter, _currentUser.Id, assignedToUserIdFilter, _currentPage, _pageSize);
+            var tasks = await _taskService.GetAllTasksAsync(
+                statusFilter, userFilter, _currentUser.Id, assignedToUserIdFilter,
+                _currentPage, _pageSize,
+                _sortedColumn?.Name, // Pass the column name, or null for default sort
+                _sortDirection == ListSortDirection.Ascending // Pass the direction
+            );
 
-            _isUpdatingUI = true;
             _tasksBindingList.Clear();
             tasks.ForEach(task => _tasksBindingList.Add(task));
-            _isUpdatingUI = false;
-
-            _sortedColumn = null; // Reset to default sort every time data is loaded.
-            ApplySort();
             UpdatePaginationUI();
+            UpdateSortGlyphs();
         }
         catch (Exception ex) { MessageBox.Show($"載入任務時發生錯誤: {ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error); }
         finally
@@ -269,68 +280,26 @@ public partial class MainForm : Form
         }
     }
 
-    private void ApplySort()
+    private async void ApplySort()
     {
-        var items = new List<TodoItem>(_tasksBindingList);
+        _currentPage = 1; // Reset to first page when sorting changes
+        await LoadTasksAsync();
+    }
 
-        if (_sortedColumn != null)
+    private void UpdateSortGlyphs()
+    {
+        foreach (DataGridViewColumn col in dgvTasks.Columns)
         {
-            var propName = _sortedColumn.DataPropertyName;
-
-            // Handle complex types for sorting
-            if (propName == "AssignedTo" || propName == "Creator")
+            if (col == _sortedColumn)
             {
-                items = (_sortDirection == ListSortDirection.Ascending)
-                    ? items.OrderBy(t => propName == "AssignedTo" ? t.AssignedTo?.Username : t.Creator.Username).ToList()
-                    : items.OrderByDescending(t => propName == "AssignedTo" ? t.AssignedTo?.Username : t.Creator.Username).ToList();
+                col.HeaderCell.SortGlyphDirection = (_sortDirection == ListSortDirection.Ascending) ? SortOrder.Ascending : SortOrder.Descending;
             }
-            else // Default sort
-            {
-                var prop = TypeDescriptor.GetProperties(typeof(TodoItem))[propName];
-                if (prop != null)
-                {
-                    items = items
-                        .OrderBy(t => t.Status switch {
-                            TodoStatus.InProgress => 0,
-                            TodoStatus.Pending => 1,
-                            TodoStatus.Reject => 2,
-                            TodoStatus.Completed => 3,
-                            _ => 4
-                        })
-                        .ThenByDescending(t => t.Priority)
-                        .ThenBy(t => t.DueDate ?? DateTime.MaxValue)
-                        .ToList();
-                }
-            }
-
-            foreach (var col in dgvTasks.Columns.Cast<DataGridViewColumn>().Where(c => c != _sortedColumn))
+            else
             {
                 col.HeaderCell.SortGlyphDirection = SortOrder.None;
             }
-            _sortedColumn.HeaderCell.SortGlyphDirection = (_sortDirection == ListSortDirection.Ascending) ? SortOrder.Ascending : SortOrder.Descending;
         }
-        else // Default sort
-        {
-            items = items
-                .OrderBy(t => t.Status switch {
-                    TodoStatus.InProgress => 0,
-                    TodoStatus.Pending => 1,
-                    TodoStatus.Reject => 2,
-                    TodoStatus.Completed => 3,
-                    _ => 4 
-                })
-                .ThenByDescending(t => t.Priority)
-                .ThenBy(t => t.DueDate ?? DateTime.MaxValue)
-                .ToList();
-        }
-
-        _isUpdatingUI = true;
-        _tasksBindingList.Clear();
-        items.ForEach(item => _tasksBindingList.Add(item));
-        _isUpdatingUI = false;
-        _tasksBindingList.ResetBindings();
     }
-
     #endregion
 
     #region --- UI State and Event Handlers ---
@@ -349,7 +318,7 @@ public partial class MainForm : Form
     {
         if (_isUpdatingUI) return;
         _currentPage = 1;
-        _sortedColumn = null;
+        _sortedColumn = null; // When filters change, always reset to default sort
         await LoadTasksAsync();
     }
 
@@ -391,7 +360,7 @@ public partial class MainForm : Form
         if (!_isUpdatingUI) btnSaveChanges.Enabled = true;
     }
 
-    private void DgvTasks_ColumnHeaderMouseClick(object? sender, DataGridViewCellMouseEventArgs e)
+    private async void DgvTasks_ColumnHeaderMouseClick(object? sender, DataGridViewCellMouseEventArgs e)
     {
         var newSortColumn = dgvTasks.Columns[e.ColumnIndex];
         if (newSortColumn.SortMode == DataGridViewColumnSortMode.NotSortable) return;
@@ -402,10 +371,17 @@ public partial class MainForm : Form
         }
         else
         {
+            if (_sortedColumn != null) { _sortedColumn.HeaderCell.SortGlyphDirection = SortOrder.None; }
             _sortedColumn = newSortColumn;
             _sortDirection = ListSortDirection.Ascending;
         }
-        ApplySort();
+        await ApplySortAndReload();
+    }
+
+    private async Task ApplySortAndReload()
+    {
+        _currentPage = 1;
+        await LoadTasksAsync();
     }
 
     private void DgvTasks_RowPrePaint(object? sender, DataGridViewRowPrePaintEventArgs e)
@@ -475,16 +451,27 @@ public partial class MainForm : Form
 
     private void DgvTasks_CellClick(object? sender, DataGridViewCellEventArgs e)
     {
-        if (e.RowIndex >= 0 && dgvTasks.Columns[e.ColumnIndex].Name == "Status")
+        if (e.RowIndex >= 0)
         {
-            dgvTasks.BeginEdit(true);
-            if (dgvTasks.EditingControl is DataGridViewComboBoxEditingControl comboBox) { comboBox.DroppedDown = true; }
+            var columnName = dgvTasks.Columns[e.ColumnIndex].Name;
+            if (columnName == "Status" || columnName == "Priority")
+            {
+                dgvTasks.BeginEdit(true);
+                if (dgvTasks.EditingControl is DataGridViewComboBoxEditingControl comboBox)
+                {
+                    comboBox.DroppedDown = true;
+                }
+            }
         }
     }
 
     private async void DgvTasks_CellValueChanged(object? sender, DataGridViewCellEventArgs e)
     {
-        if (_isUpdatingUI || e.RowIndex < 0 || dgvTasks.Columns[e.ColumnIndex].Name != "Status") return;
+        if (_isUpdatingUI || e.RowIndex < 0) return;
+
+        var columnName = dgvTasks.Columns[e.ColumnIndex].Name;
+        if (columnName != "Status" && columnName != "Priority") return;
+
         if (dgvTasks.Rows[e.RowIndex].DataBoundItem is not TodoItem changedTask) return;
 
         try
@@ -503,14 +490,21 @@ public partial class MainForm : Form
 
     private void DgvTasks_CellBeginEdit(object? sender, DataGridViewCellCancelEventArgs e)
     {
-        if (dgvTasks.Columns[e.ColumnIndex].Name != "Status") { e.Cancel = true; return; }
+        var columnName = dgvTasks.Columns[e.ColumnIndex].Name;
+        if (columnName != "Status" && columnName != "Priority")
+        {
+            e.Cancel = true;
+            return;
+        }
+
         if (dgvTasks.Rows[e.RowIndex].DataBoundItem is TodoItem task)
         {
-            var hasPermission = _currentUser.Role == UserRole.Admin || task.CreatorId == _currentUser.Id || task.AssignedToId == _currentUser.Id;
+            // Use the same permission logic for both Status and Priority
+            bool hasPermission = _currentUser.Role == UserRole.Admin || task.CreatorId == _currentUser.Id || task.AssignedToId == _currentUser.Id;
             if (!hasPermission)
             {
                 e.Cancel = true;
-                lblStatus.Text = "您沒有權限修改此任務的狀態。";
+                lblStatus.Text = "您沒有權限修改此任務。";
             }
         }
     }

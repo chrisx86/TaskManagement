@@ -426,7 +426,6 @@ public partial class AdminDashboardForm : Form
     {
         var now = DateTime.Now; // Use a single timestamp for consistency
 
-        // Group the final filtered list by the task's owner (Assignee, falling back to Creator).
         var tasksGroupedForTree = filteredTasks
             .GroupBy(t => t.AssignedTo ?? t.Creator, new UserEqualityComparer())
             .OrderBy(g => g.Key.Username);
@@ -434,13 +433,11 @@ public partial class AdminDashboardForm : Form
         // --- Populate the user nodes in the TreeView ---
         foreach (var userGroup in tasksGroupedForTree)
         {
-            // It's possible to have a null key if a task has no assignee and its creator was deleted.
             if (userGroup.Key == null) continue;
 
             var user = userGroup.Key;
             var userTasks = userGroup.ToList();
 
-            // The count on the user node should reflect the content of the filtered list.
             int uncompletedCount = userTasks.Count(t => t.Status != TodoStatus.Completed && t.Status != TodoStatus.Reject);
             var userNode = new TreeNode($"{user.Username} ({uncompletedCount} / {userTasks.Count})")
             {
@@ -453,22 +450,20 @@ public partial class AdminDashboardForm : Form
                     TodoStatus.InProgress => 0,
                     TodoStatus.Pending => 1,
                     TodoStatus.Reject => 2,
-                    _ => 3
+                    TodoStatus.Completed => 3,
+                    _ => 4
                 })
                 .ThenByDescending(t => t.Priority)
                 .ThenBy(t => t.DueDate ?? DateTime.MaxValue);
 
             foreach (var task in sortedUserTasks)
             {
-                // Create and add the task node using the helper method.
                 userNode.Nodes.Add(CreateTaskNode(task, now));
             }
 
             tvTasks.Nodes.Add(userNode);
         }
     }
-
-    private bool IsAnyFilterActive() => !string.IsNullOrEmpty(txtSearch.Text) || cmbFilterPriority.SelectedIndex > 0 || cmbFilterStatus.SelectedIndex > 0 || chkFilterOverdue.Checked;
 
     #endregion
 
@@ -490,14 +485,13 @@ public partial class AdminDashboardForm : Form
 
             if (fullTaskDetails != null)
             {
-                _selectedTaskForDetails = fullTaskDetails; // Update the cache for editing actions
+                _selectedTaskForDetails = fullTaskDetails;
                 PopulateTaskDetails(fullTaskDetails);
                 panelTaskDetails.Visible = true;
                 SetActionButtonsState(true);
             }
             else
             {
-                // The task might have been deleted by another user in the meantime.
                 MessageBox.Show("無法獲取任務詳情，該任務可能已被刪除。視圖將會刷新。", "找不到任務", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 await LoadAndDisplayDataAsync(); // Refresh the entire dashboard
             }

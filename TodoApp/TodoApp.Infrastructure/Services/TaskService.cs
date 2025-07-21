@@ -38,19 +38,82 @@ public class TaskService : ITaskService
         int currentUserId,
         int? assignedToUserIdFilter,
         int pageNumber,
-        int pageSize)
+        int pageSize,
+        string? sortColumn,
+        bool isAscending)
     {
         var query = BuildFilteredQuery(statusFilter, userFilter, currentUserId, assignedToUserIdFilter);
 
-        // Sorting is now handled by the client (MainForm).
-        // A default, stable order by Id is good practice for consistent paging.
-        return await query
-            .OrderBy(t => t.Id)
+        IOrderedQueryable<TodoItem> orderedQuery;
+
+        if (!string.IsNullOrEmpty(sortColumn))
+        {
+            // --- FIXED: Add cases for all sortable columns ---
+            switch (sortColumn)
+            {
+                case "Status":
+                    orderedQuery = isAscending ? query.OrderBy(t => t.Status) : query.OrderByDescending(t => t.Status);
+                    break;
+                case "Title":
+                    orderedQuery = isAscending ? query.OrderBy(t => t.Title) : query.OrderByDescending(t => t.Title);
+                    break;
+                case "Priority":
+                    orderedQuery = isAscending ? query.OrderBy(t => t.Priority) : query.OrderByDescending(t => t.Priority);
+                    break;
+                case "DueDate":
+                    orderedQuery = isAscending
+                        ? query.OrderBy(t => t.DueDate ?? DateTime.MaxValue)
+                        : query.OrderByDescending(t => t.DueDate ?? DateTime.MinValue);
+                    break;
+                case "AssignedTo":
+                    // Include the related entity for sorting
+                    orderedQuery = isAscending
+                        ? query.Include(t => t.AssignedTo).OrderBy(t => t.AssignedTo.Username)
+                        : query.Include(t => t.AssignedTo).OrderByDescending(t => t.AssignedTo.Username);
+                    break;
+                case "Creator":
+                    orderedQuery = isAscending
+                        ? query.Include(t => t.Creator).OrderBy(t => t.Creator.Username)
+                        : query.Include(t => t.Creator).OrderByDescending(t => t.Creator.Username);
+                    break;
+                case "CreationDate":
+                    orderedQuery = isAscending ? query.OrderBy(t => t.CreationDate) : query.OrderByDescending(t => t.CreationDate);
+                    break;
+                case "LastModifiedDate":
+                    orderedQuery = isAscending ? query.OrderBy(t => t.LastModifiedDate) : query.OrderByDescending(t => t.LastModifiedDate);
+                    break;
+                default:
+                    // Fallback to default sort if column name is unknown
+                    orderedQuery = ApplyDefaultSort(query);
+                    break;
+            }
+        }
+        else // Apply default sort if no sortColumn is specified
+        {
+            orderedQuery = ApplyDefaultSort(query);
+        }
+
+        // Apply pagination AFTER sorting
+        return await orderedQuery
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .Include(t => t.Creator)
             .Include(t => t.AssignedTo)
             .ToListAsync();
+    }
+
+    private IOrderedQueryable<TodoItem> ApplyDefaultSort(IQueryable<TodoItem> query)
+    {
+        return query
+            .OrderBy(t =>
+                t.Status == TodoStatus.InProgress ? 0 :
+                t.Status == TodoStatus.Pending ? 1 :
+                t.Status == TodoStatus.Reject ? 2 :
+                t.Status == TodoStatus.Completed ? 3 :
+                4 // Default fallback value
+            )
+            .ThenByDescending(t => t.Priority)
+            .ThenBy(t => t.DueDate ?? DateTime.MaxValue);
     }
 
     public async Task<int> GetTaskCountAsync(

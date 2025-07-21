@@ -18,7 +18,9 @@ public interface ITaskService
         int currentUserId,
         int? assignedToUserIdFilter,
         int pageNumber,
-        int pageSize
+        int pageSize,
+        string? sortColumn, // The name of the column to sort by
+        bool isAscending     // The sort direction
     );
 
     Task<int> GetTaskCountAsync(
