@@ -83,7 +83,7 @@ public partial class MainForm : Form
         this.tsbNewTask.Click += TsbNewTask_Click;
         this.tsbEditTask.Click += TsbEditTask_Click;
         this.tsbDeleteTask.Click += TsbDeleteTask_Click;
-        this.tsbRefresh.Click += async (s, e) => await LoadTasksAsync();
+        this.tsbRefresh.Click += TsbRefresh_Click;
         this.tsbUserManagement.Click += TsbUserManagement_Click;
         this.tsbAdminDashboard.Click += TsbAdminDashboard_Click;
         this.tsbChangePassword.Click += TsbChangePassword_Click;
@@ -129,9 +129,6 @@ public partial class MainForm : Form
 
     private void SetupDataGridView()
     {
-        // --- PERFORMANCE OPTIMIZATION ---
-        // Use Double-Buffering to reduce flicker during repaint.
-        // This requires setting the property via reflection as it's protected.
         typeof(DataGridView).InvokeMember(
             "DoubleBuffered",
             BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.SetProperty,
@@ -143,16 +140,10 @@ public partial class MainForm : Form
         dgvTasks.AutoGenerateColumns = false;
         dgvTasks.DataSource = _tasksBindingList;
 
-        // --- CRITICAL FIX: Disable automatic row sizing ---
-        // Change from AllCells to None. We will manage row height manually if needed,
-        // or use a ToolTip to show full text. This is the single biggest performance gain.
         dgvTasks.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None;
 
-        // Set a reasonable, fixed row height.
-        dgvTasks.RowTemplate.Height = 30; // Adjust as needed
+        dgvTasks.RowTemplate.Height = 30;
 
-        // Keep WrapMode for individual cells, but it won't affect row height anymore.
-        // Text will wrap if the cell is tall enough (e.g., if manually resized).
         dgvTasks.DefaultCellStyle.WrapMode = DataGridViewTriState.True;
 
         dgvTasks.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
@@ -179,7 +170,7 @@ public partial class MainForm : Form
             Name = "Priority",
             HeaderText = "優先級",
             DataPropertyName = "Priority",
-            DataSource = Enum.GetValues<PriorityLevel>(), // Populate with enum values
+            DataSource = Enum.GetValues<PriorityLevel>(),
             Width = 100,
             FlatStyle = FlatStyle.Flat,
             SortMode = DataGridViewColumnSortMode.Programmatic
@@ -263,8 +254,8 @@ public partial class MainForm : Form
             var tasks = await _taskService.GetAllTasksAsync(
                 statusFilter, userFilter, _currentUser.Id, assignedToUserIdFilter,
                 _currentPage, _pageSize,
-                _sortedColumn?.Name, // Pass the column name, or null for default sort
-                _sortDirection == ListSortDirection.Ascending // Pass the direction
+                _sortedColumn?.Name,
+                _sortDirection == ListSortDirection.Ascending
             );
 
             _tasksBindingList.Clear();
@@ -282,7 +273,7 @@ public partial class MainForm : Form
 
     private async void ApplySort()
     {
-        _currentPage = 1; // Reset to first page when sorting changes
+        _currentPage = 1;
         await LoadTasksAsync();
     }
 
@@ -318,7 +309,7 @@ public partial class MainForm : Form
     {
         if (_isUpdatingUI) return;
         _currentPage = 1;
-        _sortedColumn = null; // When filters change, always reset to default sort
+        _sortedColumn = null;
         await LoadTasksAsync();
     }
 
@@ -330,15 +321,13 @@ public partial class MainForm : Form
 
         if (isRowSelected && dgvTasks.SelectedRows[0].DataBoundItem is TodoItem selectedTask)
         {
-            _selectedTaskForEditing = selectedTask; // Store the selected task
+            _selectedTaskForEditing = selectedTask;
 
-            // Prevent the TextChanged event from firing while we are setting the text.
             _isUpdatingUI = true;
             txtCommentsPreview.Text = selectedTask.Comments ?? "";
             txtCommentsPreview.Enabled = true;
             _isUpdatingUI = false;
 
-            // After setting text, reset the save button to disabled.
             btnSaveChanges.Enabled = false;
         }
         else
@@ -356,7 +345,6 @@ public partial class MainForm : Form
 
     private void TxtCommentsPreview_TextChanged(object? sender, EventArgs e)
     {
-        // Only enable the button if the change was made by the user, not by code.
         if (!_isUpdatingUI) btnSaveChanges.Enabled = true;
     }
 
@@ -499,7 +487,6 @@ public partial class MainForm : Form
 
         if (dgvTasks.Rows[e.RowIndex].DataBoundItem is TodoItem task)
         {
-            // Use the same permission logic for both Status and Priority
             bool hasPermission = _currentUser.Role == UserRole.Admin || task.CreatorId == _currentUser.Id || task.AssignedToId == _currentUser.Id;
             if (!hasPermission)
             {
@@ -511,22 +498,17 @@ public partial class MainForm : Form
 
     private void DgvTasks_CellToolTipTextNeeded(object? sender, DataGridViewCellToolTipTextNeededEventArgs e)
     {
-        // Ignore headers and invalid rows
         if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
 
-        // Get the cell and its value
         var cell = dgvTasks.Rows[e.RowIndex].Cells[e.ColumnIndex];
         var cellValue = cell.Value?.ToString();
 
         if (string.IsNullOrEmpty(cellValue)) return;
 
-        // Use the graphics object to measure the size of the text
         using (Graphics g = this.CreateGraphics())
         {
-            // Get the size required to display the full text
             var textSize = g.MeasureString(cellValue, dgvTasks.Font);
 
-            // If the required width is greater than the cell's width, show the tooltip.
             if (textSize.Width > cell.Size.Width) e.ToolTipText = cellValue;
         }
     }
@@ -587,7 +569,6 @@ public partial class MainForm : Form
     {
         if (_selectedTaskForEditing == null) return;
 
-        // Check if the comments have actually changed.
         if (_selectedTaskForEditing.Comments == txtCommentsPreview.Text.Trim())
         {
             btnSaveChanges.Enabled = false;
@@ -602,7 +583,6 @@ public partial class MainForm : Form
 
             var updatedTask = await _taskService.UpdateTaskAsync(_currentUser, _selectedTaskForEditing);
 
-            // Replace our stale, in-memory object with the fresh one from the database.
             _selectedTaskForEditing = updatedTask;
 
             var indexInList = -1;
@@ -617,18 +597,13 @@ public partial class MainForm : Form
 
             if (indexInList != -1)
             {
-                // Update the object in the BindingList to ensure the grid has the latest data.
-                // Temporarily disable events to prevent unwanted side effects.
                 _isUpdatingUI = true;
                 _tasksBindingList[indexInList] = updatedTask;
                 _isUpdatingUI = false;
-
-                // Calling ResetItem is more efficient than InvalidateRow or ResetBindings in this case.
                 _tasksBindingList.ResetItem(indexInList);
             }
             else
             {
-                // Fallback to a full reload if the item wasn't found (should be rare).
                 await LoadTasksAsync();
             }
 
@@ -669,7 +644,6 @@ public partial class MainForm : Form
             return;
         }
 
-        // --- STEP 1: Remember the ID and the current page of the task being edited. ---
         var taskIdToSelect = selectedTaskInfo.Id;
         var pageToRestore = _currentPage;
 
@@ -691,11 +665,9 @@ public partial class MainForm : Form
             {
                 lblStatus.Text = "任務已成功更新，正在重新整理...";
 
-                // --- STEP 2: Perform the full reload on the *same page*. ---
-                _currentPage = pageToRestore; // Ensure we load the same page
+                _currentPage = pageToRestore;
                 await LoadTasksAsync();
 
-                // --- STEP 3: Restore the selection after the grid has been reloaded. ---
                 SelectTaskInDataGridView(taskIdToSelect);
             }
         }
@@ -707,18 +679,13 @@ public partial class MainForm : Form
 
     private void SelectTaskInDataGridView(int taskId)
     {
-        // Clear previous selections to avoid confusion.
         dgvTasks.ClearSelection();
 
-        // Iterate through the rows to find the one with the matching task ID.
         foreach (DataGridViewRow row in dgvTasks.Rows)
         {
             if (row.DataBoundItem is TodoItem item && item.Id == taskId)
             {
                 row.Selected = true;
-
-                // Scroll the grid to make the selected row visible.
-                // This is especially important in a paged view.
                 dgvTasks.FirstDisplayedScrollingRowIndex = row.Index;
 
                 return;
@@ -794,5 +761,17 @@ public partial class MainForm : Form
         if (confirmResult == DialogResult.Yes) { Application.Restart(); }
     }
 
+    private async void TsbRefresh_Click(object? sender, EventArgs e)
+    {
+        _sortedColumn = null;
+        foreach (DataGridViewColumn column in dgvTasks.Columns)
+        {
+            if (column.SortMode != DataGridViewColumnSortMode.NotSortable)
+            {
+                column.HeaderCell.SortGlyphDirection = SortOrder.None;
+            }
+        }
+        await LoadTasksAsync();
+    }
     #endregion
 }
