@@ -356,7 +356,7 @@ dgvTasks.DataSource = tasks;: 這是資料繫結的核心。我們將從服務�
 使用 try...catch...finally 來處理可能的錯誤並確保 UI 狀態最終恢復正常。
 
 
-
+dotnet publish E:\Project\VisualStudio\TodoApp\TodoApp\TodoApp.WinForms\TodoApp.WinForms.csproj -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -c Release
 
 
 

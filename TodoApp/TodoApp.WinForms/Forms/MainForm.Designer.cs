@@ -32,428 +32,427 @@ namespace TodoApp.WinForms.Forms
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
-            this.toolStrip1 = new System.Windows.Forms.ToolStrip();
-            this.tsbNewTask = new System.Windows.Forms.ToolStripButton();
-            this.tsbEditTask = new System.Windows.Forms.ToolStripButton();
-            this.tsbDeleteTask = new System.Windows.Forms.ToolStripButton();
-            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
-            this.tsbRefresh = new System.Windows.Forms.ToolStripButton();
-            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
-            this.tsbUserManagement = new System.Windows.Forms.ToolStripButton();
-            this.tsbAdminDashboard = new System.Windows.Forms.ToolStripButton();
-            this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
-            this.tsbChangePassword = new System.Windows.Forms.ToolStripButton();
-            this.tsbSwitchUser = new System.Windows.Forms.ToolStripButton();
-            this.statusStrip1 = new System.Windows.Forms.StatusStrip();
-            this.lblStatus = new System.Windows.Forms.ToolStripStatusLabel();
-            this.panelFilters = new System.Windows.Forms.Panel();
-            this.lblFilterByAssignedUser = new System.Windows.Forms.Label();
-            this.cmbFilterByAssignedUser = new System.Windows.Forms.ComboBox();
-            this.cmbFilterByUserRelation = new System.Windows.Forms.ComboBox();
-            this.lblFilterUser = new System.Windows.Forms.Label();
-            this.cmbFilterStatus = new System.Windows.Forms.ComboBox();
-            this.lblFilterStatus = new System.Windows.Forms.Label();
-            this.panelPagination = new System.Windows.Forms.Panel();
-            this.lblPageSize = new System.Windows.Forms.Label();
-            this.cmbPageSize = new System.Windows.Forms.ComboBox();
-            this.btnLastPage = new System.Windows.Forms.Button();
-            this.btnNextPage = new System.Windows.Forms.Button();
-            this.lblPageInfo = new System.Windows.Forms.Label();
-            this.txtCurrentPage = new System.Windows.Forms.TextBox();
-            this.btnPreviousPage = new System.Windows.Forms.Button();
-            this.btnFirstPage = new System.Windows.Forms.Button();
-            this.splitContainerMain = new System.Windows.Forms.SplitContainer();
-            this.dgvTasks = new System.Windows.Forms.DataGridView();
-            this.txtCommentsPreview = new System.Windows.Forms.TextBox();
-            this.btnSaveChanges = new System.Windows.Forms.Button();
-
-            this.toolStrip1.SuspendLayout();
-            this.statusStrip1.SuspendLayout();
-            this.panelFilters.SuspendLayout();
-            this.panelPagination.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.splitContainerMain)).BeginInit();
-            this.splitContainerMain.Panel1.SuspendLayout();
-            this.splitContainerMain.Panel2.SuspendLayout();
-            this.splitContainerMain.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.dgvTasks)).BeginInit();
-            this.SuspendLayout();
-
-            this.splitContainerMain.Panel2.Controls.Add(this.btnSaveChanges);
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            toolStrip1 = new ToolStrip();
+            tsbNewTask = new ToolStripButton();
+            tsbEditTask = new ToolStripButton();
+            tsbDeleteTask = new ToolStripButton();
+            toolStripSeparator1 = new ToolStripSeparator();
+            tsbRefresh = new ToolStripButton();
+            toolStripSeparator2 = new ToolStripSeparator();
+            tsbUserManagement = new ToolStripButton();
+            tsbAdminDashboard = new ToolStripButton();
+            toolStripSeparator3 = new ToolStripSeparator();
+            tsbSwitchUser = new ToolStripButton();
+            tsbChangePassword = new ToolStripButton();
+            statusStrip1 = new StatusStrip();
+            lblStatus = new ToolStripStatusLabel();
+            panelFilters = new Panel();
+            lblFilterByAssignedUser = new Label();
+            cmbFilterByAssignedUser = new ComboBox();
+            cmbFilterByUserRelation = new ComboBox();
+            lblFilterUser = new Label();
+            cmbFilterStatus = new ComboBox();
+            lblFilterStatus = new Label();
+            panelPagination = new Panel();
+            lblPageSize = new Label();
+            cmbPageSize = new ComboBox();
+            btnLastPage = new Button();
+            btnNextPage = new Button();
+            lblPageInfo = new Label();
+            txtCurrentPage = new TextBox();
+            btnPreviousPage = new Button();
+            btnFirstPage = new Button();
+            splitContainerMain = new SplitContainer();
+            btnSaveChanges = new Button();
+            dgvTasks = new DataGridView();
+            txtCommentsPreview = new TextBox();
+            toolStrip1.SuspendLayout();
+            statusStrip1.SuspendLayout();
+            panelFilters.SuspendLayout();
+            panelPagination.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainerMain).BeginInit();
+            splitContainerMain.Panel1.SuspendLayout();
+            splitContainerMain.Panel2.SuspendLayout();
+            splitContainerMain.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)dgvTasks).BeginInit();
+            SuspendLayout();
             // 
             // toolStrip1
             // 
-            this.toolStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
-            this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.tsbNewTask,
-            this.tsbEditTask,
-            this.tsbDeleteTask,
-            this.toolStripSeparator1,
-            this.tsbRefresh,
-            this.toolStripSeparator2,
-            this.tsbUserManagement,
-            this.tsbAdminDashboard,
-            this.toolStripSeparator3,
-            this.tsbSwitchUser,
-            this.tsbChangePassword});
-            this.toolStrip1.Location = new System.Drawing.Point(0, 0);
-            this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(1264, 27);
-            this.toolStrip1.TabIndex = 0;
-            this.toolStrip1.Text = "toolStrip1";
+            toolStrip1.ImageScalingSize = new Size(20, 20);
+            toolStrip1.Items.AddRange(new ToolStripItem[] { tsbNewTask, tsbEditTask, tsbDeleteTask, toolStripSeparator1, tsbRefresh, toolStripSeparator2, tsbUserManagement, tsbAdminDashboard, toolStripSeparator3, tsbSwitchUser, tsbChangePassword });
+            toolStrip1.Location = new Point(0, 0);
+            toolStrip1.Name = "toolStrip1";
+            toolStrip1.Size = new Size(1176, 25);
+            toolStrip1.TabIndex = 0;
+            toolStrip1.Text = "toolStrip1";
             // 
             // tsbNewTask
             // 
-            this.tsbNewTask.Image = ((System.Drawing.Image)(resources.GetObject("tsbNewTask.Image")));
-            this.tsbNewTask.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsbNewTask.Name = "tsbNewTask";
-            this.tsbNewTask.Size = new System.Drawing.Size(59, 24);
-            this.tsbNewTask.Text = "新增";
+            tsbNewTask.ImageTransparentColor = Color.Magenta;
+            tsbNewTask.Name = "tsbNewTask";
+            tsbNewTask.Size = new Size(35, 22);
+            tsbNewTask.Text = "新增";
             // 
             // tsbEditTask
             // 
-            this.tsbEditTask.Image = ((System.Drawing.Image)(resources.GetObject("tsbEditTask.Image")));
-            this.tsbEditTask.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsbEditTask.Name = "tsbEditTask";
-            this.tsbEditTask.Size = new System.Drawing.Size(59, 24);
-            this.tsbEditTask.Text = "編輯";
+            tsbEditTask.ImageTransparentColor = Color.Magenta;
+            tsbEditTask.Name = "tsbEditTask";
+            tsbEditTask.Size = new Size(35, 22);
+            tsbEditTask.Text = "編輯";
             // 
             // tsbDeleteTask
             // 
-            this.tsbDeleteTask.Image = ((System.Drawing.Image)(resources.GetObject("tsbDeleteTask.Image")));
-            this.tsbDeleteTask.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsbDeleteTask.Name = "tsbDeleteTask";
-            this.tsbDeleteTask.Size = new System.Drawing.Size(59, 24);
-            this.tsbDeleteTask.Text = "刪除";
+            tsbDeleteTask.ImageTransparentColor = Color.Magenta;
+            tsbDeleteTask.Name = "tsbDeleteTask";
+            tsbDeleteTask.Size = new Size(35, 22);
+            tsbDeleteTask.Text = "刪除";
             // 
             // toolStripSeparator1
             // 
-            this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 27);
+            toolStripSeparator1.Name = "toolStripSeparator1";
+            toolStripSeparator1.Size = new Size(6, 25);
             // 
             // tsbRefresh
             // 
-            this.tsbRefresh.Image = ((System.Drawing.Image)(resources.GetObject("tsbRefresh.Image")));
-            this.tsbRefresh.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsbRefresh.Name = "tsbRefresh";
-            this.tsbRefresh.Size = new System.Drawing.Size(83, 24);
-            this.tsbRefresh.Text = "重新整理";
+            tsbRefresh.ImageTransparentColor = Color.Magenta;
+            tsbRefresh.Name = "tsbRefresh";
+            tsbRefresh.Size = new Size(59, 22);
+            tsbRefresh.Text = "重新整理";
             // 
             // toolStripSeparator2
             // 
-            this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(6, 27);
+            toolStripSeparator2.Name = "toolStripSeparator2";
+            toolStripSeparator2.Size = new Size(6, 25);
             // 
             // tsbUserManagement
             // 
-            this.tsbUserManagement.Image = ((System.Drawing.Image)(resources.GetObject("tsbUserManagement.Image")));
-            this.tsbUserManagement.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsbUserManagement.Name = "tsbUserManagement";
-            this.tsbUserManagement.Size = new System.Drawing.Size(95, 24);
-            this.tsbUserManagement.Text = "使用者管理";
-            this.tsbUserManagement.Visible = false;
+            tsbUserManagement.ImageTransparentColor = Color.Magenta;
+            tsbUserManagement.Name = "tsbUserManagement";
+            tsbUserManagement.Size = new Size(71, 22);
+            tsbUserManagement.Text = "使用者管理";
+            tsbUserManagement.Visible = false;
             // 
             // tsbAdminDashboard
             // 
-            this.tsbAdminDashboard.Image = ((System.Drawing.Image)(resources.GetObject("tsbAdminDashboard.Image")));
-            this.tsbAdminDashboard.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsbAdminDashboard.Name = "tsbAdminDashboard";
-            this.tsbAdminDashboard.Size = new System.Drawing.Size(95, 24);
-            this.tsbAdminDashboard.Text = "管理儀表板";
-            this.tsbAdminDashboard.Visible = false;
+            tsbAdminDashboard.ImageTransparentColor = Color.Magenta;
+            tsbAdminDashboard.Name = "tsbAdminDashboard";
+            tsbAdminDashboard.Size = new Size(71, 22);
+            tsbAdminDashboard.Text = "管理儀表板";
+            tsbAdminDashboard.Visible = false;
             // 
             // toolStripSeparator3
             // 
-            this.toolStripSeparator3.Name = "toolStripSeparator3";
-            this.toolStripSeparator3.Size = new System.Drawing.Size(6, 27);
-            // 
-            // tsbChangePassword
-            // 
-            this.tsbChangePassword.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
-            this.tsbChangePassword.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.tsbChangePassword.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsbChangePassword.Name = "tsbChangePassword";
-            this.tsbChangePassword.Size = new System.Drawing.Size(62, 24);
-            this.tsbChangePassword.Text = "修改密碼";
+            toolStripSeparator3.Name = "toolStripSeparator3";
+            toolStripSeparator3.Size = new Size(6, 25);
             // 
             // tsbSwitchUser
             // 
-            this.tsbSwitchUser.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
-            this.tsbSwitchUser.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.tsbSwitchUser.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsbSwitchUser.Name = "tsbSwitchUser";
-            this.tsbSwitchUser.Size = new System.Drawing.Size(74, 24);
-            this.tsbSwitchUser.Text = "切換使用者";
+            tsbSwitchUser.Alignment = ToolStripItemAlignment.Right;
+            tsbSwitchUser.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            tsbSwitchUser.ImageTransparentColor = Color.Magenta;
+            tsbSwitchUser.Name = "tsbSwitchUser";
+            tsbSwitchUser.Size = new Size(71, 22);
+            tsbSwitchUser.Text = "切換使用者";
+            // 
+            // tsbChangePassword
+            // 
+            tsbChangePassword.Alignment = ToolStripItemAlignment.Right;
+            tsbChangePassword.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            tsbChangePassword.ImageTransparentColor = Color.Magenta;
+            tsbChangePassword.Name = "tsbChangePassword";
+            tsbChangePassword.Size = new Size(59, 22);
+            tsbChangePassword.Text = "修改密碼";
             // 
             // statusStrip1
             // 
-            this.statusStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
-            this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.lblStatus});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 739);
-            this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(1264, 22);
-            this.statusStrip1.TabIndex = 1;
-            this.statusStrip1.Text = "statusStrip1";
+            statusStrip1.ImageScalingSize = new Size(20, 20);
+            statusStrip1.Items.AddRange(new ToolStripItem[] { lblStatus });
+            statusStrip1.Location = new Point(0, 578);
+            statusStrip1.Name = "statusStrip1";
+            statusStrip1.Padding = new Padding(1, 0, 16, 0);
+            statusStrip1.Size = new Size(1176, 22);
+            statusStrip1.TabIndex = 1;
+            statusStrip1.Text = "statusStrip1";
             // 
             // lblStatus
             // 
-            this.lblStatus.Name = "lblStatus";
-            this.lblStatus.Size = new System.Drawing.Size(43, 17);
-            this.lblStatus.Text = "Ready";
+            lblStatus.Name = "lblStatus";
+            lblStatus.Size = new Size(43, 17);
+            lblStatus.Text = "Ready";
             // 
             // panelFilters
             // 
-            this.panelFilters.BackColor = System.Drawing.SystemColors.Control;
-            this.panelFilters.Controls.Add(this.lblFilterByAssignedUser);
-            this.panelFilters.Controls.Add(this.cmbFilterByAssignedUser);
-            this.panelFilters.Controls.Add(this.cmbFilterByUserRelation);
-            this.panelFilters.Controls.Add(this.lblFilterUser);
-            this.panelFilters.Controls.Add(this.cmbFilterStatus);
-            this.panelFilters.Controls.Add(this.lblFilterStatus);
-            this.panelFilters.Dock = System.Windows.Forms.DockStyle.Top;
-            this.panelFilters.Location = new System.Drawing.Point(0, 27);
-            this.panelFilters.Name = "panelFilters";
-            this.panelFilters.Size = new System.Drawing.Size(1264, 40);
-            this.panelFilters.TabIndex = 2;
+            panelFilters.BackColor = SystemColors.Control;
+            panelFilters.Controls.Add(lblFilterByAssignedUser);
+            panelFilters.Controls.Add(cmbFilterByAssignedUser);
+            panelFilters.Controls.Add(cmbFilterByUserRelation);
+            panelFilters.Controls.Add(lblFilterUser);
+            panelFilters.Controls.Add(cmbFilterStatus);
+            panelFilters.Controls.Add(lblFilterStatus);
+            panelFilters.Dock = DockStyle.Top;
+            panelFilters.Location = new Point(0, 25);
+            panelFilters.Margin = new Padding(4, 3, 4, 3);
+            panelFilters.Name = "panelFilters";
+            panelFilters.Size = new Size(1176, 40);
+            panelFilters.TabIndex = 2;
             // 
             // lblFilterByAssignedUser
             // 
-            this.lblFilterByAssignedUser.AutoSize = true;
-            this.lblFilterByAssignedUser.Location = new System.Drawing.Point(370, 12);
-            this.lblFilterByAssignedUser.Name = "lblFilterByAssignedUser";
-            this.lblFilterByAssignedUser.Size = new System.Drawing.Size(55, 15);
-            this.lblFilterByAssignedUser.TabIndex = 5;
-            this.lblFilterByAssignedUser.Text = "指派給：";
+            lblFilterByAssignedUser.AutoSize = true;
+            lblFilterByAssignedUser.Location = new Point(432, 12);
+            lblFilterByAssignedUser.Margin = new Padding(4, 0, 4, 0);
+            lblFilterByAssignedUser.Name = "lblFilterByAssignedUser";
+            lblFilterByAssignedUser.Size = new Size(55, 15);
+            lblFilterByAssignedUser.TabIndex = 5;
+            lblFilterByAssignedUser.Text = "使用者：";
             // 
             // cmbFilterByAssignedUser
             // 
-            this.cmbFilterByAssignedUser.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cmbFilterByAssignedUser.FormattingEnabled = true;
-            this.cmbFilterByAssignedUser.Location = new System.Drawing.Point(431, 9);
-            this.cmbFilterByAssignedUser.Name = "cmbFilterByAssignedUser";
-            this.cmbFilterByAssignedUser.Size = new System.Drawing.Size(140, 23);
-            this.cmbFilterByAssignedUser.TabIndex = 4;
+            cmbFilterByAssignedUser.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbFilterByAssignedUser.FormattingEnabled = true;
+            cmbFilterByAssignedUser.Location = new Point(503, 9);
+            cmbFilterByAssignedUser.Margin = new Padding(4, 3, 4, 3);
+            cmbFilterByAssignedUser.Name = "cmbFilterByAssignedUser";
+            cmbFilterByAssignedUser.Size = new Size(163, 23);
+            cmbFilterByAssignedUser.TabIndex = 4;
             // 
             // cmbFilterByUserRelation
             // 
-            this.cmbFilterByUserRelation.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cmbFilterByUserRelation.FormattingEnabled = true;
-            this.cmbFilterByUserRelation.Location = new System.Drawing.Point(220, 9);
-            this.cmbFilterByUserRelation.Name = "cmbFilterByUserRelation";
-            this.cmbFilterByUserRelation.Size = new System.Drawing.Size(140, 23);
-            this.cmbFilterByUserRelation.TabIndex = 3;
+            cmbFilterByUserRelation.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbFilterByUserRelation.FormattingEnabled = true;
+            cmbFilterByUserRelation.Location = new Point(257, 9);
+            cmbFilterByUserRelation.Margin = new Padding(4, 3, 4, 3);
+            cmbFilterByUserRelation.Name = "cmbFilterByUserRelation";
+            cmbFilterByUserRelation.Size = new Size(163, 23);
+            cmbFilterByUserRelation.TabIndex = 3;
             // 
             // lblFilterUser
             // 
-            this.lblFilterUser.AutoSize = true;
-            this.lblFilterUser.Location = new System.Drawing.Point(170, 12);
-            this.lblFilterUser.Name = "lblFilterUser";
-            this.lblFilterUser.Size = new System.Drawing.Size(43, 15);
-            this.lblFilterUser.TabIndex = 2;
-            this.lblFilterUser.Text = "篩選：";
+            lblFilterUser.AutoSize = true;
+            lblFilterUser.Location = new Point(198, 12);
+            lblFilterUser.Margin = new Padding(4, 0, 4, 0);
+            lblFilterUser.Name = "lblFilterUser";
+            lblFilterUser.Size = new Size(43, 15);
+            lblFilterUser.TabIndex = 2;
+            lblFilterUser.Text = "篩選：";
             // 
             // cmbFilterStatus
             // 
-            this.cmbFilterStatus.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cmbFilterStatus.FormattingEnabled = true;
-            this.cmbFilterStatus.Location = new System.Drawing.Point(55, 9);
-            this.cmbFilterStatus.Name = "cmbFilterStatus";
-            this.cmbFilterStatus.Size = new System.Drawing.Size(100, 23);
-            this.cmbFilterStatus.TabIndex = 1;
+            cmbFilterStatus.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbFilterStatus.FormattingEnabled = true;
+            cmbFilterStatus.Location = new Point(64, 9);
+            cmbFilterStatus.Margin = new Padding(4, 3, 4, 3);
+            cmbFilterStatus.Name = "cmbFilterStatus";
+            cmbFilterStatus.Size = new Size(116, 23);
+            cmbFilterStatus.TabIndex = 1;
             // 
             // lblFilterStatus
             // 
-            this.lblFilterStatus.AutoSize = true;
-            this.lblFilterStatus.Location = new System.Drawing.Point(12, 12);
-            this.lblFilterStatus.Name = "lblFilterStatus";
-            this.lblFilterStatus.Size = new System.Drawing.Size(43, 15);
-            this.lblFilterStatus.TabIndex = 0;
-            this.lblFilterStatus.Text = "狀態：";
+            lblFilterStatus.AutoSize = true;
+            lblFilterStatus.Location = new Point(14, 12);
+            lblFilterStatus.Margin = new Padding(4, 0, 4, 0);
+            lblFilterStatus.Name = "lblFilterStatus";
+            lblFilterStatus.Size = new Size(43, 15);
+            lblFilterStatus.TabIndex = 0;
+            lblFilterStatus.Text = "狀態：";
             // 
             // panelPagination
             // 
-            this.panelPagination.Controls.Add(this.lblPageSize);
-            this.panelPagination.Controls.Add(this.cmbPageSize);
-            this.panelPagination.Controls.Add(this.btnLastPage);
-            this.panelPagination.Controls.Add(this.btnNextPage);
-            this.panelPagination.Controls.Add(this.lblPageInfo);
-            this.panelPagination.Controls.Add(this.txtCurrentPage);
-            this.panelPagination.Controls.Add(this.btnPreviousPage);
-            this.panelPagination.Controls.Add(this.btnFirstPage);
-            this.panelPagination.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.panelPagination.Location = new System.Drawing.Point(0, 694);
-            this.panelPagination.Name = "panelPagination";
-            this.panelPagination.Size = new System.Drawing.Size(1264, 45);
-            this.panelPagination.TabIndex = 4;
+            panelPagination.Controls.Add(lblPageSize);
+            panelPagination.Controls.Add(cmbPageSize);
+            panelPagination.Controls.Add(btnLastPage);
+            panelPagination.Controls.Add(btnNextPage);
+            panelPagination.Controls.Add(lblPageInfo);
+            panelPagination.Controls.Add(txtCurrentPage);
+            panelPagination.Controls.Add(btnPreviousPage);
+            panelPagination.Controls.Add(btnFirstPage);
+            panelPagination.Dock = DockStyle.Bottom;
+            panelPagination.Location = new Point(0, 533);
+            panelPagination.Margin = new Padding(4, 3, 4, 3);
+            panelPagination.Name = "panelPagination";
+            panelPagination.Size = new Size(1176, 45);
+            panelPagination.TabIndex = 4;
             // 
             // lblPageSize
             // 
-            this.lblPageSize.AutoSize = true;
-            this.lblPageSize.Location = new System.Drawing.Point(12, 15);
-            this.lblPageSize.Name = "lblPageSize";
-            this.lblPageSize.Size = new System.Drawing.Size(67, 15);
-            this.lblPageSize.TabIndex = 7;
-            this.lblPageSize.Text = "每頁顯示：";
+            lblPageSize.AutoSize = true;
+            lblPageSize.Location = new Point(14, 15);
+            lblPageSize.Margin = new Padding(4, 0, 4, 0);
+            lblPageSize.Name = "lblPageSize";
+            lblPageSize.Size = new Size(67, 15);
+            lblPageSize.TabIndex = 7;
+            lblPageSize.Text = "每頁顯示：";
             // 
             // cmbPageSize
             // 
-            this.cmbPageSize.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cmbPageSize.FormattingEnabled = true;
-            this.cmbPageSize.Location = new System.Drawing.Point(85, 12);
-            this.cmbPageSize.Name = "cmbPageSize";
-            this.cmbPageSize.Size = new System.Drawing.Size(60, 23);
-            this.cmbPageSize.TabIndex = 6;
+            cmbPageSize.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbPageSize.FormattingEnabled = true;
+            cmbPageSize.Location = new Point(99, 12);
+            cmbPageSize.Margin = new Padding(4, 3, 4, 3);
+            cmbPageSize.Name = "cmbPageSize";
+            cmbPageSize.Size = new Size(69, 23);
+            cmbPageSize.TabIndex = 6;
             // 
             // btnLastPage
             // 
-            this.btnLastPage.Location = new System.Drawing.Point(585, 10);
-            this.btnLastPage.Name = "btnLastPage";
-            this.btnLastPage.Size = new System.Drawing.Size(40, 25);
-            this.btnLastPage.TabIndex = 5;
-            this.btnLastPage.Text = ">|";
-            this.btnLastPage.UseVisualStyleBackColor = true;
+            btnLastPage.Location = new Point(682, 10);
+            btnLastPage.Margin = new Padding(4, 3, 4, 3);
+            btnLastPage.Name = "btnLastPage";
+            btnLastPage.Size = new Size(47, 25);
+            btnLastPage.TabIndex = 5;
+            btnLastPage.Text = ">|";
+            btnLastPage.UseVisualStyleBackColor = true;
             // 
             // btnNextPage
             // 
-            this.btnNextPage.Location = new System.Drawing.Point(540, 10);
-            this.btnNextPage.Name = "btnNextPage";
-            this.btnNextPage.Size = new System.Drawing.Size(40, 25);
-            this.btnNextPage.TabIndex = 4;
-            this.btnNextPage.Text = ">";
-            this.btnNextPage.UseVisualStyleBackColor = true;
+            btnNextPage.Location = new Point(630, 10);
+            btnNextPage.Margin = new Padding(4, 3, 4, 3);
+            btnNextPage.Name = "btnNextPage";
+            btnNextPage.Size = new Size(47, 25);
+            btnNextPage.TabIndex = 4;
+            btnNextPage.Text = ">";
+            btnNextPage.UseVisualStyleBackColor = true;
             // 
             // lblPageInfo
             // 
-            this.lblPageInfo.AutoSize = true;
-            this.lblPageInfo.Location = new System.Drawing.Point(335, 15);
-            this.lblPageInfo.Name = "lblPageInfo";
-            this.lblPageInfo.Size = new System.Drawing.Size(123, 15);
-            this.lblPageInfo.TabIndex = 3;
-            this.lblPageInfo.Text = "第 1 / 1 頁 (共 0 筆)";
+            lblPageInfo.AutoSize = true;
+            lblPageInfo.Location = new Point(391, 15);
+            lblPageInfo.Margin = new Padding(4, 0, 4, 0);
+            lblPageInfo.Name = "lblPageInfo";
+            lblPageInfo.Size = new Size(110, 15);
+            lblPageInfo.TabIndex = 3;
+            lblPageInfo.Text = "第 1 / 1 頁 (共 0 筆)";
             // 
             // txtCurrentPage
             // 
-            this.txtCurrentPage.Location = new System.Drawing.Point(290, 11);
-            this.txtCurrentPage.Name = "txtCurrentPage";
-            this.txtCurrentPage.Size = new System.Drawing.Size(40, 23);
-            this.txtCurrentPage.TabIndex = 2;
-            this.txtCurrentPage.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            txtCurrentPage.Location = new Point(338, 11);
+            txtCurrentPage.Margin = new Padding(4, 3, 4, 3);
+            txtCurrentPage.Name = "txtCurrentPage";
+            txtCurrentPage.Size = new Size(46, 23);
+            txtCurrentPage.TabIndex = 2;
+            txtCurrentPage.TextAlign = HorizontalAlignment.Center;
             // 
             // btnPreviousPage
             // 
-            this.btnPreviousPage.Location = new System.Drawing.Point(245, 10);
-            this.btnPreviousPage.Name = "btnPreviousPage";
-            this.btnPreviousPage.Size = new System.Drawing.Size(40, 25);
-            this.btnPreviousPage.TabIndex = 1;
-            this.btnPreviousPage.Text = "<";
-            this.btnPreviousPage.UseVisualStyleBackColor = true;
+            btnPreviousPage.Location = new Point(286, 10);
+            btnPreviousPage.Margin = new Padding(4, 3, 4, 3);
+            btnPreviousPage.Name = "btnPreviousPage";
+            btnPreviousPage.Size = new Size(47, 25);
+            btnPreviousPage.TabIndex = 1;
+            btnPreviousPage.Text = "<";
+            btnPreviousPage.UseVisualStyleBackColor = true;
             // 
             // btnFirstPage
             // 
-            this.btnFirstPage.Location = new System.Drawing.Point(200, 10);
-            this.btnFirstPage.Name = "btnFirstPage";
-            this.btnFirstPage.Size = new System.Drawing.Size(40, 25);
-            this.btnFirstPage.TabIndex = 0;
-            this.btnFirstPage.Text = "|<";
-            this.btnFirstPage.UseVisualStyleBackColor = true;
+            btnFirstPage.Location = new Point(233, 10);
+            btnFirstPage.Margin = new Padding(4, 3, 4, 3);
+            btnFirstPage.Name = "btnFirstPage";
+            btnFirstPage.Size = new Size(47, 25);
+            btnFirstPage.TabIndex = 0;
+            btnFirstPage.Text = "|<";
+            btnFirstPage.UseVisualStyleBackColor = true;
             // 
             // splitContainerMain
             // 
-            this.splitContainerMain.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.splitContainerMain.Location = new System.Drawing.Point(0, 67);
-            this.splitContainerMain.Name = "splitContainerMain";
-            this.splitContainerMain.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            splitContainerMain.Dock = DockStyle.Fill;
+            splitContainerMain.Location = new Point(0, 65);
+            splitContainerMain.Margin = new Padding(4, 3, 4, 3);
+            splitContainerMain.Name = "splitContainerMain";
+            splitContainerMain.Orientation = Orientation.Horizontal;
             // 
             // splitContainerMain.Panel1
             // 
-            this.splitContainerMain.Panel1.Controls.Add(this.dgvTasks);
+            splitContainerMain.Panel1.Controls.Add(dgvTasks);
             // 
             // splitContainerMain.Panel2
             // 
-            this.splitContainerMain.Panel2.Controls.Add(this.txtCommentsPreview);
-            this.splitContainerMain.Size = new System.Drawing.Size(1264, 627);
-            this.splitContainerMain.SplitterDistance = 480;
-            this.splitContainerMain.TabIndex = 5;
-            // 
-            // dgvTasks
-            // 
-            this.dgvTasks.AllowUserToAddRows = false;
-            this.dgvTasks.AllowUserToDeleteRows = false;
-            this.dgvTasks.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells;
-            this.dgvTasks.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle1.Font = new System.Drawing.Font("Segoe UI", 9F);
-            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dgvTasks.DefaultCellStyle = dataGridViewCellStyle1;
-            this.dgvTasks.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.dgvTasks.Location = new System.Drawing.Point(0, 0);
-            this.dgvTasks.MultiSelect = false;
-            this.dgvTasks.Name = "dgvTasks";
-            this.dgvTasks.RowHeadersVisible = false;
-            this.dgvTasks.RowTemplate.Height = 25;
-            this.dgvTasks.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dgvTasks.Size = new System.Drawing.Size(1264, 480);
-            this.dgvTasks.TabIndex = 3;
-            // 
-            // txtCommentsPreview
-            // 
-            this.txtCommentsPreview.BackColor = System.Drawing.SystemColors.Info;
-            this.txtCommentsPreview.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.txtCommentsPreview.Font = new System.Drawing.Font("Segoe UI", 9.75F);
-            this.txtCommentsPreview.Location = new System.Drawing.Point(0, 0);
-            this.txtCommentsPreview.Multiline = true;
-            this.txtCommentsPreview.Name = "txtCommentsPreview";
-            this.txtCommentsPreview.ReadOnly = false;
-            this.txtCommentsPreview.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtCommentsPreview.Size = new System.Drawing.Size(1264, 108);
-            this.txtCommentsPreview.TabIndex = 0;
+            splitContainerMain.Panel2.Controls.Add(btnSaveChanges);
+            splitContainerMain.Panel2.Controls.Add(txtCommentsPreview);
+            splitContainerMain.Size = new Size(1176, 468);
+            splitContainerMain.SplitterDistance = 358;
+            splitContainerMain.TabIndex = 5;
             // 
             // btnSaveChanges
             // 
-            this.btnSaveChanges.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnSaveChanges.Enabled = false; // Initially disabled
-            this.btnSaveChanges.Location = new System.Drawing.Point(1177, 114); // Position it at the bottom right
-            this.btnSaveChanges.Name = "btnSaveChanges";
-            this.btnSaveChanges.Size = new System.Drawing.Size(75, 23);
-            this.btnSaveChanges.TabIndex = 1;
-            this.btnSaveChanges.Text = "儲存";
-            this.btnSaveChanges.UseVisualStyleBackColor = true;
+            btnSaveChanges.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            btnSaveChanges.Enabled = false;
+            btnSaveChanges.Location = new Point(1074, 77);
+            btnSaveChanges.Margin = new Padding(4, 3, 4, 3);
+            btnSaveChanges.Name = "btnSaveChanges";
+            btnSaveChanges.Size = new Size(88, 23);
+            btnSaveChanges.TabIndex = 1;
+            btnSaveChanges.Text = "儲存";
+            btnSaveChanges.UseVisualStyleBackColor = true;
+            // 
+            // dgvTasks
+            // 
+            dgvTasks.AllowUserToAddRows = false;
+            dgvTasks.AllowUserToDeleteRows = false;
+            dgvTasks.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
+            dgvTasks.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = SystemColors.Window;
+            dataGridViewCellStyle1.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle1.ForeColor = SystemColors.ControlText;
+            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.True;
+            dgvTasks.DefaultCellStyle = dataGridViewCellStyle1;
+            dgvTasks.Dock = DockStyle.Fill;
+            dgvTasks.Location = new Point(0, 0);
+            dgvTasks.Margin = new Padding(4, 3, 4, 3);
+            dgvTasks.MultiSelect = false;
+            dgvTasks.Name = "dgvTasks";
+            dgvTasks.RowHeadersVisible = false;
+            dgvTasks.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvTasks.Size = new Size(1176, 358);
+            dgvTasks.TabIndex = 3;
+            // 
+            // txtCommentsPreview
+            // 
+            txtCommentsPreview.BackColor = SystemColors.Info;
+            txtCommentsPreview.Dock = DockStyle.Fill;
+            txtCommentsPreview.Font = new Font("Segoe UI", 9.75F);
+            txtCommentsPreview.Location = new Point(0, 0);
+            txtCommentsPreview.Margin = new Padding(4, 3, 4, 3);
+            txtCommentsPreview.Multiline = true;
+            txtCommentsPreview.Name = "txtCommentsPreview";
+            txtCommentsPreview.ScrollBars = ScrollBars.Vertical;
+            txtCommentsPreview.Size = new Size(1176, 106);
+            txtCommentsPreview.TabIndex = 0;
             // 
             // MainForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 15F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1000, 600);
-            this.Controls.Add(this.splitContainerMain);
-            this.Controls.Add(this.panelPagination);
-            this.Controls.Add(this.panelFilters);
-            this.Controls.Add(this.statusStrip1);
-            this.Controls.Add(this.toolStrip1);
-            this.MinimumSize = new System.Drawing.Size(1024, 600);
-            this.Name = "MainForm";
-            this.Text = "Task Management";
-            this.toolStrip1.ResumeLayout(false);
-            this.toolStrip1.PerformLayout();
-            this.statusStrip1.ResumeLayout(false);
-            this.statusStrip1.PerformLayout();
-            this.panelFilters.ResumeLayout(false);
-            this.panelFilters.PerformLayout();
-            this.panelPagination.ResumeLayout(false);
-            this.panelPagination.PerformLayout();
-            this.splitContainerMain.Panel1.ResumeLayout(false);
-            this.splitContainerMain.Panel2.ResumeLayout(false);
-            this.splitContainerMain.Panel2.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.splitContainerMain)).EndInit();
-            this.splitContainerMain.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.dgvTasks)).EndInit();
-            this.ResumeLayout(false);
-            this.PerformLayout();
+            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(1176, 600);
+            Controls.Add(splitContainerMain);
+            Controls.Add(panelPagination);
+            Controls.Add(panelFilters);
+            Controls.Add(statusStrip1);
+            Controls.Add(toolStrip1);
+            Margin = new Padding(4, 3, 4, 3);
+            MinimumSize = new Size(1192, 600);
+            Name = "MainForm";
+            Text = "Task Management";
+            toolStrip1.ResumeLayout(false);
+            toolStrip1.PerformLayout();
+            statusStrip1.ResumeLayout(false);
+            statusStrip1.PerformLayout();
+            panelFilters.ResumeLayout(false);
+            panelFilters.PerformLayout();
+            panelPagination.ResumeLayout(false);
+            panelPagination.PerformLayout();
+            splitContainerMain.Panel1.ResumeLayout(false);
+            splitContainerMain.Panel2.ResumeLayout(false);
+            splitContainerMain.Panel2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainerMain).EndInit();
+            splitContainerMain.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)dgvTasks).EndInit();
+            ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion

@@ -5,11 +5,24 @@ using TodoApp.Core.ViewModels;
 using TodoApp.WinForms.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
+using TodoApp.Infrastructure.Comparers;
 
 namespace TodoApp.WinForms.Forms;
 
 public partial class AdminDashboardForm : Form
 {
+    private enum CardFilterType
+    {
+        None,
+        Total,
+        Uncompleted,
+        Overdue,
+        Unassigned,
+        Rejected,
+        Completed
+    }
+
+    private CardFilterType _activeCardFilter = CardFilterType.None;
     private readonly IAdminDashboardService _dashboardService;
     private readonly IServiceProvider _serviceProvider;
     private readonly ITaskService _taskService;
@@ -35,6 +48,7 @@ public partial class AdminDashboardForm : Form
         _userContext = userContext;
 
         WireUpEvents();
+        WireUpCardClickEvents();
     }
 
     private void WireUpEvents()
@@ -66,6 +80,105 @@ public partial class AdminDashboardForm : Form
 
         this.txtDetailComments.TextChanged += TxtDetailComments_TextChanged;
         this.btnSaveComment.Click += BtnSaveComment_Click;
+        this.cardTotalTasks.Cursor = Cursors.Hand;
+        this.cardUncompleted.Cursor = Cursors.Hand;
+        this.cardOverdue.Cursor = Cursors.Hand;
+        this.cardUnassigned.Cursor = Cursors.Hand;
+        this.cardRejected.Cursor = Cursors.Hand;
+        this.cardCompleted.Cursor = Cursors.Hand;
+
+    }
+    private void WireUpCardClickEvents()
+    {
+        // For each card, we need to handle the click on the panel itself,
+        // AND on the labels inside it, to ensure the click is always captured.
+
+        // Card 1: Total Tasks
+        cardTotalTasks.Click += Card_Click;
+        lblTotalTasksTitle.Click += Card_Click;
+        lblTotalTasksValue.Click += Card_Click;
+
+        // Card 2: Uncompleted
+        cardUncompleted.Click += Card_Click;
+        lblUncompletedTitle.Click += Card_Click;
+        lblUncompletedValue.Click += Card_Click;
+
+        // Card 3: Overdue
+        cardOverdue.Click += Card_Click;
+        lblOverdueTitle.Click += Card_Click;
+        lblOverdueValue.Click += Card_Click;
+
+        // Card 4: Unassigned
+        cardUnassigned.Click += Card_Click;
+        lblUnassignedTitle.Click += Card_Click;
+        lblUnassignedValue.Click += Card_Click;
+
+        // Card 5: Rejected
+        cardRejected.Click += Card_Click;
+        lblRejectedTitle.Click += Card_Click;
+        lblRejectedValue.Click += Card_Click;
+
+        // Card 6: Completed
+        cardCompleted.Click += Card_Click;
+        lblCompletedTitle.Click += Card_Click;
+        lblCompletedValue.Click += Card_Click;
+    }
+
+    private void Card_Click(object? sender, EventArgs e)
+    {
+        Panel? clickedCard = null;
+        if (sender is Panel panel)
+        {
+            clickedCard = panel;
+        }
+        else if (sender is Label label && label.Parent is Panel parentPanel)
+        {
+            // If a label was clicked, we treat it as if its parent panel was clicked.
+            clickedCard = parentPanel;
+        }
+        if (clickedCard == null) return;
+        var clickedFilterType = clickedCard.Name switch
+        {
+            "cardTotalTasks" => CardFilterType.Total,
+            "cardUncompleted" => CardFilterType.Uncompleted,
+            "cardOverdue" => CardFilterType.Overdue,
+            "cardUnassigned" => CardFilterType.Unassigned,
+            "cardRejected" => CardFilterType.Rejected,
+            "cardCompleted" => CardFilterType.Completed,
+            _ => CardFilterType.None
+        };
+
+        _activeCardFilter = (_activeCardFilter == clickedFilterType) ? CardFilterType.None : clickedFilterType;
+
+        // --- REMOVED: Do not disable the manual filters anymore ---
+        // SetManualFiltersState(false); 
+
+        // When a card is clicked, we still apply the filter immediately.
+        ApplyFiltersAndPopulateTree();
+    }
+
+    private void HighlightActiveCard()
+    {
+        var cardMap = new Dictionary<CardFilterType, Panel>
+        {
+            [CardFilterType.Total] = cardTotalTasks,
+            [CardFilterType.Uncompleted] = cardUncompleted,
+            [CardFilterType.Overdue] = cardOverdue,
+            [CardFilterType.Unassigned] = cardUnassigned,
+            [CardFilterType.Rejected] = cardRejected,
+            [CardFilterType.Completed] = cardCompleted
+        };
+
+        foreach (var card in cardMap.Values)
+        {
+            card.BorderStyle = BorderStyle.FixedSingle;
+        }
+
+        // --- FIXED: Corrected the typo in the variable name ---
+        if (_activeCardFilter != CardFilterType.None && cardMap.TryGetValue(_activeCardFilter, out var selectedCard))
+        {
+            selectedCard.BorderStyle = BorderStyle.Fixed3D;
+        }
     }
 
     private async void AdminDashboardForm_Load(object? sender, EventArgs e)
@@ -139,6 +252,8 @@ public partial class AdminDashboardForm : Form
     private void Filter_Changed(object? sender, EventArgs e)
     {
         if (_isUpdatingUI) return;
+        // When a manual filter is changed, it automatically deactivates any card filter.
+        _activeCardFilter = CardFilterType.None;
         ApplyFiltersAndPopulateTree();
     }
 
@@ -164,107 +279,117 @@ public partial class AdminDashboardForm : Form
         _isUpdatingUI = true;
         try
         {
-            txtSearch.Clear();
-            if (cmbFilterPriority.Items.Count > 0) cmbFilterPriority.SelectedIndex = 0;
-            if (cmbFilterStatus.Items.Count > 0) cmbFilterStatus.SelectedIndex = 0;
-            if (cmbFilterByUser.Items.Count > 0) cmbFilterByUser.SelectedIndex = 0;
-            chkFilterOverdue.Checked = false;
+            // When clearing, we reset BOTH card and manual filters to default.
+            _activeCardFilter = CardFilterType.None;
+            ClearManualFilters();
         }
-        finally { _isUpdatingUI = false; }
+        finally
+        {
+            _isUpdatingUI = false;
+        }
+
         ApplyFiltersAndPopulateTree();
+    }
+
+    private void SetManualFiltersState(bool isEnabled)
+    {
+        txtSearch.Enabled = isEnabled;
+        cmbFilterPriority.Enabled = isEnabled;
+        cmbFilterStatus.Enabled = isEnabled;
+        cmbFilterByUser.Enabled = isEnabled;
+        chkFilterOverdue.Enabled = isEnabled;
     }
 
     private void ApplyFiltersAndPopulateTree()
     {
-        if (_dashboardViewModel is null) return;
+        if (_dashboardViewModel == null) return;
 
         tvTasks.BeginUpdate();
         tvTasks.Nodes.Clear();
 
-        var searchTerm = txtSearch.Text.Trim().ToLowerInvariant();
+        var now = DateTime.Now;
+        IEnumerable<TodoItem> tasksToDisplay = _dashboardViewModel.GroupedTasks.SelectMany(pair => pair.Value);
+
+        // --- Step 1: ALWAYS apply the manual filters ---
+        string searchTerm = txtSearch.Text.Trim().ToLowerInvariant();
         PriorityLevel? priorityFilter = (cmbFilterPriority.SelectedItem as PriorityDisplayItem)?.Value;
         TodoStatus? statusFilter = (cmbFilterStatus.SelectedItem as StatusDisplayItem)?.Value;
-        var onlyShowOverdue = chkFilterOverdue.Checked;
-        var now = DateTime.UtcNow;
+        bool onlyShowOverdue = chkFilterOverdue.Checked;
+        int? userFilterId = (cmbFilterByUser.SelectedItem as UserDisplayItem)?.Id;
 
-        var allFilteredTasks = new List<TodoItem>();
+        if (!string.IsNullOrEmpty(searchTerm))
+            tasksToDisplay = tasksToDisplay.Where(t => (t.Title?.ToLowerInvariant().Contains(searchTerm) ?? false) || (t.Comments?.ToLowerInvariant().Contains(searchTerm) ?? false));
+        if (priorityFilter.HasValue)
+            tasksToDisplay = tasksToDisplay.Where(t => t.Priority == priorityFilter.Value);
+        if (statusFilter.HasValue)
+            tasksToDisplay = tasksToDisplay.Where(t => t.Status == statusFilter.Value);
+        if (onlyShowOverdue)
+            tasksToDisplay = tasksToDisplay.Where(t => t.DueDate < now && t.Status != TodoStatus.Completed && t.Status != TodoStatus.Reject);
+        if (userFilterId.HasValue && userFilterId > 0)
+            tasksToDisplay = tasksToDisplay.Where(t => (t.AssignedToId ?? t.CreatorId) == userFilterId);
 
-        foreach (var userTasksPair in _dashboardViewModel.GroupedTasks.OrderBy(p => p.Key.Username))
+        // --- Step 2: THEN, apply the card filter ON TOP of the manual filter results ---
+        if (_activeCardFilter != CardFilterType.None)
         {
-            var user = userTasksPair.Key;
-            IEnumerable<TodoItem> tasksToFilter = userTasksPair.Value;
-
-            // --- Filtering logic remains the same ---
-            if (!string.IsNullOrEmpty(searchTerm))
-                tasksToFilter = tasksToFilter.Where(t => (t.Title?.ToLowerInvariant().Contains(searchTerm) ?? false) || (t.Comments?.ToLowerInvariant().Contains(searchTerm) ?? false));
-            if (priorityFilter.HasValue)
-                tasksToFilter = tasksToFilter.Where(t => t.Priority == priorityFilter.Value);
-            if (statusFilter.HasValue)
-                tasksToFilter = tasksToFilter.Where(t => t.Status == statusFilter.Value);
-            if (onlyShowOverdue)
-                tasksToFilter = tasksToFilter.Where(t => t.DueDate < now && t.Status != TodoStatus.Completed && t.Status != TodoStatus.Reject);
-
-            var filteredUserTasks = tasksToFilter.ToList();
-            allFilteredTasks.AddRange(filteredUserTasks);
-
-            if (filteredUserTasks.Any() || !IsAnyFilterActive())
+            tasksToDisplay = _activeCardFilter switch
             {
-                var uncompletedCount = filteredUserTasks.Count(t => t.Status != TodoStatus.Completed && t.Status != TodoStatus.Reject);
-                var totalInListCount = filteredUserTasks.Count;
-                var userNode = new TreeNode($"{user.Username} ({uncompletedCount} / {totalInListCount})");
-                userNode.Tag = user;
-
-                var sortedUserTasks = filteredUserTasks
-                    .OrderBy(t => t.Status switch {
-                        TodoStatus.InProgress => 0,
-                        TodoStatus.Pending => 1,
-                        TodoStatus.Reject => 2,
-                        TodoStatus.Completed => 3,
-                        _ => 4
-                    })
-                    .ThenByDescending(t => t.Priority)
-                    .ThenBy(t => t.DueDate ?? DateTime.MaxValue);
-
-                foreach (var task in sortedUserTasks)
-                {
-                    var statusPrefix = task.Status switch
-                    {
-                        TodoStatus.Completed => "［✓］",
-                        TodoStatus.InProgress => "［→］",
-                        TodoStatus.Reject => "［✗］",
-                        _ => "［ ］"
-                    };
-                    var priorityPrefix = $"[{task.Priority}]";
-                    var dueDateSuffix = task.DueDate.HasValue ? $" (Due: {task.DueDate.Value.ToLocalTime():yyyy-MM-dd})" : "";
-                    var nodeText = $"{statusPrefix} {priorityPrefix} {task.Title}{dueDateSuffix}";
-
-                    var taskNode = new TreeNode(nodeText) { Tag = task };
-
-                    var isOverdue = task.DueDate < now && task.Status != TodoStatus.Completed && task.Status != TodoStatus.Reject;
-                    if (isOverdue)
-                    {
-                        taskNode.ForeColor = Color.Red;
-                        taskNode.NodeFont = new Font(tvTasks.Font, FontStyle.Bold);
-                    }
-                    else if (task.Priority == PriorityLevel.Urgent)
-                    {
-                        taskNode.ForeColor = Color.DarkMagenta;
-                    }
-
-                    userNode.Nodes.Add(taskNode);
-                }
-                tvTasks.Nodes.Add(userNode);
-            }
+                CardFilterType.Uncompleted => tasksToDisplay.Where(t => t.Status != TodoStatus.Completed && t.Status != TodoStatus.Reject),
+                CardFilterType.Overdue => tasksToDisplay.Where(t => t.DueDate < now && t.Status != TodoStatus.Completed && t.Status != TodoStatus.Reject),
+                CardFilterType.Unassigned => tasksToDisplay.Where(t => t.AssignedToId == null),
+                CardFilterType.Rejected => tasksToDisplay.Where(t => t.Status == TodoStatus.Reject),
+                CardFilterType.Completed => tasksToDisplay.Where(t => t.Status == TodoStatus.Completed),
+                _ => tasksToDisplay
+            };
         }
 
-        PopulateStatisticCards(allFilteredTasks);
+        var filteredTaskList = tasksToDisplay.ToList();
+
+        // --- The rest of the method for populating stats and tree remains the same ---
+        PopulateStatisticCards(filteredTaskList);
+        PopulateTreeView(filteredTaskList);
+        HighlightActiveCard();
+
         tvTasks.ExpandAll();
         tvTasks.EndUpdate();
-        if (tvTasks.Nodes.Count > 0)
+    }
+
+    private void ClearManualFilters()
+    {
+        txtSearch.Clear();
+        if (cmbFilterPriority.Items.Count > 0) cmbFilterPriority.SelectedIndex = 0;
+        if (cmbFilterStatus.Items.Count > 0) cmbFilterStatus.SelectedIndex = 0;
+        if (cmbFilterByUser.Items.Count > 0) cmbFilterByUser.SelectedIndex = 0;
+        chkFilterOverdue.Checked = false;
+    }
+
+
+    // --- NEW Helper to create a TreeNode for a task ---
+    private TreeNode CreateTaskNode(TodoItem task, DateTime now)
+    {
+        string statusPrefix = task.Status switch
         {
-            tvTasks.SelectedNode = tvTasks.Nodes[0];
-            tvTasks.Nodes[0].EnsureVisible();
+            TodoStatus.Completed => "[✓]",
+            TodoStatus.InProgress => "[→]",
+            TodoStatus.Reject => "[✗]",
+            _ => "[ ]"
+        };
+        string priorityPrefix = $"[{task.Priority}]";
+        string dueDateSuffix = task.DueDate.HasValue ? $" (Due: {task.DueDate.Value.ToLocalTime():yyyy-MM-dd})" : "";
+        string nodeText = $"{statusPrefix} {priorityPrefix} {task.Title}{dueDateSuffix}";
+
+        var taskNode = new TreeNode(nodeText) { Tag = task };
+
+        bool isOverdue = task.DueDate < now && task.Status != TodoStatus.Completed && task.Status != TodoStatus.Reject;
+        if (isOverdue)
+        {
+            taskNode.ForeColor = Color.Red;
+            taskNode.NodeFont = new Font(tvTasks.Font, FontStyle.Bold);
         }
+        else if (task.Priority == PriorityLevel.Urgent)
+        {
+            taskNode.ForeColor = Color.DarkMagenta;
+        }
+        return taskNode;
     }
 
     private void PopulateStatisticCards(List<TodoItem> tasks)
@@ -272,9 +397,9 @@ public partial class AdminDashboardForm : Form
         if (_dashboardViewModel is null) return;
         var sourceTasks = tasks ?? _dashboardViewModel.GroupedTasks.SelectMany(kv => kv.Value).ToList();
         var totalCount = sourceTasks.Count;
-        var completedCount = sourceTasks.Count(t => t.Status == TodoStatus.Completed || t.Status == TodoStatus.Reject);
+        var completedCount = sourceTasks.Count(t => t.Status == TodoStatus.Completed);
         var uncompletedCount = sourceTasks.Count(t => t.Status != TodoStatus.Completed && t.Status != TodoStatus.Reject);
-        var overdueCount = sourceTasks.Count(t => t.DueDate < DateTime.UtcNow && t.Status != TodoStatus.Completed && t.Status != TodoStatus.Reject);
+        var overdueCount = sourceTasks.Count(t => t.DueDate < DateTime.Now && t.Status != TodoStatus.Completed && t.Status != TodoStatus.Reject);
         var unassignedCount = sourceTasks.Count(t => t.AssignedToId is null);
         var rejectedCount = sourceTasks.Count(t => t.Status == TodoStatus.Reject);
 
@@ -293,6 +418,55 @@ public partial class AdminDashboardForm : Form
         cardCompleted.BackColor = completedCount > 0 ? Color.Honeydew : SystemColors.Control; // New
     }
 
+    /// <summary>
+    /// Populates the TreeView with a given list of tasks, grouping them by user.
+    /// </summary>
+    /// <param name="filteredTasks">The list of tasks to display, assumed to be already filtered.</param>
+    private void PopulateTreeView(List<TodoItem> filteredTasks)
+    {
+        var now = DateTime.Now; // Use a single timestamp for consistency
+
+        // Group the final filtered list by the task's owner (Assignee, falling back to Creator).
+        var tasksGroupedForTree = filteredTasks
+            .GroupBy(t => t.AssignedTo ?? t.Creator, new UserEqualityComparer())
+            .OrderBy(g => g.Key.Username);
+
+        // --- Populate the user nodes in the TreeView ---
+        foreach (var userGroup in tasksGroupedForTree)
+        {
+            // It's possible to have a null key if a task has no assignee and its creator was deleted.
+            if (userGroup.Key == null) continue;
+
+            var user = userGroup.Key;
+            var userTasks = userGroup.ToList();
+
+            // The count on the user node should reflect the content of the filtered list.
+            int uncompletedCount = userTasks.Count(t => t.Status != TodoStatus.Completed && t.Status != TodoStatus.Reject);
+            var userNode = new TreeNode($"{user.Username} ({uncompletedCount} / {userTasks.Count})")
+            {
+                Tag = user
+            };
+
+            // --- Sort the tasks for this specific user before adding them as child nodes ---
+            var sortedUserTasks = userTasks
+                .OrderBy(t => t.Status switch {
+                    TodoStatus.InProgress => 0,
+                    TodoStatus.Pending => 1,
+                    TodoStatus.Reject => 2,
+                    _ => 3
+                })
+                .ThenByDescending(t => t.Priority)
+                .ThenBy(t => t.DueDate ?? DateTime.MaxValue);
+
+            foreach (var task in sortedUserTasks)
+            {
+                // Create and add the task node using the helper method.
+                userNode.Nodes.Add(CreateTaskNode(task, now));
+            }
+
+            tvTasks.Nodes.Add(userNode);
+        }
+    }
 
     private bool IsAnyFilterActive() => !string.IsNullOrEmpty(txtSearch.Text) || cmbFilterPriority.SelectedIndex > 0 || cmbFilterStatus.SelectedIndex > 0 || chkFilterOverdue.Checked;
 
@@ -354,9 +528,8 @@ public partial class AdminDashboardForm : Form
         txtDetailComments.Text = task.Comments ?? string.Empty;
         _isUpdatingUI = false;
         btnSaveComment.Enabled = false;
-
-        // Color coding logic
-        lblDetailDueDate.ForeColor = (task.DueDate < DateTime.UtcNow && task.Status != TodoStatus.Completed)
+        lblStatus.Text = $"已選取任務: {task.Title}";
+        lblDetailDueDate.ForeColor = (task.DueDate < DateTime.Now && task.Status != TodoStatus.Completed)
             ? Color.Red
             : SystemColors.ControlText;
     }
@@ -370,6 +543,7 @@ public partial class AdminDashboardForm : Form
     {
         SetActionButtonsState(false);
         _selectedTaskForDetails = null;
+        lblStatus.Text = "準備就緒";
     }
 
     private void SetActionButtonsState(bool enabled)

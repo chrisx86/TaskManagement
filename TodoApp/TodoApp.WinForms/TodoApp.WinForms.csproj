@@ -10,10 +10,20 @@
     <ApplicationIcon>favicon.ico</ApplicationIcon>
     <Version>1.0.0</Version>
     <UseHost>false</UseHost>
+
+    <!-- Single File Publish Settings -->
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+
+    <!-- Performance and Size Optimizations -->
     <PublishReadyToRun>true</PublishReadyToRun>
+    <!-- 建議在充分測試後啟用 -->
+
+    <!-- NEW: Include native libraries in the single file bundle -->
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+
+    <!-- Debug Info for Release Build -->
     <DebugSymbols>false</DebugSymbols>
     <DebugType>None</DebugType>
   </PropertyGroup>
