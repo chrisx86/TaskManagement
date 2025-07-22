@@ -13,9 +13,9 @@ public enum UserTaskFilter { All, AssignedToMe, CreatedByMe }
 public interface ITaskService
 {
     Task<List<TodoItem>> GetAllTasksAsync(
+        User currentUser,
         TodoStatus? statusFilter,
         UserTaskFilter userFilter,
-        int currentUserId,
         int? assignedToUserIdFilter,
         int pageNumber,
         int pageSize,
@@ -25,9 +25,9 @@ public interface ITaskService
     );
 
     Task<int> GetTaskCountAsync(
+        User currentUser,
         TodoStatus? statusFilter,
         UserTaskFilter userFilter,
-        int currentUserId,
         int? assignedToUserIdFilter,
         string? searchKeyword
     );

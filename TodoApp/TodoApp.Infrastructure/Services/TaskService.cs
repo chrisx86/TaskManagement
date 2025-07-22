@@ -33,9 +33,9 @@ public class TaskService : ITaskService
     }
 
     public async Task<List<TodoItem>> GetAllTasksAsync(
+        User currentUser,
         TodoStatus? statusFilter,
         UserTaskFilter userFilter,
-        int currentUserId,
         int? assignedToUserIdFilter,
         int pageNumber,
         int pageSize,
@@ -43,7 +43,7 @@ public class TaskService : ITaskService
         bool isAscending,
         string? searchKeyword)
     {
-        var query = BuildFilteredQuery(statusFilter, userFilter, currentUserId, assignedToUserIdFilter, searchKeyword);
+        var query = BuildFilteredQuery(currentUser, statusFilter, userFilter, assignedToUserIdFilter, searchKeyword);
 
         IOrderedQueryable<TodoItem> orderedQuery;
 
@@ -118,13 +118,13 @@ public class TaskService : ITaskService
     }
 
     public async Task<int> GetTaskCountAsync(
+        User currentUser,
         TodoStatus? statusFilter,
         UserTaskFilter userFilter,
-        int currentUserId,
         int? assignedToUserIdFilter,
         string? searchKeyword)
     {
-        var query = BuildFilteredQuery(statusFilter, userFilter, currentUserId, assignedToUserIdFilter, searchKeyword);
+        var query = BuildFilteredQuery(currentUser, statusFilter, userFilter, assignedToUserIdFilter, searchKeyword);
         return await query.CountAsync();
     }
 
@@ -243,30 +243,35 @@ public class TaskService : ITaskService
     #region Private Helpers
 
     private IQueryable<TodoItem> BuildFilteredQuery(
+        User currentUser,
         TodoStatus? statusFilter,
         UserTaskFilter userFilter,
-        int currentUserId,
         int? assignedToUserIdFilter,
         string? searchKeyword)
     {
         var query = _context.TodoItems.AsNoTracking();
-
+        if (currentUser.Role != UserRole.Admin)
+        {
+            query = query.Where(t => t.AssignedToId == currentUser.Id || t.CreatorId == currentUser.Id);
+        }
         if (statusFilter.HasValue) { query = query.Where(t => t.Status == statusFilter.Value); }
 
-        switch (userFilter)
+        if (currentUser.Role != UserRole.Admin)
         {
-            case UserTaskFilter.AssignedToMe:
-                query = query.Where(t => t.AssignedToId == currentUserId);
-                break;
-            case UserTaskFilter.CreatedByMe:
-                query = query.Where(t => t.CreatorId == currentUserId);
-                break;
+            switch (userFilter)
+            {
+                case UserTaskFilter.AssignedToMe:
+                    query = query.Where(t => t.AssignedToId == currentUser.Id);
+                    break;
+                case UserTaskFilter.CreatedByMe:
+                    query = query.Where(t => t.CreatorId == currentUser.Id);
+                    break;
+            }
         }
 
         if (assignedToUserIdFilter.HasValue) { query = query.Where(t => t.AssignedToId == assignedToUserIdFilter.Value); }
         if (!string.IsNullOrEmpty(searchKeyword))
         {
-            // The search will be case-insensitive and check both Title and Comments.
             var keyword = searchKeyword.ToLower();
             query = query.Where(t =>
                 (t.Title != null && t.Title.ToLower().Contains(keyword)) ||

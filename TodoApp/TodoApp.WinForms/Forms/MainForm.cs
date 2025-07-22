@@ -210,8 +210,18 @@ public partial class MainForm : Form
         cmbFilterStatus.DisplayMember = nameof(StatusDisplayItem.Name);
         cmbFilterStatus.ValueMember = nameof(StatusDisplayItem.Value);
 
-        cmbFilterByUserRelation.DataSource = Enum.GetValues<UserTaskFilter>();
-
+        if (_currentUser.Role == UserRole.Admin)
+        {
+            cmbFilterByUserRelation.DataSource = Enum.GetValues<UserTaskFilter>();
+        }
+        else
+        {
+            cmbFilterByUserRelation.DataSource = new[]
+            {
+                UserTaskFilter.AssignedToMe,
+                UserTaskFilter.CreatedByMe
+            };
+        }
         _allUsers = await _userService.GetAllUsersAsync();
         var userFilterItems = new List<UserDisplayItem> { new() { Username = "©Ò¦³¤H", Id = 0 } };
         var uniqueUsers = _allUsers.Where(u => u != null && !string.IsNullOrEmpty(u.Username)).GroupBy(u => u.Id).Select(g => g.First());
@@ -219,6 +229,7 @@ public partial class MainForm : Form
         cmbFilterByAssignedUser.DataSource = userFilterItems;
         cmbFilterByAssignedUser.DisplayMember = nameof(UserDisplayItem.Username);
         cmbFilterByAssignedUser.ValueMember = nameof(UserDisplayItem.Id);
+
     }
 
     private void SetDefaultFiltersForCurrentUser()
@@ -226,6 +237,7 @@ public partial class MainForm : Form
         _isUpdatingUI = true;
         try
         {
+
             if (cmbFilterStatus.Items.Count > 0) cmbFilterStatus.SelectedIndex = 0;
             if (cmbFilterByAssignedUser.Items.Count > 0) cmbFilterByAssignedUser.SelectedIndex = 0;
             cmbFilterByUserRelation.SelectedItem = (_currentUser.Role == UserRole.Admin) ? UserTaskFilter.All : UserTaskFilter.AssignedToMe;
@@ -256,7 +268,7 @@ public partial class MainForm : Form
             if (assignedToUserIdFilter == 0) assignedToUserIdFilter = null;
 
             _totalTasks = await _taskService.GetTaskCountAsync(
-                statusFilter, userFilter, _currentUser.Id, assignedToUserIdFilter,
+                _currentUser, statusFilter, userFilter, assignedToUserIdFilter,
                 searchKeyword // New argument
             );
 
@@ -265,7 +277,7 @@ public partial class MainForm : Form
             if (_currentPage > _totalPages) _currentPage = _totalPages;
 
             var tasks = await _taskService.GetAllTasksAsync(
-                statusFilter, userFilter, _currentUser.Id, assignedToUserIdFilter,
+                _currentUser, statusFilter, userFilter, assignedToUserIdFilter,
                 _currentPage, _pageSize,
                 _sortedColumn?.Name,
                 _sortDirection == ListSortDirection.Ascending,
