@@ -279,7 +279,6 @@ public partial class AdminDashboardForm : Form
         _isUpdatingUI = true;
         try
         {
-            // When clearing, we reset BOTH card and manual filters to default.
             _activeCardFilter = CardFilterType.None;
             ClearManualFilters();
         }
@@ -310,11 +309,10 @@ public partial class AdminDashboardForm : Form
         var now = DateTime.Now;
         IEnumerable<TodoItem> tasksToDisplay = _dashboardViewModel.GroupedTasks.SelectMany(pair => pair.Value);
 
-        // --- Step 1: ALWAYS apply the manual filters ---
-        string searchTerm = txtSearch.Text.Trim().ToLowerInvariant();
+        var searchTerm = txtSearch.Text.Trim().ToLowerInvariant();
         PriorityLevel? priorityFilter = (cmbFilterPriority.SelectedItem as PriorityDisplayItem)?.Value;
         TodoStatus? statusFilter = (cmbFilterStatus.SelectedItem as StatusDisplayItem)?.Value;
-        bool onlyShowOverdue = chkFilterOverdue.Checked;
+        var onlyShowOverdue = chkFilterOverdue.Checked;
         int? userFilterId = (cmbFilterByUser.SelectedItem as UserDisplayItem)?.Id;
 
         if (!string.IsNullOrEmpty(searchTerm))
@@ -328,7 +326,6 @@ public partial class AdminDashboardForm : Form
         if (userFilterId.HasValue && userFilterId > 0)
             tasksToDisplay = tasksToDisplay.Where(t => (t.AssignedToId ?? t.CreatorId) == userFilterId);
 
-        // --- Step 2: THEN, apply the card filter ON TOP of the manual filter results ---
         if (_activeCardFilter != CardFilterType.None)
         {
             tasksToDisplay = _activeCardFilter switch
@@ -344,7 +341,6 @@ public partial class AdminDashboardForm : Form
 
         var filteredTaskList = tasksToDisplay.ToList();
 
-        // --- The rest of the method for populating stats and tree remains the same ---
         PopulateStatisticCards(filteredTaskList);
         PopulateTreeView(filteredTaskList);
         HighlightActiveCard();
@@ -366,20 +362,20 @@ public partial class AdminDashboardForm : Form
     // --- NEW Helper to create a TreeNode for a task ---
     private TreeNode CreateTaskNode(TodoItem task, DateTime now)
     {
-        string statusPrefix = task.Status switch
+        var statusPrefix = task.Status switch
         {
             TodoStatus.Completed => "[✓]",
             TodoStatus.InProgress => "[→]",
             TodoStatus.Reject => "[✗]",
             _ => "[ ]"
         };
-        string priorityPrefix = $"[{task.Priority}]";
-        string dueDateSuffix = task.DueDate.HasValue ? $" (Due: {task.DueDate.Value.ToLocalTime():yyyy-MM-dd})" : "";
-        string nodeText = $"{statusPrefix} {priorityPrefix} {task.Title}{dueDateSuffix}";
+        var priorityPrefix = $"[{task.Priority}]";
+        var dueDateSuffix = task.DueDate.HasValue ? $" (Due: {task.DueDate.Value.ToLocalTime():yyyy-MM-dd})" : "";
+        var nodeText = $"{statusPrefix} {priorityPrefix} {task.Title}{dueDateSuffix}";
 
         var taskNode = new TreeNode(nodeText) { Tag = task };
 
-        bool isOverdue = task.DueDate < now && task.Status != TodoStatus.Completed && task.Status != TodoStatus.Reject;
+        var isOverdue = task.DueDate < now && task.Status != TodoStatus.Completed && task.Status != TodoStatus.Reject;
         if (isOverdue)
         {
             taskNode.ForeColor = Color.Red;
@@ -405,7 +401,7 @@ public partial class AdminDashboardForm : Form
 
         // --- Update the UI Labels ---
         lblTotalTasksValue.Text = totalCount.ToString();
-        lblCompletedValue.Text = completedCount.ToString(); // New
+        lblCompletedValue.Text = completedCount.ToString();
         lblUncompletedValue.Text = uncompletedCount.ToString();
         lblOverdueValue.Text = overdueCount.ToString();
         lblUnassignedValue.Text = unassignedCount.ToString();
@@ -424,13 +420,12 @@ public partial class AdminDashboardForm : Form
     /// <param name="filteredTasks">The list of tasks to display, assumed to be already filtered.</param>
     private void PopulateTreeView(List<TodoItem> filteredTasks)
     {
-        var now = DateTime.Now; // Use a single timestamp for consistency
+        var now = DateTime.Now;
 
         var tasksGroupedForTree = filteredTasks
             .GroupBy(t => t.AssignedTo ?? t.Creator, new UserEqualityComparer())
             .OrderBy(g => g.Key.Username);
 
-        // --- Populate the user nodes in the TreeView ---
         foreach (var userGroup in tasksGroupedForTree)
         {
             if (userGroup.Key == null) continue;
@@ -444,7 +439,6 @@ public partial class AdminDashboardForm : Form
                 Tag = user
             };
 
-            // --- Sort the tasks for this specific user before adding them as child nodes ---
             var sortedUserTasks = userTasks
                 .OrderBy(t => t.Status switch {
                     TodoStatus.InProgress => 0,
@@ -479,8 +473,6 @@ public partial class AdminDashboardForm : Form
 
         try
         {
-            // Before populating the details panel, re-fetch the full entity from the database.
-            // This guarantees that all navigation properties (Creator, AssignedTo) are loaded.
             var fullTaskDetails = await _taskService.GetTaskByIdAsync(selectedTaskInfo.Id);
 
             if (fullTaskDetails != null)
@@ -493,7 +485,7 @@ public partial class AdminDashboardForm : Form
             else
             {
                 MessageBox.Show("無法獲取任務詳情，該任務可能已被刪除。視圖將會刷新。", "找不到任務", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                await LoadAndDisplayDataAsync(); // Refresh the entire dashboard
+                await LoadAndDisplayDataAsync();
             }
         }
         catch (Exception ex)

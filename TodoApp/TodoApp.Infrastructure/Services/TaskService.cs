@@ -40,9 +40,10 @@ public class TaskService : ITaskService
         int pageNumber,
         int pageSize,
         string? sortColumn,
-        bool isAscending)
+        bool isAscending,
+        string? searchKeyword)
     {
-        var query = BuildFilteredQuery(statusFilter, userFilter, currentUserId, assignedToUserIdFilter);
+        var query = BuildFilteredQuery(statusFilter, userFilter, currentUserId, assignedToUserIdFilter, searchKeyword);
 
         IOrderedQueryable<TodoItem> orderedQuery;
 
@@ -120,9 +121,10 @@ public class TaskService : ITaskService
         TodoStatus? statusFilter,
         UserTaskFilter userFilter,
         int currentUserId,
-        int? assignedToUserIdFilter)
+        int? assignedToUserIdFilter,
+        string? searchKeyword)
     {
-        var query = BuildFilteredQuery(statusFilter, userFilter, currentUserId, assignedToUserIdFilter);
+        var query = BuildFilteredQuery(statusFilter, userFilter, currentUserId, assignedToUserIdFilter, searchKeyword);
         return await query.CountAsync();
     }
 
@@ -244,7 +246,8 @@ public class TaskService : ITaskService
         TodoStatus? statusFilter,
         UserTaskFilter userFilter,
         int currentUserId,
-        int? assignedToUserIdFilter)
+        int? assignedToUserIdFilter,
+        string? searchKeyword)
     {
         var query = _context.TodoItems.AsNoTracking();
 
@@ -261,7 +264,15 @@ public class TaskService : ITaskService
         }
 
         if (assignedToUserIdFilter.HasValue) { query = query.Where(t => t.AssignedToId == assignedToUserIdFilter.Value); }
-
+        if (!string.IsNullOrEmpty(searchKeyword))
+        {
+            // The search will be case-insensitive and check both Title and Comments.
+            var keyword = searchKeyword.ToLower();
+            query = query.Where(t =>
+                (t.Title != null && t.Title.ToLower().Contains(keyword)) ||
+                (t.Comments != null && t.Comments.ToLower().Contains(keyword))
+            );
+        }
         return query;
     }
     #region Private Notification Helpers

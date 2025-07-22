@@ -20,14 +20,16 @@ public interface ITaskService
         int pageNumber,
         int pageSize,
         string? sortColumn, // The name of the column to sort by
-        bool isAscending     // The sort direction
+        bool isAscending,
+        string? searchKeyword
     );
 
     Task<int> GetTaskCountAsync(
         TodoStatus? statusFilter,
         UserTaskFilter userFilter,
         int currentUserId,
-        int? assignedToUserIdFilter
+        int? assignedToUserIdFilter,
+        string? searchKeyword
     );
     Task<TodoItem> CreateTaskAsync(User currentUser, string title, string? comments, PriorityLevel priority, DateTime? dueDate, int? assignedToId);
 

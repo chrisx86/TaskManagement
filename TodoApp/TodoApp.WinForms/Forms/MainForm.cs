@@ -40,6 +40,8 @@ public partial class MainForm : Form
     private bool _isUpdatingUI;
     private TodoItem? _selectedTaskForEditing = null;
 
+    private System.Windows.Forms.Timer? _filterDebounceTimer;
+
     public MainForm(
         IServiceProvider serviceProvider,
         ITaskService taskService,
@@ -104,6 +106,8 @@ public partial class MainForm : Form
 
         this.txtCommentsPreview.TextChanged += TxtCommentsPreview_TextChanged;
         this.btnSaveChanges.Click += BtnSaveChanges_Click;
+
+        this.txtSearch.TextChanged += Filter_Changed;
     }
 
     private async void MainForm_Load(object? sender, EventArgs e)
@@ -240,12 +244,21 @@ public partial class MainForm : Form
         SetLoadingState(true);
         try
         {
+            string? searchKeyword = txtSearch.Text.Trim();
+            if (string.IsNullOrEmpty(searchKeyword))
+            {
+                searchKeyword = null; // Ensure we pass null, not an empty string, to the service
+            }
+
             TodoStatus? statusFilter = (cmbFilterStatus.SelectedItem as StatusDisplayItem)?.Value;
             var userFilter = (UserTaskFilter)cmbFilterByUserRelation.SelectedItem;
             int? assignedToUserIdFilter = (cmbFilterByAssignedUser.SelectedItem as UserDisplayItem)?.Id;
             if (assignedToUserIdFilter == 0) assignedToUserIdFilter = null;
 
-            _totalTasks = await _taskService.GetTaskCountAsync(statusFilter, userFilter, _currentUser.Id, assignedToUserIdFilter);
+            _totalTasks = await _taskService.GetTaskCountAsync(
+                statusFilter, userFilter, _currentUser.Id, assignedToUserIdFilter,
+                searchKeyword // New argument
+            );
 
             _totalPages = (_pageSize > 0) ? (int)Math.Ceiling((double)_totalTasks / _pageSize) : 1;
             if (_totalPages == 0) _totalPages = 1;
@@ -255,7 +268,8 @@ public partial class MainForm : Form
                 statusFilter, userFilter, _currentUser.Id, assignedToUserIdFilter,
                 _currentPage, _pageSize,
                 _sortedColumn?.Name,
-                _sortDirection == ListSortDirection.Ascending
+                _sortDirection == ListSortDirection.Ascending,
+                searchKeyword
             );
 
             _tasksBindingList.Clear();
@@ -308,9 +322,24 @@ public partial class MainForm : Form
     private async void Filter_Changed(object? sender, EventArgs e)
     {
         if (_isUpdatingUI) return;
-        _currentPage = 1;
-        _sortedColumn = null;
-        await LoadTasksAsync();
+
+        // To provide a better "as-you-type" search experience, we can use a debounce timer.
+        // If a timer is already running, stop it.
+        _filterDebounceTimer?.Stop();
+
+        if (_filterDebounceTimer == null)
+        {
+            _filterDebounceTimer = new System.Windows.Forms.Timer { Interval = 500 };
+            _filterDebounceTimer.Tick += async (s, args) =>
+            {
+                _filterDebounceTimer.Stop();
+                _currentPage = 1;
+                _sortedColumn = null;
+                await LoadTasksAsync();
+            };
+        }
+
+        _filterDebounceTimer.Start();
     }
 
     private void DgvTasks_SelectionChanged(object? sender, EventArgs e)

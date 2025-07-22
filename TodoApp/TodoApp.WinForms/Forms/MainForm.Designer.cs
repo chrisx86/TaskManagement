@@ -54,6 +54,8 @@ namespace TodoApp.WinForms.Forms
             lblFilterUser = new Label();
             cmbFilterStatus = new ComboBox();
             lblFilterStatus = new Label();
+            txtSearch = new TextBox();
+            lblSearch = new Label();
             panelPagination = new Panel();
             lblPageSize = new Label();
             cmbPageSize = new ComboBox();
@@ -64,8 +66,8 @@ namespace TodoApp.WinForms.Forms
             btnPreviousPage = new Button();
             btnFirstPage = new Button();
             splitContainerMain = new SplitContainer();
-            btnSaveChanges = new Button();
             dgvTasks = new DataGridView();
+            btnSaveChanges = new Button();
             txtCommentsPreview = new TextBox();
             toolStrip1.SuspendLayout();
             statusStrip1.SuspendLayout();
@@ -191,6 +193,8 @@ namespace TodoApp.WinForms.Forms
             panelFilters.Controls.Add(lblFilterUser);
             panelFilters.Controls.Add(cmbFilterStatus);
             panelFilters.Controls.Add(lblFilterStatus);
+            panelFilters.Controls.Add(txtSearch);
+            panelFilters.Controls.Add(lblSearch);
             panelFilters.Dock = DockStyle.Top;
             panelFilters.Location = new Point(0, 25);
             panelFilters.Margin = new Padding(4, 3, 4, 3);
@@ -257,6 +261,23 @@ namespace TodoApp.WinForms.Forms
             lblFilterStatus.Size = new Size(43, 15);
             lblFilterStatus.TabIndex = 0;
             lblFilterStatus.Text = "狀態：";
+            // 
+            // txtSearch
+            // 
+            txtSearch.Location = new Point(734, 9);
+            txtSearch.Name = "txtSearch";
+            txtSearch.Size = new Size(200, 23);
+            txtSearch.TabIndex = 7;
+            // 
+            // lblSearch
+            // 
+            lblSearch.AutoSize = true;
+            lblSearch.Location = new Point(690, 12);
+            lblSearch.Margin = new Padding(4, 0, 4, 0);
+            lblSearch.Name = "lblSearch";
+            lblSearch.Size = new Size(43, 15);
+            lblSearch.TabIndex = 6;
+            lblSearch.Text = "搜尋：";
             // 
             // panelPagination
             // 
@@ -374,18 +395,6 @@ namespace TodoApp.WinForms.Forms
             splitContainerMain.SplitterDistance = 358;
             splitContainerMain.TabIndex = 5;
             // 
-            // btnSaveChanges
-            // 
-            btnSaveChanges.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnSaveChanges.Enabled = false;
-            btnSaveChanges.Location = new Point(1074, 77);
-            btnSaveChanges.Margin = new Padding(4, 3, 4, 3);
-            btnSaveChanges.Name = "btnSaveChanges";
-            btnSaveChanges.Size = new Size(88, 23);
-            btnSaveChanges.TabIndex = 1;
-            btnSaveChanges.Text = "儲存";
-            btnSaveChanges.UseVisualStyleBackColor = true;
-            // 
             // dgvTasks
             // 
             dgvTasks.AllowUserToAddRows = false;
@@ -409,6 +418,18 @@ namespace TodoApp.WinForms.Forms
             dgvTasks.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgvTasks.Size = new Size(1176, 358);
             dgvTasks.TabIndex = 3;
+            // 
+            // btnSaveChanges
+            // 
+            btnSaveChanges.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            btnSaveChanges.Enabled = false;
+            btnSaveChanges.Location = new Point(1074, 77);
+            btnSaveChanges.Margin = new Padding(4, 3, 4, 3);
+            btnSaveChanges.Name = "btnSaveChanges";
+            btnSaveChanges.Size = new Size(88, 23);
+            btnSaveChanges.TabIndex = 1;
+            btnSaveChanges.Text = "儲存";
+            btnSaveChanges.UseVisualStyleBackColor = true;
             // 
             // txtCommentsPreview
             // 
@@ -491,5 +512,7 @@ namespace TodoApp.WinForms.Forms
         private System.Windows.Forms.SplitContainer splitContainerMain;
         private System.Windows.Forms.TextBox txtCommentsPreview;
         private System.Windows.Forms.Button btnSaveChanges;
+        private System.Windows.Forms.Label lblSearch;
+        private System.Windows.Forms.TextBox txtSearch;
     }
 }
