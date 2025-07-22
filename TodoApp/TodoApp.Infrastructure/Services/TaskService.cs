@@ -250,13 +250,16 @@ public class TaskService : ITaskService
         string? searchKeyword)
     {
         var query = _context.TodoItems.AsNoTracking();
-        if (currentUser.Role != UserRole.Admin)
-        {
-            query = query.Where(t => t.AssignedToId == currentUser.Id || t.CreatorId == currentUser.Id);
-        }
         if (statusFilter.HasValue) { query = query.Where(t => t.Status == statusFilter.Value); }
-
-        if (currentUser.Role != UserRole.Admin)
+        if (!string.IsNullOrEmpty(searchKeyword))
+        {
+            var keyword = searchKeyword.ToLower();
+            query = query.Where(t =>
+                (t.Title != null && t.Title.ToLower().Contains(keyword)) ||
+                (t.Comments != null && t.Comments.ToLower().Contains(keyword))
+            );
+        }
+        if (currentUser.Role == UserRole.Admin)
         {
             switch (userFilter)
             {
@@ -267,16 +270,24 @@ public class TaskService : ITaskService
                     query = query.Where(t => t.CreatorId == currentUser.Id);
                     break;
             }
-        }
 
-        if (assignedToUserIdFilter.HasValue) { query = query.Where(t => t.AssignedToId == assignedToUserIdFilter.Value); }
-        if (!string.IsNullOrEmpty(searchKeyword))
+            if (assignedToUserIdFilter.HasValue && assignedToUserIdFilter > 0)
+            {
+                query = query.Where(t => t.AssignedToId == assignedToUserIdFilter.Value);
+            }
+        }
+        else
         {
-            var keyword = searchKeyword.ToLower();
-            query = query.Where(t =>
-                (t.Title != null && t.Title.ToLower().Contains(keyword)) ||
-                (t.Comments != null && t.Comments.ToLower().Contains(keyword))
-            );
+            query = query.Where(t => t.AssignedToId == currentUser.Id || t.CreatorId == currentUser.Id);
+            switch (userFilter)
+            {
+                case UserTaskFilter.AssignedToMe:
+                    query = query.Where(t => t.AssignedToId == currentUser.Id);
+                    break;
+                case UserTaskFilter.CreatedByMe:
+                    query = query.Where(t => t.CreatorId == currentUser.Id);
+                    break;
+            }
         }
         return query;
     }
