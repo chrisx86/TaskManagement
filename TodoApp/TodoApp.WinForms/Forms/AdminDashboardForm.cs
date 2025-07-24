@@ -132,7 +132,6 @@ public partial class AdminDashboardForm : Form
         }
         else if (sender is Label label && label.Parent is Panel parentPanel)
         {
-            // If a label was clicked, we treat it as if its parent panel was clicked.
             clickedCard = parentPanel;
         }
         if (clickedCard == null) return;
