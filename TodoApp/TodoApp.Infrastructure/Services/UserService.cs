@@ -29,7 +29,7 @@ public class UserService : IUserService
     {
         var user = await _context.Users
             .FirstOrDefaultAsync(u => EF.Functions.Like(u.Username, username));
-        if (user == null) return null;
+        if (user is null) return null;
         if (!PasswordHasher.VerifyPassword(password, user.HashedPassword)) return null;
         return user;
     }

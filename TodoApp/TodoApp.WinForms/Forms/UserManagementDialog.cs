@@ -62,7 +62,7 @@ public partial class UserManagementDialog : Form
 
         try
         {
-            if (_selectedUser == null) // CREATE MODE
+            if (_selectedUser is null) // CREATE MODE
             {
                 if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
                 {
@@ -107,7 +107,7 @@ public partial class UserManagementDialog : Form
 
     private async void btnDeleteUser_Click(object? sender, EventArgs e)
     {
-        if (_selectedUser == null)
+        if (_selectedUser is null)
         {
             MessageBox.Show("請先從左側列表選擇一個要刪除的使用者。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
             return;

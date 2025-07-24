@@ -30,4 +30,5 @@ public class User
     /// The role of the user, determining their permissions.
     /// </summary>
     public UserRole Role { get; set; }
+    public DateTime LoginTime { get; set; }
 }

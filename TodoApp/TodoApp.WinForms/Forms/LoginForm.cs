@@ -24,10 +24,12 @@ namespace TodoApp.WinForms.Forms
             _userService = userService;
             _userContext = userContext;
         }
+
         private void LoginForm_Load(object sender, EventArgs e)
         {
             SetWindowTitleWithVersion();
         }
+
         private void SetWindowTitleWithVersion()
         {
             var mainAssembly = Assembly.GetExecutingAssembly();
@@ -35,6 +37,7 @@ namespace TodoApp.WinForms.Forms
             var versionString = version != null ? $"V {version.Major}.{version.Minor}" : "V ?.?";
             this.Text = $"系統登入 TaskManagement App {versionString} Beta";
         }
+
         private async void BtnLogin_Click(object sender, EventArgs e)
         {
             var username = txtUsername.Text.Trim();
@@ -51,11 +54,14 @@ namespace TodoApp.WinForms.Forms
             {
                 var authenticatedUser = await _userService.AuthenticateAsync(username, password);
 
-                if (authenticatedUser != null)
+                if (authenticatedUser is not null)
                 {
                     _userContext.SetCurrentUser(authenticatedUser);
 
                     this.AuthenticatedUser = authenticatedUser;
+
+                    authenticatedUser.LoginTime = DateTime.Now;
+                    await _userService.UpdateUserAsync(authenticatedUser);
 
                     this.DialogResult = DialogResult.OK;
                     this.Close();
@@ -74,6 +80,7 @@ namespace TodoApp.WinForms.Forms
                 SetLoadingState(false);
             }
         }
+
         private void SetLoadingState(bool isLoading)
         {
             this.UseWaitCursor = isLoading;
@@ -85,6 +92,7 @@ namespace TodoApp.WinForms.Forms
 
             btnLogin.Text = isLoading ? "登入中..." : "登入(&L)";
         }
+
         private void BtnCancel_Click(object sender, EventArgs e)
         {
             this.DialogResult = DialogResult.Cancel;
