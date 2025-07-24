@@ -1,13 +1,12 @@
-﻿using TodoApp.Core.Models;
+﻿using System.Reflection;
+using TodoApp.Core.Models;
 using TodoApp.Core.Services;
 
 namespace TodoApp.WinForms.Forms
 {
     public partial class LoginForm : Form
     {
-        // A private field to hold the user service, injected via the constructor.
         private readonly IUserService _userService;
-        // --- STEP 1: Add a field for IUserContext ---
         private readonly IUserContext _userContext;
         /// <summary>
         /// Property to hold the authenticated user after a successful login.
@@ -25,7 +24,17 @@ namespace TodoApp.WinForms.Forms
             _userService = userService;
             _userContext = userContext;
         }
-
+        private void LoginForm_Load(object sender, EventArgs e)
+        {
+            SetWindowTitleWithVersion();
+        }
+        private void SetWindowTitleWithVersion()
+        {
+            var mainAssembly = Assembly.GetExecutingAssembly();
+            var version = mainAssembly.GetName().Version;
+            var versionString = version != null ? $"V {version.Major}.{version.Minor}" : "V ?.?";
+            this.Text = $"系統登入 TaskManagement App {versionString} Beta";
+        }
         private async void BtnLogin_Click(object sender, EventArgs e)
         {
             var username = txtUsername.Text.Trim();
@@ -67,21 +76,17 @@ namespace TodoApp.WinForms.Forms
         }
         private void SetLoadingState(bool isLoading)
         {
-            // Ensure the cursor state is always managed by this method.
             this.UseWaitCursor = isLoading;
 
-            // Toggle control enablement
             txtUsername.Enabled = !isLoading;
             txtPassword.Enabled = !isLoading;
             btnLogin.Enabled = !isLoading;
             btnCancel.Enabled = !isLoading;
 
-            // Optional: Provide visual feedback on the login button.
             btnLogin.Text = isLoading ? "登入中..." : "登入(&L)";
         }
         private void BtnCancel_Click(object sender, EventArgs e)
         {
-            // Set the DialogResult to Cancel and close the form.
             this.DialogResult = DialogResult.Cancel;
             this.Close();
         }

@@ -127,7 +127,7 @@ public partial class MainForm : Form
     {
         var mainAssembly = Assembly.GetExecutingAssembly();
         var version = mainAssembly.GetName().Version;
-        var versionString = version != null ? $"V {version.Major}.{version.Minor}.{version.Build}" : "V ?.?.?";
+        var versionString = version != null ? $"V {version.Major}.{version.Minor}" : "V ?.?";
         this.Text = $"Task Management App - Login : [ {_currentUser.Username} ] - {versionString} Beta";
     }
 
