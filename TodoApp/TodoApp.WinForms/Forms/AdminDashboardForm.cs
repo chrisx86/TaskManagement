@@ -90,9 +90,6 @@ public partial class AdminDashboardForm : Form
     }
     private void WireUpCardClickEvents()
     {
-        // For each card, we need to handle the click on the panel itself,
-        // AND on the labels inside it, to ensure the click is always captured.
-
         // Card 1: Total Tasks
         cardTotalTasks.Click += Card_Click;
         lblTotalTasksTitle.Click += Card_Click;
@@ -150,10 +147,6 @@ public partial class AdminDashboardForm : Form
 
         _activeCardFilter = (_activeCardFilter == clickedFilterType) ? CardFilterType.None : clickedFilterType;
 
-        // --- REMOVED: Do not disable the manual filters anymore ---
-        // SetManualFiltersState(false); 
-
-        // When a card is clicked, we still apply the filter immediately.
         ApplyFiltersAndPopulateTree();
     }
 
@@ -174,7 +167,6 @@ public partial class AdminDashboardForm : Form
             card.BorderStyle = BorderStyle.FixedSingle;
         }
 
-        // --- FIXED: Corrected the typo in the variable name ---
         if (_activeCardFilter != CardFilterType.None && cardMap.TryGetValue(_activeCardFilter, out var selectedCard))
         {
             selectedCard.BorderStyle = BorderStyle.Fixed3D;
@@ -252,7 +244,6 @@ public partial class AdminDashboardForm : Form
     private void Filter_Changed(object? sender, EventArgs e)
     {
         if (_isUpdatingUI) return;
-        // When a manual filter is changed, it automatically deactivates any card filter.
         _activeCardFilter = CardFilterType.None;
         ApplyFiltersAndPopulateTree();
     }
@@ -290,18 +281,9 @@ public partial class AdminDashboardForm : Form
         ApplyFiltersAndPopulateTree();
     }
 
-    private void SetManualFiltersState(bool isEnabled)
-    {
-        txtSearch.Enabled = isEnabled;
-        cmbFilterPriority.Enabled = isEnabled;
-        cmbFilterStatus.Enabled = isEnabled;
-        cmbFilterByUser.Enabled = isEnabled;
-        chkFilterOverdue.Enabled = isEnabled;
-    }
-
     private void ApplyFiltersAndPopulateTree()
     {
-        if (_dashboardViewModel == null) return;
+        if (_dashboardViewModel is null) return;
 
         tvTasks.BeginUpdate();
         tvTasks.Nodes.Clear();
@@ -346,6 +328,11 @@ public partial class AdminDashboardForm : Form
         HighlightActiveCard();
 
         tvTasks.ExpandAll();
+        if (tvTasks.Nodes.Count > 0)
+        {
+            tvTasks.SelectedNode = tvTasks.Nodes[0];
+            tvTasks.Nodes[0].EnsureVisible();
+        }
         tvTasks.EndUpdate();
     }
 
@@ -358,8 +345,6 @@ public partial class AdminDashboardForm : Form
         chkFilterOverdue.Checked = false;
     }
 
-
-    // --- NEW Helper to create a TreeNode for a task ---
     private TreeNode CreateTaskNode(TodoItem task, DateTime now)
     {
         var statusPrefix = task.Status switch
@@ -399,7 +384,6 @@ public partial class AdminDashboardForm : Form
         var unassignedCount = sourceTasks.Count(t => t.AssignedToId is null);
         var rejectedCount = sourceTasks.Count(t => t.Status == TodoStatus.Reject);
 
-        // --- Update the UI Labels ---
         lblTotalTasksValue.Text = totalCount.ToString();
         lblCompletedValue.Text = completedCount.ToString();
         lblUncompletedValue.Text = uncompletedCount.ToString();
@@ -407,7 +391,6 @@ public partial class AdminDashboardForm : Form
         lblUnassignedValue.Text = unassignedCount.ToString();
         lblRejectedValue.Text = rejectedCount.ToString();
 
-        // --- Update the Card background colors for visual cues ---
         cardOverdue.BackColor = overdueCount > 0 ? Color.MistyRose : SystemColors.Control;
         cardUnassigned.BackColor = unassignedCount > 0 ? Color.LightGoldenrodYellow : SystemColors.Control;
         cardRejected.BackColor = rejectedCount > 0 ? Color.Gainsboro : SystemColors.Control;
@@ -538,7 +521,6 @@ public partial class AdminDashboardForm : Form
         btnDetailReassign.Enabled = enabled;
         btnDetailDelete.Enabled = enabled;
         btnSaveComment.Enabled = false;
-
     }
 
     private async void BtnDetailEdit_Click(object? sender, EventArgs e)
@@ -561,10 +543,7 @@ public partial class AdminDashboardForm : Form
 
             if (taskDialog.ShowDialog(this) == DialogResult.OK)
             {
-                // Perform the full reload. ---
                 await LoadAndDisplayDataAsync();
-
-                // Restore the selection after reload. ---
                 SelectTaskInTreeView(taskIdToSelect);
             }
         }
@@ -579,13 +558,8 @@ public partial class AdminDashboardForm : Form
             {
                 if (taskNode.Tag is TodoItem item && item.Id == taskId)
                 {
-                    // Found the node. Select it.
                     tvTasks.SelectedNode = taskNode;
-
-                    // Ensure it's visible to the user.
                     taskNode.EnsureVisible();
-
-                    // Once found, we can exit the loops.
                     return;
                 }
             }
@@ -662,19 +636,13 @@ public partial class AdminDashboardForm : Form
         {
             SetLoadingState(true);
 
-            // Use the currently selected task object directly.
             var taskToUpdate = _selectedTaskForDetails;
             taskToUpdate.Comments = newComments;
 
-            // Call the update service. It will return the latest version of the task.
             var updatedTask = await _taskService.UpdateTaskAsync(_userContext.CurrentUser, taskToUpdate);
 
-            // --- Local Update Logic ---
-
-            // 1. Update the cached object for the details panel.
             _selectedTaskForDetails = updatedTask;
 
-            // 2. Update the object in the master ViewModel cache.
             var owner = updatedTask.AssignedTo ?? updatedTask.Creator;
             if (owner != null && _dashboardViewModel.GroupedTasks.TryGetValue(owner, out var taskList))
             {
@@ -685,11 +653,9 @@ public partial class AdminDashboardForm : Form
                 }
             }
 
-            // 3. Update the object in the TreeView node's Tag and refresh the details panel.
             if (tvTasks.SelectedNode != null && tvTasks.SelectedNode.Tag is TodoItem)
             {
                 tvTasks.SelectedNode.Tag = updatedTask;
-                // Re-populate the details panel with the absolutely latest data.
                 PopulateTaskDetails(updatedTask);
             }
 
@@ -699,7 +665,7 @@ public partial class AdminDashboardForm : Form
         catch (DbUpdateConcurrencyException ex)
         {
             MessageBox.Show($"儲存備註失敗: {ex.Message}", "並行衝突", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            await LoadAndDisplayDataAsync(); // Fallback to full reload on error
+            await LoadAndDisplayDataAsync();
         }
         catch (Exception ex)
         {
