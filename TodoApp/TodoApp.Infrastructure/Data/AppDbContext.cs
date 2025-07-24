@@ -33,6 +33,7 @@ public class AppDbContext : DbContext
     /// </summary>
     public DbSet<TodoItem> TodoItems { get; set; }
 
+    public DbSet<TaskHistory> TaskHistories { get; set; }
 
     /// <summary>
     /// This method is called by EF Core when the model is first being created.
@@ -90,6 +91,24 @@ public class AppDbContext : DbContext
                    .IsConcurrencyToken();
         });
 
+        modelBuilder.Entity<TaskHistory>(builder =>
+        {
+            builder.HasKey(h => h.Id);
+
+            // To improve query performance, we can still add indexes on the ID columns.
+            builder.HasIndex(h => h.TodoItemId);
+            builder.HasIndex(h => h.UserId);
+
+            // Explicitly ignore the navigation properties at the database mapping level.
+            // This makes our intention crystal clear to EF Core.
+            builder.Ignore(h => h.TodoItem);
+            builder.Ignore(h => h.User);
+        });
+
+        SeedInitialAdminUser(modelBuilder);
+    }
+    private void SeedInitialAdminUser(ModelBuilder modelBuilder)
+    {
         // --- DATA SEEDING ---
         // This code will run when the database is first created by a migration.
         // It pre-populates the database with essential data.
@@ -104,7 +123,7 @@ public class AppDbContext : DbContext
                 Id = 1,
                 Username = "admin",
                 HashedPassword = "Vs+y4YmzkPR7FVZjKLtTSQ==;LiLRzmFSgXYlWfLa4XcD+3xtGwSMGlVr9Q8G4bVxlrU=",
-                Role = Core.Models.UserRole.Admin
+                Role = UserRole.Admin
             }
         );
     }

@@ -4,6 +4,7 @@ using TodoApp.Core.Services;
 using TodoApp.Infrastructure.Data;
 using TodoApp.Infrastructure.Comparers;
 using Microsoft.EntityFrameworkCore;
+using System.Text;
 
 namespace TodoApp.Infrastructure.Services;
 
@@ -15,12 +16,14 @@ public class TaskService : ITaskService
     private readonly AppDbContext _context;
     private readonly IEmailService _emailService;
     private readonly IUserService _userService;
+    private readonly ITaskHistoryService _historyService;
 
-    public TaskService(AppDbContext context, IEmailService emailService, IUserService userService)
+    public TaskService(AppDbContext context, IEmailService emailService, IUserService userService, ITaskHistoryService historyService)
     {
         _context = context;
         _emailService = emailService;
         _userService = userService;
+        _historyService = historyService;
     }
 
     public async Task<TodoItem?> GetTaskByIdAsync(int taskId)
@@ -146,7 +149,7 @@ public class TaskService : ITaskService
 
         _context.TodoItems.Add(newTask);
         await _context.SaveChangesAsync();
-
+        _ = _historyService.LogHistoryAsync(newTask.Id, currentUser.Id, "Create", "任務已建立。");
         _ = NotifyTaskChangeAsync(newTask, currentUser, "建立");
 
         return await GetTaskByIdAsync(newTask.Id) ?? newTask;
@@ -164,19 +167,48 @@ public class TaskService : ITaskService
         {
             throw new DbUpdateConcurrencyException("資料已被他人修改，請重新整理後再試。");
         }
-
-        trackedTask.Title = taskFromUI.Title;
-        trackedTask.Comments = taskFromUI.Comments;
-        trackedTask.Status = taskFromUI.Status;
-        trackedTask.Priority = taskFromUI.Priority;
-        trackedTask.DueDate = taskFromUI.DueDate;
-        trackedTask.AssignedToId = taskFromUI.AssignedToId;
-
+        var descriptionBuilder = new StringBuilder();
+        var originalValues = _context.Entry(trackedTask).OriginalValues;
+        // Compare Status
+        if (originalValues.GetValue<TodoStatus>(nameof(TodoItem.Status)) != taskFromUI.Status)
+            descriptionBuilder.AppendLine($"狀態從 '{originalValues.GetValue<TodoStatus>(nameof(TodoItem.Status))}' 變更為 '{taskFromUI.Status}'。");
+        // Compare Priority
+        if (originalValues.GetValue<PriorityLevel>(nameof(TodoItem.Priority)) != taskFromUI.Priority)
+            descriptionBuilder.AppendLine($"優先級從 '{originalValues.GetValue<PriorityLevel>(nameof(TodoItem.Priority))}' 變更為 '{taskFromUI.Priority}'。");
+        // Compare Title
+        if (originalValues.GetValue<string>(nameof(TodoItem.Title)) != taskFromUI.Title)
+            descriptionBuilder.AppendLine("標題已修改。");
+        // Compare Comments
+        if (originalValues.GetValue<string>(nameof(TodoItem.Comments)) != taskFromUI.Comments)
+            descriptionBuilder.AppendLine("備註已修改。");
+        // Compare DueDate
+        if (originalValues.GetValue<DateTime?>(nameof(TodoItem.DueDate)) != taskFromUI.DueDate)
+            descriptionBuilder.AppendLine($"到期日已變更為 '{taskFromUI.DueDate:yyyy-MM-dd}'。");
+        // Compare AssignedToId
+        if (originalValues.GetValue<int?>(nameof(TodoItem.AssignedToId)) != taskFromUI.AssignedToId)
+            descriptionBuilder.AppendLine($"指派對象已變更。"); // More complex logic could show names
+        var changeDescription = descriptionBuilder.ToString();
+        // Apply changes from the UI object
+        _context.Entry(trackedTask).CurrentValues.SetValues(taskFromUI);
         trackedTask.LastModifiedDate = DateTime.Now;
+
+        //trackedTask.Title = taskFromUI.Title;
+        //trackedTask.Comments = taskFromUI.Comments;
+        //trackedTask.Status = taskFromUI.Status;
+        //trackedTask.Priority = taskFromUI.Priority;
+        //trackedTask.DueDate = taskFromUI.DueDate;
+        //trackedTask.AssignedToId = taskFromUI.AssignedToId;
+
+        //trackedTask.LastModifiedDate = DateTime.Now;
 
         try
         {
             await _context.SaveChangesAsync();
+            // --- Log history only if there were actual changes ---
+            if (!string.IsNullOrWhiteSpace(changeDescription))
+            {
+                _ = _historyService.LogHistoryAsync(trackedTask.Id, currentUser.Id, "Update", changeDescription.Trim());
+            }
             _ = NotifyTaskChangeAsync(trackedTask, currentUser, "更新");
             return trackedTask;
         }
@@ -196,18 +228,11 @@ public class TaskService : ITaskService
             throw new UnauthorizedAccessException("您沒有權限刪除此任務。");
         }
 
-        var tombstone = new TodoItem
-        {
-            Id = taskToDelete.Id,
-            Title = taskToDelete.Title,
-            Status = taskToDelete.Status,
-            Priority = taskToDelete.Priority,
-            DueDate = taskToDelete.DueDate,
-            AssignedToId = taskToDelete.AssignedToId
-        };
+        var tombstone = new TodoItem { Id = taskToDelete.Id, Title = taskToDelete.Title };
 
         _context.TodoItems.Remove(taskToDelete);
         await _context.SaveChangesAsync();
+        _ = _historyService.LogHistoryAsync(tombstone.Id, currentUser.Id, "Delete", $"任務 '{tombstone.Title}' 已被刪除。");
         _ = NotifyTaskChangeTombstoneAsync(tombstone, currentUser, "刪除");
     }
 
@@ -229,7 +254,7 @@ public class TaskService : ITaskService
         foreach (var task in allTasks)
         {
             User? owner = task.AssignedTo ?? task.Creator;
-            if (owner != null)
+            if (owner is not null)
             {
                 if (tasksByUser.TryGetValue(owner, out var taskList))
                 {

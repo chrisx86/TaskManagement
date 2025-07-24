@@ -31,6 +31,7 @@ public partial class AdminDashboardForm : Form
 
     private DashboardViewModel? _dashboardViewModel;
     private bool _isUpdatingUI;
+    private bool _isUpdatingStatisticCardsUI = true;
     private TodoItem? _selectedTaskForDetails;
 
     public AdminDashboardForm(
@@ -80,6 +81,7 @@ public partial class AdminDashboardForm : Form
 
         this.txtDetailComments.TextChanged += TxtDetailComments_TextChanged;
         this.btnSaveComment.Click += BtnSaveComment_Click;
+        this.btnViewHistory.Click += BtnViewHistory_Click;
         this.cardTotalTasks.Cursor = Cursors.Hand;
         this.cardUncompleted.Cursor = Cursors.Hand;
         this.cardOverdue.Cursor = Cursors.Hand;
@@ -146,8 +148,9 @@ public partial class AdminDashboardForm : Form
         };
 
         _activeCardFilter = (_activeCardFilter == clickedFilterType) ? CardFilterType.None : clickedFilterType;
-
+        _isUpdatingStatisticCardsUI = false;
         ApplyFiltersAndPopulateTree();
+        _isUpdatingStatisticCardsUI = true;
     }
 
     private void HighlightActiveCard()
@@ -322,8 +325,10 @@ public partial class AdminDashboardForm : Form
         }
 
         var filteredTaskList = tasksToDisplay.ToList();
-
-        PopulateStatisticCards(filteredTaskList);
+        if (_isUpdatingStatisticCardsUI)
+        {
+            PopulateStatisticCards(filteredTaskList);
+        }
         PopulateTreeView(filteredTaskList);
         HighlightActiveCard();
 
@@ -521,6 +526,7 @@ public partial class AdminDashboardForm : Form
         btnDetailReassign.Enabled = enabled;
         btnDetailDelete.Enabled = enabled;
         btnSaveComment.Enabled = false;
+        btnViewHistory.Enabled = enabled;
     }
 
     private async void BtnDetailEdit_Click(object? sender, EventArgs e)
@@ -674,6 +680,36 @@ public partial class AdminDashboardForm : Form
         finally
         {
             SetLoadingState(false);
+        }
+    }
+
+    private void BtnViewHistory_Click(object? sender, EventArgs e)
+    {
+        if (tvTasks.SelectedNode?.Tag is not TodoItem selectedTask)
+        {
+            MessageBox.Show("請先選擇一個任務以查看其歷史記錄。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return;
+        }
+
+        try
+        {
+            // --- Manually create the dialog and pass dependencies from the current scope ---
+            // This is a clean way to handle dialogs with runtime parameters.
+            var historyService = _serviceProvider.GetRequiredService<ITaskHistoryService>();
+            var userService = _serviceProvider.GetRequiredService<IUserService>();
+
+            using (var historyDialog = new TaskHistoryDialog(
+                selectedTask.Id,
+                selectedTask.Title,
+                historyService,
+                userService))
+            {
+                historyDialog.ShowDialog(this);
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"開啟歷史記錄視窗時發生錯誤: {ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
     #endregion

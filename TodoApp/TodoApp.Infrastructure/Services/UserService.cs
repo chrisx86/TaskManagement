@@ -1,11 +1,9 @@
-﻿// We need access to DbContext, models, interfaces, and security tools.
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using TodoApp.Core.Models;
 using TodoApp.Core.Services;
 using TodoApp.Infrastructure.Data;
 using TodoApp.Infrastructure.Security;
 
-// The namespace should match the project and folder structure.
 namespace TodoApp.Infrastructure.Services;
 
 /// <summary>
@@ -13,7 +11,6 @@ namespace TodoApp.Infrastructure.Services;
 /// </summary>
 public class UserService : IUserService
 {
-    // A private field to hold the database context, injected via the constructor.
     private readonly AppDbContext _context;
 
     /// <summary>
@@ -30,23 +27,10 @@ public class UserService : IUserService
     /// </summary>
     public async Task<User?> AuthenticateAsync(string username, string password)
     {
-        // 1. Find the user by username. The search is case-insensitive for better usability.
         var user = await _context.Users
             .FirstOrDefaultAsync(u => EF.Functions.Like(u.Username, username));
-        // 2. If user is not found, authentication fails.
-        if (user == null)
-        {
-            return null;
-        }
-
-        // 3. Verify the provided password against the stored hash.
-        if (!PasswordHasher.VerifyPassword(password, user.HashedPassword))
-        {
-            // Password does not match.
-            return null;
-        }
-
-        // 4. Authentication successful. Return the user object.
+        if (user == null) return null;
+        if (!PasswordHasher.VerifyPassword(password, user.HashedPassword)) return null;
         return user;
     }
 
@@ -55,8 +39,6 @@ public class UserService : IUserService
     /// </summary>
     public async Task<List<User>> GetAllUsersAsync()
     {
-        // Simply query the Users table and return all entries as a list.
-        // AsNoTracking() is a performance optimization for read-only queries.
         return await _context.Users.AsNoTracking().ToListAsync();
     }
 
@@ -75,7 +57,7 @@ public class UserService : IUserService
             Username = username,
             HashedPassword = PasswordHasher.HashPassword(password),
             Role = role,
-            Email = email // Assign the email
+            Email = email
         };
 
         _context.Users.Add(newUser);
@@ -86,10 +68,9 @@ public class UserService : IUserService
     public async Task<bool> UpdateUserAsync(User userToUpdate)
     {
         var trackedUser = await _context.Users.FindAsync(userToUpdate.Id);
-        if (trackedUser == null) return false;
+        if (trackedUser is null) return false;
 
-        // We only allow updating Role and Email in this method.
-        // Username and Password changes are handled by other methods.
+        trackedUser.Username = userToUpdate.Username;
         trackedUser.Role = userToUpdate.Role;
         trackedUser.Email = userToUpdate.Email;
 
@@ -103,16 +84,9 @@ public class UserService : IUserService
     public async Task<bool> DeleteUserAsync(int userId)
     {
         var user = await _context.Users.FindAsync(userId);
-        if (user == null)
-        {
-            // If user is not found, the operation did not succeed.
-            return false;
-        }
-
+        if (user is null) return false;
         _context.Users.Remove(user);
         await _context.SaveChangesAsync();
-
-        // If we reach here, the operation was successful.
         return true;
     }
 
@@ -121,21 +95,16 @@ public class UserService : IUserService
     /// </summary>
     public async Task<bool> ResetPasswordAsync(int userId, string newPassword)
     {
-        // 1. Find the user.
         var user = await _context.Users.FindAsync(userId);
 
-        // 2. If user exists, update their password.
-        if (user != null)
+        if (user is not null)
         {
-            // 3. Hash the new password.
             user.HashedPassword = PasswordHasher.HashPassword(newPassword);
 
-            // 4. Mark the user entity as modified and save changes.
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
             return true;
         }
         return false;
-        // If user is not found, an exception could be thrown, but for now we do nothing.
     }
 }

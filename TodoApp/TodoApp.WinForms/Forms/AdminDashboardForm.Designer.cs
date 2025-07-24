@@ -94,6 +94,7 @@ namespace TodoApp.WinForms.Forms
             this.lblDetailStatusTitle = new System.Windows.Forms.Label();
             this.lblDetailTitle = new System.Windows.Forms.Label();
             this.btnSaveComment = new System.Windows.Forms.Button();
+            this.btnViewHistory = new System.Windows.Forms.Button();
             this.panelFilters.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.treeViewContextMenu.SuspendLayout();
@@ -581,6 +582,7 @@ namespace TodoApp.WinForms.Forms
             panelDetailActions.Controls.Add(btnDetailDelete);
             panelDetailActions.Controls.Add(btnDetailReassign);
             panelDetailActions.Controls.Add(btnDetailEdit);
+            panelDetailActions.Controls.Add(btnViewHistory);
             panelDetailActions.Dock = DockStyle.Bottom;
             panelDetailActions.Location = new Point(0, 473);
             panelDetailActions.Name = "panelDetailActions";
@@ -600,16 +602,16 @@ namespace TodoApp.WinForms.Forms
             // 
             // btnDetailDelete
             // 
-            btnDetailDelete.Location = new Point(175, 8);
+            btnDetailDelete.Location = new Point(0, 8);
             btnDetailDelete.Name = "btnDetailDelete";
-            btnDetailDelete.Size = new Size(75, 23);
+            btnDetailDelete.Size = new Size(60, 23);
             btnDetailDelete.TabIndex = 2;
             btnDetailDelete.Text = "刪除";
             btnDetailDelete.UseVisualStyleBackColor = true;
             // 
             // btnDetailReassign
             // 
-            btnDetailReassign.Location = new Point(88, 8);
+            btnDetailReassign.Location = new Point(66, 8);
             btnDetailReassign.Name = "btnDetailReassign";
             btnDetailReassign.Size = new Size(75, 23);
             btnDetailReassign.TabIndex = 1;
@@ -618,12 +620,22 @@ namespace TodoApp.WinForms.Forms
             // 
             // btnDetailEdit
             // 
-            btnDetailEdit.Location = new Point(0, 8);
+            btnDetailEdit.Location = new Point(147, 8);
             btnDetailEdit.Name = "btnDetailEdit";
-            btnDetailEdit.Size = new Size(75, 23);
+            btnDetailEdit.Size = new Size(60, 23);
             btnDetailEdit.TabIndex = 0;
             btnDetailEdit.Text = "編輯";
             btnDetailEdit.UseVisualStyleBackColor = true;
+            // 
+            // btnViewHistory
+            // 
+            this.btnViewHistory.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnViewHistory.Location = new System.Drawing.Point(213, 8);
+            this.btnViewHistory.Name = "btnViewHistory";
+            this.btnViewHistory.Size = new System.Drawing.Size(75, 23);
+            this.btnViewHistory.TabIndex = 3; // Ensure correct tab order
+            this.btnViewHistory.Text = "查看歷史";
+            this.btnViewHistory.UseVisualStyleBackColor = true;
             // 
             // txtDetailComments
             // 
@@ -851,5 +863,6 @@ namespace TodoApp.WinForms.Forms
         private System.Windows.Forms.Label lblCompletedValue;
         private System.Windows.Forms.Label lblCompletedTitle;
         private System.Windows.Forms.Button btnSaveComment;
+        private System.Windows.Forms.Button btnViewHistory;
     }
 }

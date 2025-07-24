@@ -1,31 +1,50 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+  <!-- =================================================================== -->
+  <!--  SECTION 1: Global Project Settings (applies to both Debug and Release) -->
+  <!-- =================================================================== -->
+  <PropertyGroup>
+    <!-- Core project type and framework definitions -->
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
+
+    <!-- Versioning and Icon (shared across all configurations) -->
+    <Version>1.0.0</Version>
     <AssemblyVersion>1.0.0.1</AssemblyVersion>
     <ApplicationIcon>favicon.ico</ApplicationIcon>
-    <Version>1.0.0</Version>
-    <UseHost>false</UseHost>
 
+    <!-- Build setting to avoid file lock issues during debugging -->
+    <UseHost>false</UseHost>
+  </PropertyGroup>
+
+  <!-- =================================================================== -->
+  <!--  SECTION 2: Release-specific Publish and Optimization Settings -->
+  <!--  This section only applies when building in 'Release' mode. -->
+  <!-- =================================================================== -->
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <!-- Single File Publish Settings -->
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
 
-    <!-- Performance and Size Optimizations -->
-    <PublishReadyToRun>true</PublishReadyToRun>
-    <!-- 建議在充分測試後啟用 -->
-
-    <!-- NEW: Include native libraries in the single file bundle -->
+    <!-- This bundles native DLLs (like SQLite's) into the single .exe -->
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
 
-    <!-- Debug Info for Release Build -->
+    <!-- Performance and Size Optimizations -->
+    <PublishReadyToRun>true</PublishReadyToRun>
+    <!-- <PublishTrimmed>true</PublishTrimmed> -->
+    <!-- Keep this commented out until you have time for thorough testing. -->
+
+    <!-- Remove debug symbols for the final release package -->
     <DebugSymbols>false</DebugSymbols>
     <DebugType>None</DebugType>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>

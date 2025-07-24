@@ -84,6 +84,8 @@ internal static class Program
         services.AddTransient<ITaskService, TaskService>();
         services.AddTransient<IAdminDashboardService, AdminDashboardService>();
         services.AddTransient<IEmailService, EmailService>();
+        services.AddTransient<ITaskHistoryService, TaskHistoryService>();
+
 
         services.AddTransient<LoginForm>();
         services.AddTransient<MainForm>();
