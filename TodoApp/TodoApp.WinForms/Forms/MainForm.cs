@@ -425,28 +425,21 @@ public partial class MainForm : Form
 
         var row = dgvTasks.Rows[e.RowIndex];
 
-        // --- Step 1: Determine the BASE style from business logic (overdue, urgent, etc.) ---
         var baseStyle = GetRowStyleForTask(task);
 
-        // --- Step 2: Determine the FINAL style by applying the hover effect ---
-        // If the current row is the one being hovered over, apply a highlight style.
-        // Otherwise, use the base style.
         if (e.RowIndex == _hoveredRowIndex)
         {
-            // Create a new style for highlighting by blending colors
             var highlightStyle = (DataGridViewCellStyle)baseStyle.Clone();
-            highlightStyle.BackColor = Color.FromArgb(220, 235, 252); // A pleasant light blue
-            highlightStyle.ForeColor = Color.Black; // Ensure text is readable
+            highlightStyle.BackColor = Color.FromArgb(220, 235, 252);
+            highlightStyle.ForeColor = Color.Black;
             row.DefaultCellStyle = highlightStyle;
         }
         else
         {
-            // If this row is not hovered, just apply its base style.
             row.DefaultCellStyle = baseStyle;
         }
     }
 
-    // --- NEW: Helper method to encapsulate the conditional styling logic ---
     private DataGridViewCellStyle GetRowStyleForTask(TodoItem task)
     {
         // Define our standard styles
@@ -461,7 +454,6 @@ public partial class MainForm : Form
         var isOverdue = task.DueDate.HasValue && task.DueDate < now && task.Status != TodoStatus.Completed && task.Status != TodoStatus.Reject;
         var isDueSoon = task.DueDate.HasValue && task.DueDate >= now && task.DueDate < now.AddDays(3) && task.Status != TodoStatus.Completed && task.Status != TodoStatus.Reject;
 
-        // Apply styles based on a clear priority
         if (task.Status == TodoStatus.Completed) return completedStyle;
         if (task.Status == TodoStatus.Reject) return rejectedStyle;
         if (task.Priority == PriorityLevel.Urgent) return urgentStyle;
@@ -471,7 +463,6 @@ public partial class MainForm : Form
         return defaultStyle;
     }
 
-    // --- NEW: Event handler to track the mouse position ---
     private void DgvTasks_CellMouseMove(object? sender, DataGridViewCellMouseEventArgs e)
     {
         // If the mouse is over a valid row and it's a different row than the last one
@@ -489,14 +480,13 @@ public partial class MainForm : Form
         }
     }
 
-    // --- NEW: Event handler to clear the highlight when the mouse leaves the control ---
     private void DgvTasks_MouseLeave(object? sender, EventArgs e)
     {
         if (_hoveredRowIndex != -1)
         {
             var previousHoveredRowIndex = _hoveredRowIndex;
-            _hoveredRowIndex = -1; // Reset the hovered index
-            dgvTasks.InvalidateRow(previousHoveredRowIndex); // Remove the highlight
+            _hoveredRowIndex = -1;
+            dgvTasks.InvalidateRow(previousHoveredRowIndex);
         }
     }
 
@@ -518,9 +508,7 @@ public partial class MainForm : Form
             {
                 dgvTasks.BeginEdit(true);
                 if (dgvTasks.EditingControl is DataGridViewComboBoxEditingControl comboBox)
-                {
                     comboBox.DroppedDown = true;
-                }
             }
         }
     }
@@ -712,9 +700,7 @@ public partial class MainForm : Form
     private async void TsbEditTask_Click(object? sender, EventArgs e)
     {
         if (dgvTasks.SelectedRows.Count == 0 || dgvTasks.SelectedRows[0].DataBoundItem is not TodoItem selectedTaskInfo)
-        {
             return;
-        }
 
         var taskIdToSelect = selectedTaskInfo.Id;
         var pageToRestore = _currentPage;
@@ -722,7 +708,7 @@ public partial class MainForm : Form
         try
         {
             var taskToEdit = await _taskService.GetTaskByIdAsync(selectedTaskInfo.Id);
-            if (taskToEdit == null)
+            if (taskToEdit is null)
             {
                 MessageBox.Show("無法編輯任務，它可能已被其他使用者刪除。請重新整理。", "找不到任務", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 await LoadTasksAsync();
@@ -818,7 +804,7 @@ public partial class MainForm : Form
                 if (string.IsNullOrEmpty(newPassword)) return;
                 try
                 {
-                    bool success = await _userService.ResetPasswordAsync(_currentUser.Id, newPassword);
+                    var success = await _userService.ResetPasswordAsync(_currentUser.Id, newPassword);
                     if (success) { MessageBox.Show("您的密碼已成功更新。", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information); }
                     else { MessageBox.Show("更新密碼失敗，找不到您的使用者帳號。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error); }
                 }
