@@ -42,6 +42,8 @@ public partial class MainForm : Form
 
     private System.Windows.Forms.Timer? _filterDebounceTimer;
 
+    private int _hoveredRowIndex = -1;
+
     public MainForm(
         IServiceProvider serviceProvider,
         ITaskService taskService,
@@ -108,6 +110,9 @@ public partial class MainForm : Form
         this.btnSaveChanges.Click += BtnSaveChanges_Click;
 
         this.txtSearch.TextChanged += Filter_Changed;
+
+        this.dgvTasks.CellMouseMove += DgvTasks_CellMouseMove;
+        this.dgvTasks.MouseLeave += DgvTasks_MouseLeave;
     }
 
     private async void MainForm_Load(object? sender, EventArgs e)
@@ -420,52 +425,78 @@ public partial class MainForm : Form
 
         var row = dgvTasks.Rows[e.RowIndex];
 
-        Color targetBackColor = SystemColors.Window;
-        Color targetForeColor = SystemColors.ControlText;
-        Font targetFont = _regularFont;
+        // --- Step 1: Determine the BASE style from business logic (overdue, urgent, etc.) ---
+        var baseStyle = GetRowStyleForTask(task);
+
+        // --- Step 2: Determine the FINAL style by applying the hover effect ---
+        // If the current row is the one being hovered over, apply a highlight style.
+        // Otherwise, use the base style.
+        if (e.RowIndex == _hoveredRowIndex)
+        {
+            // Create a new style for highlighting by blending colors
+            var highlightStyle = (DataGridViewCellStyle)baseStyle.Clone();
+            highlightStyle.BackColor = Color.FromArgb(220, 235, 252); // A pleasant light blue
+            highlightStyle.ForeColor = Color.Black; // Ensure text is readable
+            row.DefaultCellStyle = highlightStyle;
+        }
+        else
+        {
+            // If this row is not hovered, just apply its base style.
+            row.DefaultCellStyle = baseStyle;
+        }
+    }
+
+    // --- NEW: Helper method to encapsulate the conditional styling logic ---
+    private DataGridViewCellStyle GetRowStyleForTask(TodoItem task)
+    {
+        // Define our standard styles
+        var overdueStyle = new DataGridViewCellStyle { BackColor = Color.MistyRose, ForeColor = Color.DarkRed, Font = _boldFont };
+        var dueSoonStyle = new DataGridViewCellStyle { BackColor = Color.LightYellow, ForeColor = Color.DarkGoldenrod, Font = _regularFont };
+        var completedStyle = new DataGridViewCellStyle { BackColor = Color.Honeydew, ForeColor = Color.DarkGray, Font = _strikeoutFont };
+        var rejectedStyle = new DataGridViewCellStyle { BackColor = Color.LightGray, ForeColor = Color.Black, Font = _italicFont };
+        var urgentStyle = new DataGridViewCellStyle { BackColor = Color.LightPink, ForeColor = Color.DarkRed, Font = _boldFont };
+        var defaultStyle = new DataGridViewCellStyle { BackColor = SystemColors.Window, ForeColor = SystemColors.ControlText, Font = _regularFont };
 
         var now = DateTime.Now;
         var isOverdue = task.DueDate.HasValue && task.DueDate < now && task.Status != TodoStatus.Completed && task.Status != TodoStatus.Reject;
-        var isDueSoon = task.DueDate.HasValue && task.DueDate >= now && task.DueDate < now.AddDays(2) && task.Status != TodoStatus.Completed && task.Status != TodoStatus.Reject;
-        
-        if (task.Status == TodoStatus.Completed)
-        {
-            targetBackColor = Color.Honeydew;
-            targetForeColor = Color.DarkGray;
-            targetFont = _strikeoutFont;
-        }
-        else if (task.Status == TodoStatus.Reject)
-        {
-            targetBackColor = Color.LightGray;
-            targetForeColor = Color.Black;
-            targetFont = _italicFont;
-        }
-        else if (task.Priority == PriorityLevel.Urgent)
-        {
-            targetBackColor = Color.LightPink;
-            targetForeColor = Color.DarkRed;
-            targetFont = _boldFont;
-        }
-        else if (isOverdue)
-        {
-            targetBackColor = Color.MistyRose;
-            targetForeColor = Color.DarkRed;
-            targetFont = _boldFont;
-        }
-        else if (isDueSoon)
-        {
-            targetBackColor = Color.LightYellow;
-            targetForeColor = Color.DarkGoldenrod;
-        }
+        var isDueSoon = task.DueDate.HasValue && task.DueDate >= now && task.DueDate < now.AddDays(3) && task.Status != TodoStatus.Completed && task.Status != TodoStatus.Reject;
 
-        var currentStyle = row.DefaultCellStyle;
-        if (currentStyle.BackColor != targetBackColor) currentStyle.BackColor = targetBackColor;
-        if (currentStyle.ForeColor != targetForeColor) currentStyle.ForeColor = targetForeColor;
+        // Apply styles based on a clear priority
+        if (task.Status == TodoStatus.Completed) return completedStyle;
+        if (task.Status == TodoStatus.Reject) return rejectedStyle;
+        if (task.Priority == PriorityLevel.Urgent) return urgentStyle;
+        if (isOverdue) return overdueStyle;
+        if (isDueSoon) return dueSoonStyle;
 
-        Font currentFont = currentStyle.Font ?? dgvTasks.DefaultCellStyle.Font;
-        if (!currentFont.Equals(targetFont))
+        return defaultStyle;
+    }
+
+    // --- NEW: Event handler to track the mouse position ---
+    private void DgvTasks_CellMouseMove(object? sender, DataGridViewCellMouseEventArgs e)
+    {
+        // If the mouse is over a valid row and it's a different row than the last one
+        if (e.RowIndex >= 0 && e.RowIndex != _hoveredRowIndex)
         {
-            currentStyle.Font = targetFont;
+            var previousHoveredRowIndex = _hoveredRowIndex;
+            _hoveredRowIndex = e.RowIndex;
+
+            // Invalidate the previous row to remove its highlight
+            if (previousHoveredRowIndex != -1)
+                dgvTasks.InvalidateRow(previousHoveredRowIndex);
+
+            // Invalidate the new row to apply the highlight
+            dgvTasks.InvalidateRow(_hoveredRowIndex);
+        }
+    }
+
+    // --- NEW: Event handler to clear the highlight when the mouse leaves the control ---
+    private void DgvTasks_MouseLeave(object? sender, EventArgs e)
+    {
+        if (_hoveredRowIndex != -1)
+        {
+            var previousHoveredRowIndex = _hoveredRowIndex;
+            _hoveredRowIndex = -1; // Reset the hovered index
+            dgvTasks.InvalidateRow(previousHoveredRowIndex); // Remove the highlight
         }
     }
 
