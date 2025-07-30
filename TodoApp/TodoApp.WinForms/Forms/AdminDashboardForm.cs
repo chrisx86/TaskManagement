@@ -11,17 +11,6 @@ namespace TodoApp.WinForms.Forms;
 
 public partial class AdminDashboardForm : Form
 {
-    private enum CardFilterType
-    {
-        None,
-        Total,
-        Uncompleted,
-        Overdue,
-        Unassigned,
-        Rejected,
-        Completed
-    }
-
     private CardFilterType _activeCardFilter = CardFilterType.None;
     private readonly IAdminDashboardService _dashboardService;
     private readonly IServiceProvider _serviceProvider;
