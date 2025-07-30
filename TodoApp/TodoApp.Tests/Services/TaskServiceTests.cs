@@ -61,7 +61,7 @@ public class TaskServiceTests
     public async Task CreateTaskAsync_WhenCalled_CreatesTaskInDatabase()
     {
         var createdTask = await _taskService.CreateTaskAsync(
-            _adminUser, "New Test Task", "Some comments", PriorityLevel.High, DateTime.Now, _regularUser.Id
+            _adminUser, "New Test Task", "Some comments", TodoStatus.Pending, PriorityLevel.High, DateTime.Now, _regularUser.Id
         );
 
         var taskInDb = await _context.TodoItems.FindAsync(createdTask.Id);
@@ -80,7 +80,7 @@ public class TaskServiceTests
         _mockUserService.Setup(s => s.GetAllUsersAsync()).ReturnsAsync(admins);
 
         await _taskService.CreateTaskAsync(
-            _regularUser, "User Task", null, PriorityLevel.Low, null, null
+            _regularUser, "User Task", null, TodoStatus.Pending, PriorityLevel.Low, null, null
         );
 
         _mockEmailService.Verify(
@@ -97,7 +97,7 @@ public class TaskServiceTests
     public async Task CreateTaskAsync_WhenCreatedByAdmin_NotifiesAssignee()
     {
         await _taskService.CreateTaskAsync(
-            _adminUser, "Admin Task", null, PriorityLevel.Medium, null, _regularUser.Id
+            _adminUser, "Admin Task", null, TodoStatus.Pending, PriorityLevel.Medium, null, _regularUser.Id
         );
 
         _mockEmailService.Verify(

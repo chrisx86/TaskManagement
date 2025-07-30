@@ -3,6 +3,7 @@ using TodoApp.Core.Models;
 using TodoApp.Core.Services;
 using TodoApp.WinForms.ViewModels;
 using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
 
 namespace TodoApp.WinForms.Forms;
 
@@ -97,6 +98,7 @@ public partial class TaskDetailDialog : Form
                     currentUser,
                     newTask.Title,
                     newTask.Comments,
+                    newTask.Status,
                     newTask.Priority,
                     newTask.DueDate,
                     newTask.AssignedToId

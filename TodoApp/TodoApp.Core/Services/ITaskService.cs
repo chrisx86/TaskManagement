@@ -31,7 +31,7 @@ public interface ITaskService
         int? assignedToUserIdFilter,
         string? searchKeyword
     );
-    Task<TodoItem> CreateTaskAsync(User currentUser, string title, string? comments, PriorityLevel priority, DateTime? dueDate, int? assignedToId);
+    Task<TodoItem> CreateTaskAsync(User currentUser, string title, string? comments, TodoStatus status, PriorityLevel priority, DateTime? dueDate, int? assignedToId);
 
     Task<TodoItem> UpdateTaskAsync(User currentUser, TodoItem taskToUpdate);
 

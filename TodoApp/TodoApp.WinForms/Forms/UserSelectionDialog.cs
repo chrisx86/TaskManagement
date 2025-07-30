@@ -15,14 +15,12 @@ public partial class UserSelectionDialog : Form
     {
         InitializeComponent();
 
-        // Populate the ListBox with the provided user list.
         lstUsers.DataSource = users;
-        lstUsers.DisplayMember = "Username"; // Tell the ListBox to display the Username property.
+        lstUsers.DisplayMember = "Username";
 
-        // Wire up events
         this.btnOk.Click += BtnOk_Click;
         this.btnCancel.Click += (s, e) => this.DialogResult = DialogResult.Cancel;
-        this.lstUsers.DoubleClick += (s, e) => BtnOk_Click(s, e); // Double-click to confirm
+        this.lstUsers.DoubleClick += (s, e) => BtnOk_Click(s, e);
     }
 
     private void BtnOk_Click(object? sender, EventArgs e)

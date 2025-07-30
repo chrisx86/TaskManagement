@@ -31,7 +31,7 @@ public class TaskService : ITaskService
         return await _context.TodoItems
             .Include(t => t.Creator)
             .Include(t => t.AssignedTo)
-            .AsNoTracking() // Use AsNoTracking for read-only queries
+            .AsNoTracking()
             .FirstOrDefaultAsync(t => t.Id == taskId);
     }
 
@@ -52,7 +52,6 @@ public class TaskService : ITaskService
 
         if (!string.IsNullOrEmpty(sortColumn))
         {
-            // --- FIXED: Add cases for all sortable columns ---
             switch (sortColumn)
             {
                 case "Status":
@@ -70,7 +69,6 @@ public class TaskService : ITaskService
                         : query.OrderByDescending(t => t.DueDate ?? DateTime.MinValue);
                     break;
                 case "AssignedTo":
-                    // Include the related entity for sorting
                     orderedQuery = isAscending
                         ? query.Include(t => t.AssignedTo).OrderBy(t => t.AssignedTo.Username)
                         : query.Include(t => t.AssignedTo).OrderByDescending(t => t.AssignedTo.Username);
@@ -87,17 +85,15 @@ public class TaskService : ITaskService
                     orderedQuery = isAscending ? query.OrderBy(t => t.LastModifiedDate) : query.OrderByDescending(t => t.LastModifiedDate);
                     break;
                 default:
-                    // Fallback to default sort if column name is unknown
                     orderedQuery = ApplyDefaultSort(query);
                     break;
             }
         }
-        else // Apply default sort if no sortColumn is specified
+        else
         {
             orderedQuery = ApplyDefaultSort(query);
         }
 
-        // Apply pagination AFTER sorting
         return await orderedQuery
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
@@ -131,7 +127,7 @@ public class TaskService : ITaskService
         return await query.CountAsync();
     }
 
-    public async Task<TodoItem> CreateTaskAsync(User currentUser, string title, string? comments, PriorityLevel priority, DateTime? dueDate, int? assignedToId)
+    public async Task<TodoItem> CreateTaskAsync(User currentUser, string title, string? comments, TodoStatus status, PriorityLevel priority, DateTime? dueDate, int? assignedToId)
     {
         var now = DateTime.Now;
         var newTask = new TodoItem
@@ -139,10 +135,10 @@ public class TaskService : ITaskService
             Title = title,
             Comments = comments,
             CreatorId = currentUser.Id,
+            Status = status,
             Priority = priority,
             DueDate = dueDate?.Date,
             AssignedToId = assignedToId,
-            Status = TodoStatus.Pending,
             CreationDate = now,
             LastModifiedDate = now
         };
@@ -186,29 +182,16 @@ public class TaskService : ITaskService
             descriptionBuilder.AppendLine($"到期日已變更為 '{taskFromUI.DueDate:yyyy-MM-dd}'。");
         // Compare AssignedToId
         if (originalValues.GetValue<int?>(nameof(TodoItem.AssignedToId)) != taskFromUI.AssignedToId)
-            descriptionBuilder.AppendLine($"指派對象已變更。"); // More complex logic could show names
+            descriptionBuilder.AppendLine($"指派對象已變更。");
         var changeDescription = descriptionBuilder.ToString();
-        // Apply changes from the UI object
         _context.Entry(trackedTask).CurrentValues.SetValues(taskFromUI);
         trackedTask.LastModifiedDate = DateTime.Now;
-
-        //trackedTask.Title = taskFromUI.Title;
-        //trackedTask.Comments = taskFromUI.Comments;
-        //trackedTask.Status = taskFromUI.Status;
-        //trackedTask.Priority = taskFromUI.Priority;
-        //trackedTask.DueDate = taskFromUI.DueDate;
-        //trackedTask.AssignedToId = taskFromUI.AssignedToId;
-
-        //trackedTask.LastModifiedDate = DateTime.Now;
 
         try
         {
             await _context.SaveChangesAsync();
-            // --- Log history only if there were actual changes ---
             if (!string.IsNullOrWhiteSpace(changeDescription))
-            {
                 _ = _historyService.LogHistoryAsync(trackedTask.Id, currentUser.Id, "Update", changeDescription.Trim());
-            }
             _ = NotifyTaskChangeAsync(trackedTask, currentUser, "更新");
             return trackedTask;
         }
@@ -224,9 +207,7 @@ public class TaskService : ITaskService
         if (taskToDelete is null) return;
 
         if (currentUser.Role != UserRole.Admin && taskToDelete.CreatorId != currentUser.Id)
-        {
             throw new UnauthorizedAccessException("您沒有權限刪除此任務。");
-        }
 
         var tombstone = new TodoItem { Id = taskToDelete.Id, Title = taskToDelete.Title };
 
@@ -257,9 +238,7 @@ public class TaskService : ITaskService
             if (owner is not null)
             {
                 if (tasksByUser.TryGetValue(owner, out var taskList))
-                {
                     taskList.Add(task);
-                }
             }
         }
         return tasksByUser;
@@ -297,9 +276,7 @@ public class TaskService : ITaskService
             }
 
             if (assignedToUserIdFilter.HasValue && assignedToUserIdFilter > 0)
-            {
                 query = query.Where(t => t.AssignedToId == assignedToUserIdFilter.Value);
-            }
         }
         else
         {

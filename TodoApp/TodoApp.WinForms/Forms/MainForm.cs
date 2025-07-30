@@ -210,7 +210,9 @@ public partial class MainForm : Form
     private async Task PopulateFilterDropDownsAsync()
     {
         var statusItems = new List<StatusDisplayItem> { new() { Name = "所有狀態", Value = null } };
-        foreach (var status in Enum.GetValues<TodoStatus>()) { statusItems.Add(new StatusDisplayItem { Name = status.ToString(), Value = status }); }
+        foreach (var status in Enum.GetValues<TodoStatus>()) { 
+            statusItems.Add(new StatusDisplayItem { Name = status.ToString(), Value = status }); 
+        }
         cmbFilterStatus.DataSource = statusItems;
         cmbFilterStatus.DisplayMember = nameof(StatusDisplayItem.Name);
         cmbFilterStatus.ValueMember = nameof(StatusDisplayItem.Value);
@@ -230,11 +232,12 @@ public partial class MainForm : Form
         _allUsers = await _userService.GetAllUsersAsync();
         var userFilterItems = new List<UserDisplayItem> { new() { Username = "所有人", Id = 0 } };
         var uniqueUsers = _allUsers.Where(u => u != null && !string.IsNullOrEmpty(u.Username)).GroupBy(u => u.Id).Select(g => g.First());
-        foreach (var user in uniqueUsers.OrderBy(u => u.Username)) { userFilterItems.Add(new UserDisplayItem { Username = user.Username, Id = user.Id }); }
+        foreach (var user in uniqueUsers.OrderBy(u => u.Username)) { 
+            userFilterItems.Add(new UserDisplayItem { Username = user.Username, Id = user.Id }); 
+        }
         cmbFilterByAssignedUser.DataSource = userFilterItems;
         cmbFilterByAssignedUser.DisplayMember = nameof(UserDisplayItem.Username);
         cmbFilterByAssignedUser.ValueMember = nameof(UserDisplayItem.Id);
-
     }
 
     private void SetDefaultFiltersForCurrentUser()
@@ -242,7 +245,6 @@ public partial class MainForm : Form
         _isUpdatingUI = true;
         try
         {
-
             if (cmbFilterStatus.Items.Count > 0) cmbFilterStatus.SelectedIndex = 0;
             if (cmbFilterByAssignedUser.Items.Count > 0) cmbFilterByAssignedUser.SelectedIndex = 0;
             cmbFilterByUserRelation.SelectedItem = (_currentUser.Role == UserRole.Admin) ? UserTaskFilter.All : UserTaskFilter.AssignedToMe;
@@ -260,10 +262,9 @@ public partial class MainForm : Form
     /// <param name="rowIndex">The index of the row to invalidate.</param>
     private void SafeInvalidateRow(int rowIndex)
     {
-        // Guard clause: If the control handle hasn't been created yet, do nothing.
+        // If the control handle hasn't been created yet, do nothing.
         if (!dgvTasks.IsHandleCreated) return;
 
-        // --- Core Safety Check ---
         // Ensure the rowIndex is within the valid range of the current number of rows.
         if (rowIndex >= 0 && rowIndex < dgvTasks.RowCount)
         {
@@ -817,10 +818,14 @@ public partial class MainForm : Form
                 try
                 {
                     var success = await _userService.ResetPasswordAsync(_currentUser.Id, newPassword);
-                    if (success) { MessageBox.Show("您的密碼已成功更新。", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information); }
-                    else { MessageBox.Show("更新密碼失敗，找不到您的使用者帳號。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error); }
+                    if (success) 
+                        MessageBox.Show("您的密碼已成功更新。", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    else 
+                        MessageBox.Show("更新密碼失敗，找不到您的使用者帳號。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
-                catch (Exception ex) { MessageBox.Show($"修改密碼時發生錯誤: {ex.Message}", "系統錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error); }
+                catch (Exception ex) { 
+                    MessageBox.Show($"修改密碼時發生錯誤: {ex.Message}", "系統錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error); 
+                }
             }
         }
     }
@@ -828,7 +833,8 @@ public partial class MainForm : Form
     private void TsbSwitchUser_Click(object? sender, EventArgs e)
     {
         var confirmResult = MessageBox.Show("您確定要登出並切換使用者嗎？", "確認登出", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-        if (confirmResult == DialogResult.Yes) { Application.Restart(); }
+        if (confirmResult == DialogResult.Yes) 
+            Application.Restart();
     }
 
     private async void TsbRefresh_Click(object? sender, EventArgs e)

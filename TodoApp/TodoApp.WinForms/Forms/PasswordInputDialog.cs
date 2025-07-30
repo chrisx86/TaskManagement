@@ -1,5 +1,4 @@
 ﻿#nullable enable
-
 namespace TodoApp.WinForms.Forms;
 
 public partial class PasswordInputDialog : Form
@@ -14,23 +13,20 @@ public partial class PasswordInputDialog : Form
     {
         InitializeComponent();
 
-        // Set dialog title and prompt text dynamically.
         this.Text = title;
-        this.lblPrompt.Text = prompt; // Assuming you have a main prompt label lblPrompt
+        this.lblPrompt.Text = prompt;
 
-        // Wire up events
         this.btnOk.Click += BtnOk_Click;
         this.btnCancel.Click += (s, e) => this.DialogResult = DialogResult.Cancel;
     }
 
     private void BtnOk_Click(object? sender, EventArgs e)
     {
-        errorProvider1.Clear(); // Clear previous errors
+        errorProvider1.Clear();
 
-        string newPassword = txtNewPassword.Text;
-        string confirmPassword = txtConfirmPassword.Text;
+        var newPassword = txtNewPassword.Text;
+        var confirmPassword = txtConfirmPassword.Text;
 
-        // Validation
         if (string.IsNullOrWhiteSpace(newPassword))
         {
             errorProvider1.SetError(txtNewPassword, "新密碼不能為空。");
@@ -45,7 +41,6 @@ public partial class PasswordInputDialog : Form
             return;
         }
 
-        // If validation passes:
         this.NewPassword = newPassword;
         this.DialogResult = DialogResult.OK;
         this.Close();
