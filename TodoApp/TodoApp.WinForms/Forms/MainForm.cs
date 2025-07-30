@@ -256,16 +256,21 @@ public partial class MainForm : Form
 
     private async Task LoadTasksAsync()
     {
-        if (!this.IsHandleCreated || cmbFilterStatus.SelectedItem == null || cmbFilterByUserRelation.SelectedItem == null || cmbFilterByAssignedUser.SelectedItem == null) return;
-
+        if (!this.IsHandleCreated || cmbFilterStatus.SelectedItem is null || 
+            cmbFilterByUserRelation.SelectedItem is null || cmbFilterByAssignedUser.SelectedItem is null) return;
+        var previousHoveredRowIndex = _hoveredRowIndex;
+        _hoveredRowIndex = -1;
+        if (previousHoveredRowIndex != -1)
+        {
+            // We still need to check bounds before invalidating.
+            if (previousHoveredRowIndex < dgvTasks.RowCount)
+                dgvTasks.InvalidateRow(previousHoveredRowIndex);
+        }
         SetLoadingState(true);
         try
         {
             string? searchKeyword = txtSearch.Text.Trim();
-            if (string.IsNullOrEmpty(searchKeyword))
-            {
-                searchKeyword = null; // Ensure we pass null, not an empty string, to the service
-            }
+            if (string.IsNullOrEmpty(searchKeyword)) searchKeyword = null;
 
             TodoStatus? statusFilter = (cmbFilterStatus.SelectedItem as StatusDisplayItem)?.Value;
             var userFilter = (UserTaskFilter)cmbFilterByUserRelation.SelectedItem;
@@ -274,7 +279,7 @@ public partial class MainForm : Form
 
             _totalTasks = await _taskService.GetTaskCountAsync(
                 _currentUser, statusFilter, userFilter, assignedToUserIdFilter,
-                searchKeyword // New argument
+                searchKeyword
             );
 
             _totalPages = (_pageSize > 0) ? (int)Math.Ceiling((double)_totalTasks / _pageSize) : 1;
@@ -289,8 +294,10 @@ public partial class MainForm : Form
                 searchKeyword
             );
 
+            _isUpdatingUI = true;
             _tasksBindingList.Clear();
             tasks.ForEach(task => _tasksBindingList.Add(task));
+            _isUpdatingUI = false; // Re-enable events after binding is complete
             UpdatePaginationUI();
             UpdateSortGlyphs();
         }
@@ -340,11 +347,9 @@ public partial class MainForm : Form
     {
         if (_isUpdatingUI) return;
 
-        // To provide a better "as-you-type" search experience, we can use a debounce timer.
-        // If a timer is already running, stop it.
         _filterDebounceTimer?.Stop();
 
-        if (_filterDebounceTimer == null)
+        if (_filterDebounceTimer is null)
         {
             _filterDebounceTimer = new System.Windows.Forms.Timer { Interval = 500 };
             _filterDebounceTimer.Tick += async (s, args) =>
@@ -370,7 +375,7 @@ public partial class MainForm : Form
             _selectedTaskForEditing = selectedTask;
 
             _isUpdatingUI = true;
-            txtCommentsPreview.Text = selectedTask.Comments ?? "";
+            txtCommentsPreview.Text = selectedTask.Comments ?? string.Empty;
             txtCommentsPreview.Enabled = true;
             _isUpdatingUI = false;
 
@@ -405,7 +410,7 @@ public partial class MainForm : Form
         }
         else
         {
-            if (_sortedColumn != null) { _sortedColumn.HeaderCell.SortGlyphDirection = SortOrder.None; }
+            if (_sortedColumn is not null) { _sortedColumn.HeaderCell.SortGlyphDirection = SortOrder.None; }
             _sortedColumn = newSortColumn;
             _sortDirection = ListSortDirection.Ascending;
         }
@@ -442,7 +447,6 @@ public partial class MainForm : Form
 
     private DataGridViewCellStyle GetRowStyleForTask(TodoItem task)
     {
-        // Define our standard styles
         var overdueStyle = new DataGridViewCellStyle { BackColor = Color.MistyRose, ForeColor = Color.DarkRed, Font = _boldFont };
         var dueSoonStyle = new DataGridViewCellStyle { BackColor = Color.LightYellow, ForeColor = Color.DarkGoldenrod, Font = _regularFont };
         var completedStyle = new DataGridViewCellStyle { BackColor = Color.Honeydew, ForeColor = Color.DarkGray, Font = _strikeoutFont };
@@ -465,28 +469,30 @@ public partial class MainForm : Form
 
     private void DgvTasks_CellMouseMove(object? sender, DataGridViewCellMouseEventArgs e)
     {
+        if (_isUpdatingUI) return;
         // If the mouse is over a valid row and it's a different row than the last one
         if (e.RowIndex >= 0 && e.RowIndex != _hoveredRowIndex)
         {
-            var previousHoveredRowIndex = _hoveredRowIndex;
+            var oldIndex = _hoveredRowIndex;
             _hoveredRowIndex = e.RowIndex;
 
-            // Invalidate the previous row to remove its highlight
-            if (previousHoveredRowIndex != -1)
-                dgvTasks.InvalidateRow(previousHoveredRowIndex);
+            if (oldIndex > -1 && oldIndex < dgvTasks.RowCount)
+                dgvTasks.InvalidateRow(oldIndex);
 
-            // Invalidate the new row to apply the highlight
-            dgvTasks.InvalidateRow(_hoveredRowIndex);
+            if (_hoveredRowIndex > -1 && _hoveredRowIndex < dgvTasks.RowCount)
+                dgvTasks.InvalidateRow(_hoveredRowIndex);
         }
     }
 
     private void DgvTasks_MouseLeave(object? sender, EventArgs e)
     {
+        if (_isUpdatingUI) return;
         if (_hoveredRowIndex != -1)
         {
-            var previousHoveredRowIndex = _hoveredRowIndex;
+            var oldIndex = _hoveredRowIndex;
             _hoveredRowIndex = -1;
-            dgvTasks.InvalidateRow(previousHoveredRowIndex);
+            if (oldIndex > -1 && oldIndex < dgvTasks.RowCount)
+                dgvTasks.InvalidateRow(oldIndex);
         }
     }
 
