@@ -418,12 +418,11 @@ public partial class MainForm : Form
         if (newSortColumn.SortMode == DataGridViewColumnSortMode.NotSortable) return;
 
         if (_sortedColumn == newSortColumn)
-        {
             _sortDirection = (_sortDirection == ListSortDirection.Ascending) ? ListSortDirection.Descending : ListSortDirection.Ascending;
-        }
         else
         {
-            if (_sortedColumn is not null) { _sortedColumn.HeaderCell.SortGlyphDirection = SortOrder.None; }
+            if (_sortedColumn is not null) 
+                _sortedColumn.HeaderCell.SortGlyphDirection = SortOrder.None;
             _sortedColumn = newSortColumn;
             _sortDirection = ListSortDirection.Ascending;
         }
@@ -562,7 +561,7 @@ public partial class MainForm : Form
 
         if (dgvTasks.Rows[e.RowIndex].DataBoundItem is TodoItem task)
         {
-            bool hasPermission = _currentUser.Role == UserRole.Admin || task.CreatorId == _currentUser.Id || task.AssignedToId == _currentUser.Id;
+            var hasPermission = _currentUser.Role == UserRole.Admin || task.CreatorId == _currentUser.Id || task.AssignedToId == _currentUser.Id;
             if (!hasPermission)
             {
                 e.Cancel = true;
@@ -642,7 +641,7 @@ public partial class MainForm : Form
 
     private async void BtnSaveChanges_Click(object? sender, EventArgs e)
     {
-        if (_selectedTaskForEditing == null) return;
+        if (_selectedTaskForEditing is null) return;
 
         if (_selectedTaskForEditing.Comments == txtCommentsPreview.Text.Trim())
         {
@@ -838,9 +837,7 @@ public partial class MainForm : Form
         foreach (DataGridViewColumn column in dgvTasks.Columns)
         {
             if (column.SortMode != DataGridViewColumnSortMode.NotSortable)
-            {
                 column.HeaderCell.SortGlyphDirection = SortOrder.None;
-            }
         }
         await LoadTasksAsync();
     }

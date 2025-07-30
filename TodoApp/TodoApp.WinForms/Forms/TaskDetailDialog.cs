@@ -49,7 +49,7 @@ public partial class TaskDetailDialog : Form
 
             await PopulateComboBoxesAsync();
 
-            if (_editingTask != null)
+            if (_editingTask is not null)
             {
                 this.Text = "編輯任務";
                 PopulateControlsFromTask(_editingTask);
