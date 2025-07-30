@@ -253,6 +253,27 @@ public partial class MainForm : Form
     #endregion
 
     #region --- Data Loading and Sorting ---
+    /// <summary>
+    /// Safely invalidates a specific row in the DataGridView, preventing out-of-range exceptions.
+    /// This method performs boundary checks before calling the underlying InvalidateRow.
+    /// </summary>
+    /// <param name="rowIndex">The index of the row to invalidate.</param>
+    private void SafeInvalidateRow(int rowIndex)
+    {
+        // Guard clause: If the control handle hasn't been created yet, do nothing.
+        if (!dgvTasks.IsHandleCreated) return;
+
+        // --- Core Safety Check ---
+        // Ensure the rowIndex is within the valid range of the current number of rows.
+        if (rowIndex >= 0 && rowIndex < dgvTasks.RowCount)
+        {
+            // Optional: For future thread safety, use Invoke if called from a non-UI thread.
+            if (dgvTasks.InvokeRequired)
+                dgvTasks.Invoke(() => dgvTasks.InvalidateRow(rowIndex));
+            else
+                dgvTasks.InvalidateRow(rowIndex);
+        }
+    }
 
     private async Task LoadTasksAsync()
     {
@@ -261,11 +282,7 @@ public partial class MainForm : Form
         var previousHoveredRowIndex = _hoveredRowIndex;
         _hoveredRowIndex = -1;
         if (previousHoveredRowIndex != -1)
-        {
-            // We still need to check bounds before invalidating.
-            if (previousHoveredRowIndex < dgvTasks.RowCount)
-                dgvTasks.InvalidateRow(previousHoveredRowIndex);
-        }
+            SafeInvalidateRow(previousHoveredRowIndex);
         SetLoadingState(true);
         try
         {
@@ -320,13 +337,9 @@ public partial class MainForm : Form
         foreach (DataGridViewColumn col in dgvTasks.Columns)
         {
             if (col == _sortedColumn)
-            {
                 col.HeaderCell.SortGlyphDirection = (_sortDirection == ListSortDirection.Ascending) ? SortOrder.Ascending : SortOrder.Descending;
-            }
             else
-            {
                 col.HeaderCell.SortGlyphDirection = SortOrder.None;
-            }
         }
     }
     #endregion
@@ -476,11 +489,8 @@ public partial class MainForm : Form
             var oldIndex = _hoveredRowIndex;
             _hoveredRowIndex = e.RowIndex;
 
-            if (oldIndex > -1 && oldIndex < dgvTasks.RowCount)
-                dgvTasks.InvalidateRow(oldIndex);
-
-            if (_hoveredRowIndex > -1 && _hoveredRowIndex < dgvTasks.RowCount)
-                dgvTasks.InvalidateRow(_hoveredRowIndex);
+            SafeInvalidateRow(oldIndex);
+            SafeInvalidateRow(_hoveredRowIndex);
         }
     }
 
@@ -491,8 +501,7 @@ public partial class MainForm : Form
         {
             var oldIndex = _hoveredRowIndex;
             _hoveredRowIndex = -1;
-            if (oldIndex > -1 && oldIndex < dgvTasks.RowCount)
-                dgvTasks.InvalidateRow(oldIndex);
+            SafeInvalidateRow(oldIndex);
         }
     }
 
@@ -679,9 +688,7 @@ public partial class MainForm : Form
             // InvalidateRow is still a good, efficient way to repaint.
             // The underlying data is now fresh.
             if (dgvTasks.SelectedRows.Count > 0)
-            {
-                dgvTasks.InvalidateRow(dgvTasks.SelectedRows[0].Index);
-            }
+                SafeInvalidateRow(dgvTasks.SelectedRows[0].Index);
         }
         catch (Exception ex)
         {
