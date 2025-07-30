@@ -19,7 +19,7 @@ public interface ITaskService
         int? assignedToUserIdFilter,
         int pageNumber,
         int pageSize,
-        string? sortColumn, // The name of the column to sort by
+        string? sortColumn,
         bool isAscending,
         string? searchKeyword
     );

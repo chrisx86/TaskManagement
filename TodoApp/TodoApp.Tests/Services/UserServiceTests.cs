@@ -20,8 +20,6 @@ public class UserServiceTests
     [SetUp]
     public void Setup()
     {
-        // --- Arrange: Create a fresh in-memory database for each test ---
-        // Using a unique database name for each test run ensures complete isolation.
         var options = new DbContextOptionsBuilder<AppDbContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
@@ -33,7 +31,6 @@ public class UserServiceTests
     [TearDown]
     public void Teardown()
     {
-        // Clean up the context after each test.
         _context.Dispose();
     }
 
@@ -171,11 +168,9 @@ public class UserServiceTests
 
         Assert.That(result, Is.True);
 
-        // Verify by trying to authenticate with the new password.
         var authenticatedUser = await _userService.AuthenticateAsync(username, newPassword);
         Assert.That(authenticatedUser, Is.Not.Null);
 
-        // Verify that authentication with the old password fails.
         var failedAuthUser = await _userService.AuthenticateAsync(username, oldPassword);
         Assert.That(failedAuthUser, Is.Null);
     }
