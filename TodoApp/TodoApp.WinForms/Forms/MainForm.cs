@@ -468,8 +468,8 @@ public partial class MainForm : Form
         var defaultStyle = new DataGridViewCellStyle { BackColor = SystemColors.Window, ForeColor = SystemColors.ControlText, Font = _regularFont };
 
         var now = DateTime.Now;
-        var isOverdue = task.DueDate.HasValue && task.DueDate < now && task.Status != TodoStatus.Completed && task.Status != TodoStatus.Reject;
-        var isDueSoon = task.DueDate.HasValue && task.DueDate >= now && task.DueDate < now.AddDays(3) && task.Status != TodoStatus.Completed && task.Status != TodoStatus.Reject;
+        var isOverdue = task.DueDate.HasValue && task.DueDate < now.AddDays(-1) && task.Status != TodoStatus.Completed && task.Status != TodoStatus.Reject;
+        var isDueSoon = task.DueDate.HasValue && task.DueDate <= now.AddDays(3) && task.Status != TodoStatus.Completed && task.Status != TodoStatus.Reject;
 
         if (task.Status == TodoStatus.Completed) return completedStyle;
         if (task.Status == TodoStatus.Reject) return rejectedStyle;

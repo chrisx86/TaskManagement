@@ -154,14 +154,10 @@ public partial class AdminDashboardForm : Form
         };
 
         foreach (var card in cardMap.Values)
-        {
             card.BorderStyle = BorderStyle.FixedSingle;
-        }
 
         if (_activeCardFilter != CardFilterType.None && cardMap.TryGetValue(_activeCardFilter, out var selectedCard))
-        {
             selectedCard.BorderStyle = BorderStyle.Fixed3D;
-        }
     }
 
     private async void AdminDashboardForm_Load(object? sender, EventArgs e)
@@ -295,7 +291,7 @@ public partial class AdminDashboardForm : Form
         if (statusFilter.HasValue)
             tasksToDisplay = tasksToDisplay.Where(t => t.Status == statusFilter.Value);
         if (onlyShowOverdue)
-            tasksToDisplay = tasksToDisplay.Where(t => t.DueDate < now && t.Status != TodoStatus.Completed && t.Status != TodoStatus.Reject);
+            tasksToDisplay = tasksToDisplay.Where(t => t.DueDate < now.AddDays(-1) && t.Status != TodoStatus.Completed && t.Status != TodoStatus.Reject);
         if (userFilterId.HasValue && userFilterId > 0)
             tasksToDisplay = tasksToDisplay.Where(t => (t.AssignedToId ?? t.CreatorId) == userFilterId);
 
@@ -304,8 +300,8 @@ public partial class AdminDashboardForm : Form
             tasksToDisplay = _activeCardFilter switch
             {
                 CardFilterType.Uncompleted => tasksToDisplay.Where(t => t.Status != TodoStatus.Completed && t.Status != TodoStatus.Reject),
-                CardFilterType.Overdue => tasksToDisplay.Where(t => t.DueDate < now && t.Status != TodoStatus.Completed && t.Status != TodoStatus.Reject),
-                CardFilterType.Unassigned => tasksToDisplay.Where(t => t.AssignedToId == null),
+                CardFilterType.Overdue => tasksToDisplay.Where(t => t.DueDate < now.AddDays(-1) && t.Status != TodoStatus.Completed && t.Status != TodoStatus.Reject),
+                CardFilterType.Unassigned => tasksToDisplay.Where(t => t.AssignedToId is null),
                 CardFilterType.Rejected => tasksToDisplay.Where(t => t.Status == TodoStatus.Reject),
                 CardFilterType.Completed => tasksToDisplay.Where(t => t.Status == TodoStatus.Completed),
                 _ => tasksToDisplay
@@ -373,7 +369,7 @@ public partial class AdminDashboardForm : Form
         var totalCount = sourceTasks.Count;
         var completedCount = sourceTasks.Count(t => t.Status == TodoStatus.Completed);
         var uncompletedCount = sourceTasks.Count(t => t.Status != TodoStatus.Completed && t.Status != TodoStatus.Reject);
-        var overdueCount = sourceTasks.Count(t => t.DueDate < DateTime.Now && t.Status != TodoStatus.Completed && t.Status != TodoStatus.Reject);
+        var overdueCount = sourceTasks.Count(t => t.DueDate < DateTime.Now.AddDays(-1) && t.Status != TodoStatus.Completed && t.Status != TodoStatus.Reject);
         var unassignedCount = sourceTasks.Count(t => t.AssignedToId is null);
         var rejectedCount = sourceTasks.Count(t => t.Status == TodoStatus.Reject);
 
