@@ -116,14 +116,10 @@ public partial class AdminDashboardForm : Form
     {
         Panel? clickedCard = null;
         if (sender is Panel panel)
-        {
             clickedCard = panel;
-        }
         else if (sender is Label label && label.Parent is Panel parentPanel)
-        {
             clickedCard = parentPanel;
-        }
-        if (clickedCard == null) return;
+        if (clickedCard is null) return;
         var clickedFilterType = clickedCard.Name switch
         {
             "cardTotalTasks" => CardFilterType.Total,
@@ -170,12 +166,6 @@ public partial class AdminDashboardForm : Form
 
     #region --- Setup & Data Loading ---
 
-    private class PriorityDisplayItem
-    {
-        public string Name { get; set; } = string.Empty;
-        public PriorityLevel? Value { get; set; }
-    }
-
     private void PopulateStatusFilter()
     {
         var statusItems = new List<StatusDisplayItem> { new() { Name = "所有狀態", Value = null } };
@@ -217,7 +207,6 @@ public partial class AdminDashboardForm : Form
     #endregion
 
     #region --- UI State & Filtering ---
-
     private void SetLoadingState(bool isLoading)
     {
         this.UseWaitCursor = isLoading;
@@ -383,7 +372,7 @@ public partial class AdminDashboardForm : Form
         cardOverdue.BackColor = overdueCount > 0 ? Color.MistyRose : SystemColors.Control;
         cardUnassigned.BackColor = unassignedCount > 0 ? Color.LightGoldenrodYellow : SystemColors.Control;
         cardRejected.BackColor = rejectedCount > 0 ? Color.Gainsboro : SystemColors.Control;
-        cardCompleted.BackColor = completedCount > 0 ? Color.Honeydew : SystemColors.Control; // New
+        cardCompleted.BackColor = completedCount > 0 ? Color.Honeydew : SystemColors.Control;
     }
 
     /// <summary>
@@ -400,7 +389,7 @@ public partial class AdminDashboardForm : Form
 
         foreach (var userGroup in tasksGroupedForTree)
         {
-            if (userGroup.Key == null) continue;
+            if (userGroup.Key is null) continue;
 
             var user = userGroup.Key;
             var userTasks = userGroup.ToList();
@@ -447,7 +436,7 @@ public partial class AdminDashboardForm : Form
         {
             var fullTaskDetails = await _taskService.GetTaskByIdAsync(selectedTaskInfo.Id);
 
-            if (fullTaskDetails != null)
+            if (fullTaskDetails is not null)
             {
                 _selectedTaskForDetails = fullTaskDetails;
                 PopulateTaskDetails(fullTaskDetails);
@@ -520,7 +509,7 @@ public partial class AdminDashboardForm : Form
         try
         {
             var taskToEdit = await _taskService.GetTaskByIdAsync(selectedTaskInfo.Id);
-            if (taskToEdit == null)
+            if (taskToEdit is null)
             {
                 MessageBox.Show("找不到該任務，可能已被刪除。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 await LoadAndDisplayDataAsync();
@@ -613,7 +602,7 @@ public partial class AdminDashboardForm : Form
 
     private async void BtnSaveComment_Click(object? sender, EventArgs e)
     {
-        if (_selectedTaskForDetails == null || _userContext.CurrentUser == null) return;
+        if (_selectedTaskForDetails is null || _userContext.CurrentUser is null) return;
 
         var newComments = txtDetailComments.Text.Trim();
         if (_selectedTaskForDetails.Comments == newComments)
@@ -634,7 +623,7 @@ public partial class AdminDashboardForm : Form
             _selectedTaskForDetails = updatedTask;
 
             var owner = updatedTask.AssignedTo ?? updatedTask.Creator;
-            if (owner != null && _dashboardViewModel.GroupedTasks.TryGetValue(owner, out var taskList))
+            if (owner is not null && _dashboardViewModel.GroupedTasks.TryGetValue(owner, out var taskList))
             {
                 var index = taskList.FindIndex(t => t.Id == updatedTask.Id);
                 if (index != -1)
@@ -643,7 +632,7 @@ public partial class AdminDashboardForm : Form
                 }
             }
 
-            if (tvTasks.SelectedNode != null && tvTasks.SelectedNode.Tag is TodoItem)
+            if (tvTasks.SelectedNode is not null && tvTasks.SelectedNode.Tag is TodoItem)
             {
                 tvTasks.SelectedNode.Tag = updatedTask;
                 PopulateTaskDetails(updatedTask);

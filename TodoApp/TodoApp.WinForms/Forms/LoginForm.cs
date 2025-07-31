@@ -35,7 +35,7 @@ namespace TodoApp.WinForms.Forms
             var mainAssembly = Assembly.GetExecutingAssembly();
             var version = mainAssembly.GetName().Version;
             var versionString = version != null ? $"V {version.Major}.{version.Minor}" : "V ?.?";
-            this.Text = $"系統登入 TaskManagement App {versionString} Beta";
+            this.Text = $"系統登入 TaskManagement App {versionString}";
         }
 
         private async void BtnLogin_Click(object sender, EventArgs e)
