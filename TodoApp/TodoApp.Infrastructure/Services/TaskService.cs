@@ -156,14 +156,6 @@ public class TaskService : ITaskService
 
     /// <summary>
     /// Updates an existing to-do item based on the provided data.
-    /// This implementation follows the "Last Write Wins" strategy,
-    /// overwriting existing data without concurrency checks.
-    /// </summary>
-    /// <param name="currentUser">The user performing the update.</param>
-    /// <param name="taskFromUI">A TodoItem object containing the new values from the UI.</param>
-    /// <returns>The updated and saved TodoItem entity, complete with navigation properties.</returns>
-    /// <summary>
-    /// Updates an existing to-do item based on the provided data.
     /// This implementation follows the "Last Write Wins" strategy.
     /// </summary>
     /// <param name="currentUser">The user performing the update.</param>
@@ -171,50 +163,34 @@ public class TaskService : ITaskService
     /// <returns>The updated and saved TodoItem entity, complete with navigation properties.</returns>
     public async Task<TodoItem> UpdateTaskAsync(User currentUser, TodoItem taskFromUI)
     {
-        // STEP 1: Fetch the existing, full entity from the database using a TRACKING query.
         var trackedTask = await _context.TodoItems
             .Include(t => t.Creator)
             .Include(t => t.AssignedTo)
             .FirstOrDefaultAsync(t => t.Id == taskFromUI.Id, _appShutdownTokenSource.Token);
 
-        // If the task was deleted by another user, throw an exception.
         if (trackedTask is null)
-        {
             throw new InvalidOperationException($"操作失敗：找不到 ID 為 {taskFromUI.Id} 的任務，它可能已被刪除。");
-        }
 
-        // STEP 2: Generate the change description by comparing the original state (trackedTask)
-        // with the new state (taskFromUI) BEFORE applying the changes.
         var changeDescription = BuildChangeDescription(originalTask: trackedTask, newTask: taskFromUI);
 
-        // STEP 3: Copy all scalar property values from the UI object to the tracked entity.
-        // This is the correct and safe way to apply updates without tracking conflicts.
         _context.Entry(trackedTask).CurrentValues.SetValues(taskFromUI);
 
-        // STEP 4: Always set the LastModifiedDate to the current time for the update.
         trackedTask.LastModifiedDate = DateTime.Now;
 
-        // The try-catch block is simplified as we are not expecting concurrency exceptions.
         try
         {
-            // SaveChangesAsync will now update the 'trackedTask' entity in the database.
             await _context.SaveChangesAsync();
         }
         catch (Exception ex)
         {
-            // This will catch other potential database errors.
             throw new Exception("儲存資料時發生錯誤。", ex);
         }
 
-        // STEP 5: Perform post-save actions like logging and notifications.
         if (!string.IsNullOrEmpty(changeDescription))
-        {
             _ = _historyService.LogHistoryAsync(trackedTask.Id, currentUser.Id, "Update", changeDescription);
-        }
 
         _ = NotifyTaskChangeAsync(trackedTask, currentUser, "更新", _appShutdownTokenSource.Token);
 
-        // Return the complete, updated entity, which is the 'trackedTask' object.
         return trackedTask;
     }
 
