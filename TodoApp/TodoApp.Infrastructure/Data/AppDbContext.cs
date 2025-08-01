@@ -87,8 +87,6 @@ public class AppDbContext : DbContext
                    .IsRequired(false) // This makes the foreign key nullable.
                    .OnDelete(DeleteBehavior.SetNull); // IMPORTANT: If an assigned user is deleted, the task's AssignedToId becomes NULL.
 
-            builder.Property(t => t.LastModifiedDate)
-                   .IsConcurrencyToken();
         });
 
         modelBuilder.Entity<TaskHistory>(builder =>

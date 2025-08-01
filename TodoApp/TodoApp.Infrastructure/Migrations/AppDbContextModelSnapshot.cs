@@ -72,7 +72,6 @@ namespace TodoApp.Infrastructure.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("LastModifiedDate")
-                        .IsConcurrencyToken()
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Priority")

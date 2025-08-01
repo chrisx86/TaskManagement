@@ -11,8 +11,8 @@ using TodoApp.Infrastructure.Data;
 namespace TodoApp.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250724012210_AddTaskHistoryTable")]
-    partial class AddTaskHistoryTable
+    [Migration("20250801052154_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -75,7 +75,6 @@ namespace TodoApp.Infrastructure.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("LastModifiedDate")
-                        .IsConcurrencyToken()
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Priority")
@@ -112,6 +111,9 @@ namespace TodoApp.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime>("LoginTime")
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("Role")
                         .HasColumnType("INTEGER");
 
@@ -131,6 +133,7 @@ namespace TodoApp.Infrastructure.Migrations
                         {
                             Id = 1,
                             HashedPassword = "Vs+y4YmzkPR7FVZjKLtTSQ==;LiLRzmFSgXYlWfLa4XcD+3xtGwSMGlVr9Q8G4bVxlrU=",
+                            LoginTime = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Role = 1,
                             Username = "admin"
                         });

@@ -439,31 +439,28 @@ public partial class MainForm : Form
 
     private void DgvTasks_SelectionChanged(object? sender, EventArgs e)
     {
-        var isRowSelected = dgvTasks.SelectedRows.Count > 0;
+        // This method now becomes much simpler.
+        bool isRowSelected = dgvTasks.SelectedRows.Count > 0;
         tsbEditTask.Enabled = isRowSelected;
         tsbDeleteTask.Enabled = isRowSelected;
 
+        // Reset the save button state.
+        btnSaveChanges.Enabled = false;
+
         if (isRowSelected && dgvTasks.SelectedRows[0].DataBoundItem is TodoItem selectedTask)
         {
-            _selectedTaskForEditing = selectedTask;
-
+            // We still need to prevent TextChanged from firing when we set the text.
             _isUpdatingUI = true;
-            txtCommentsPreview.Text = selectedTask.Comments ?? string.Empty;
+            txtCommentsPreview.Text = selectedTask.Comments ?? "";
             txtCommentsPreview.Enabled = true;
             _isUpdatingUI = false;
-
-            btnSaveChanges.Enabled = false;
         }
         else
         {
-            _selectedTaskForEditing = null;
-
             _isUpdatingUI = true;
             txtCommentsPreview.Clear();
             txtCommentsPreview.Enabled = false;
             _isUpdatingUI = false;
-
-            btnSaveChanges.Enabled = false;
         }
     }
 
@@ -708,23 +705,21 @@ public partial class MainForm : Form
 
     private async void BtnSaveChanges_Click(object? sender, EventArgs e)
     {
-        if (_selectedTaskForEditing is null) return;
+        if (dgvTasks.SelectedRows.Count == 0 || dgvTasks.SelectedRows[0].DataBoundItem is not TodoItem selectedTask)
+            return;
+
         var currentCommentsInBox = txtCommentsPreview.Text.Trim();
-        if (_selectedTaskForEditing.Comments == currentCommentsInBox)
+        if (selectedTask.Comments == currentCommentsInBox)
         {
             btnSaveChanges.Enabled = false;
             return;
         }
-
         try
         {
             SetLoadingState(true);
+            selectedTask.Comments = currentCommentsInBox;
 
-            var updatedTask = await _taskService.UpdateTaskCommentsAsync(
-                _currentUser,
-                _selectedTaskForEditing.Id,
-                currentCommentsInBox
-            );
+            var updatedTask = await _taskService.UpdateTaskAsync(_currentUser, selectedTask);
 
             _selectedTaskForEditing = updatedTask;
 
@@ -740,10 +735,7 @@ public partial class MainForm : Form
 
             if (indexInList != -1)
             {
-                _isUpdatingUI = true;
                 _tasksBindingList[indexInList] = updatedTask;
-                _isUpdatingUI = false;
-                _tasksBindingList.ResetItem(indexInList);
             }
             else
             {

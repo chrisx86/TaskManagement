@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TodoApp.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class AddTaskHistoryTable : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -37,7 +37,8 @@ namespace TodoApp.Infrastructure.Migrations
                     Username = table.Column<string>(type: "TEXT", nullable: false),
                     HashedPassword = table.Column<string>(type: "TEXT", nullable: false),
                     Email = table.Column<string>(type: "TEXT", maxLength: 100, nullable: true),
-                    Role = table.Column<int>(type: "INTEGER", nullable: false)
+                    Role = table.Column<int>(type: "INTEGER", nullable: false),
+                    LoginTime = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -79,8 +80,8 @@ namespace TodoApp.Infrastructure.Migrations
 
             migrationBuilder.InsertData(
                 table: "Users",
-                columns: new[] { "Id", "Email", "HashedPassword", "Role", "Username" },
-                values: new object[] { 1, null, "Vs+y4YmzkPR7FVZjKLtTSQ==;LiLRzmFSgXYlWfLa4XcD+3xtGwSMGlVr9Q8G4bVxlrU=", 1, "admin" });
+                columns: new[] { "Id", "Email", "HashedPassword", "LoginTime", "Role", "Username" },
+                values: new object[] { 1, null, "Vs+y4YmzkPR7FVZjKLtTSQ==;LiLRzmFSgXYlWfLa4XcD+3xtGwSMGlVr9Q8G4bVxlrU=", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), 1, "admin" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_TaskHistories_TodoItemId",

@@ -1,11 +1,10 @@
 ﻿#nullable enable
+using System.Text;
 using TodoApp.Core.Models;
 using TodoApp.Core.Services;
 using TodoApp.Infrastructure.Data;
 using TodoApp.Infrastructure.Comparers;
 using Microsoft.EntityFrameworkCore;
-using System.Text;
-using System.Threading;
 
 namespace TodoApp.Infrastructure.Services;
 
@@ -156,124 +155,113 @@ public class TaskService : ITaskService
     }
 
     /// <summary>
-    /// Updates an existing to-do item, handling concurrency and logging detailed changes.
+    /// Updates an existing to-do item based on the provided data.
+    /// This implementation follows the "Last Write Wins" strategy,
+    /// overwriting existing data without concurrency checks.
     /// </summary>
+    /// <param name="currentUser">The user performing the update.</param>
+    /// <param name="taskFromUI">A TodoItem object containing the new values from the UI.</param>
+    /// <returns>The updated and saved TodoItem entity, complete with navigation properties.</returns>
+    /// <summary>
+    /// Updates an existing to-do item based on the provided data.
+    /// This implementation follows the "Last Write Wins" strategy.
+    /// </summary>
+    /// <param name="currentUser">The user performing the update.</param>
+    /// <param name="taskFromUI">A TodoItem object containing the new values from the UI.</param>
+    /// <returns>The updated and saved TodoItem entity, complete with navigation properties.</returns>
     public async Task<TodoItem> UpdateTaskAsync(User currentUser, TodoItem taskFromUI)
     {
+        // STEP 1: Fetch the existing, full entity from the database using a TRACKING query.
         var trackedTask = await _context.TodoItems
             .Include(t => t.Creator)
             .Include(t => t.AssignedTo)
             .FirstOrDefaultAsync(t => t.Id == taskFromUI.Id, _appShutdownTokenSource.Token);
 
+        // If the task was deleted by another user, throw an exception.
         if (trackedTask is null)
-            throw new DbUpdateConcurrencyException($"操作失敗：找不到 ID 為 {taskFromUI.Id} 的任務。");
+        {
+            throw new InvalidOperationException($"操作失敗：找不到 ID 為 {taskFromUI.Id} 的任務，它可能已被刪除。");
+        }
 
-        // --- Generate change description BEFORE applying changes fully ---
-        var entry = _context.Entry(trackedTask);
-        var originalLastModified = trackedTask.LastModifiedDate; // Keep the original for concurrency
+        // STEP 2: Generate the change description by comparing the original state (trackedTask)
+        // with the new state (taskFromUI) BEFORE applying the changes.
+        var changeDescription = BuildChangeDescription(originalTask: trackedTask, newTask: taskFromUI);
 
-        // Apply changes from UI object
-        entry.CurrentValues.SetValues(taskFromUI);
+        // STEP 3: Copy all scalar property values from the UI object to the tracked entity.
+        // This is the correct and safe way to apply updates without tracking conflicts.
+        _context.Entry(trackedTask).CurrentValues.SetValues(taskFromUI);
 
-        // Generate the description based on the detected changes
-        var changeDescription = BuildChangeDescription(entry);
-
+        // STEP 4: Always set the LastModifiedDate to the current time for the update.
         trackedTask.LastModifiedDate = DateTime.Now;
-        entry.Property(p => p.LastModifiedDate).OriginalValue = originalLastModified;
 
+        // The try-catch block is simplified as we are not expecting concurrency exceptions.
         try
         {
+            // SaveChangesAsync will now update the 'trackedTask' entity in the database.
             await _context.SaveChangesAsync();
-
-            if (!string.IsNullOrEmpty(changeDescription))
-                _ = _historyService.LogHistoryAsync(trackedTask.Id, currentUser.Id, "Update", changeDescription);
-
-            _ = NotifyTaskChangeAsync(trackedTask, currentUser, "更新", _appShutdownTokenSource.Token);
-
-            return trackedTask;
         }
-        catch (DbUpdateConcurrencyException)
+        catch (Exception ex)
         {
-            throw new Exception("資料已被他人修改，請重新整理後再試。");
+            // This will catch other potential database errors.
+            throw new Exception("儲存資料時發生錯誤。", ex);
         }
+
+        // STEP 5: Perform post-save actions like logging and notifications.
+        if (!string.IsNullOrEmpty(changeDescription))
+        {
+            _ = _historyService.LogHistoryAsync(trackedTask.Id, currentUser.Id, "Update", changeDescription);
+        }
+
+        _ = NotifyTaskChangeAsync(trackedTask, currentUser, "更新", _appShutdownTokenSource.Token);
+
+        // Return the complete, updated entity, which is the 'trackedTask' object.
+        return trackedTask;
     }
 
     /// <summary>
-    /// Builds a human-readable string describing the changes made to a TodoItem.
-    /// It inspects the EF Core change tracker to find modified properties.
+    /// Compares two TodoItem objects and builds a human-readable string describing the differences.
     /// </summary>
-    /// <param name="entry">The EntityEntry for the tracked TodoItem.</param>
+    /// <param name="originalTask">The task object representing the state BEFORE the update.</param>
+    /// <param name="newTask">The task object containing the new, updated values.</param>
     /// <returns>A string detailing all changes, or an empty string if no significant changes were detected.</returns>
-    private string BuildChangeDescription(Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<TodoItem> entry)
+    private string BuildChangeDescription(TodoItem originalTask, TodoItem newTask)
     {
         var descriptionBuilder = new StringBuilder();
 
-        foreach (var property in entry.Properties)
+        if (!string.Equals(originalTask.Title, newTask.Title))
+            descriptionBuilder.AppendLine("標題已修改。");
+
+        if (!string.Equals(originalTask.Comments, newTask.Comments))
         {
-            if (property.IsModified && property.Metadata.Name != nameof(TodoItem.LastModifiedDate))
-            {
-                var propertyName = property.Metadata.Name;
-                var originalValue = property.OriginalValue;
-                var currentValue = property.CurrentValue;
-
-                if (object.Equals(originalValue, currentValue)) continue;
-
-                switch (propertyName)
-                {
-                    case nameof(TodoItem.Title):
-                        descriptionBuilder.AppendLine("標題已修改。");
-                        break;
-                    case nameof(TodoItem.Comments):
-                        if (string.IsNullOrEmpty(originalValue as string))
-                            descriptionBuilder.AppendLine("已新增備註。");
-                        else if (string.IsNullOrEmpty(currentValue as string))
-                            descriptionBuilder.AppendLine("備註已被清空。");
-                        else
-                            descriptionBuilder.AppendLine("備註已修改。");
-                        break;
-
-                    case nameof(TodoItem.Status):
-                    case nameof(TodoItem.Priority):
-                        descriptionBuilder.AppendLine($"{GetFriendlyPropertyName(propertyName)} 從 '{originalValue}' 變更為 '{currentValue}'。");
-                        break;
-
-                    case nameof(TodoItem.DueDate):
-                        string originalDate = (originalValue as DateTime?)?.ToString("yyyy-MM-dd") ?? "無";
-                        string currentDate = (currentValue as DateTime?)?.ToString("yyyy-MM-dd") ?? "無";
-                        descriptionBuilder.AppendLine($"到期日從 '{originalDate}' 變更為 '{currentDate}'。");
-                        break;
-
-                    case nameof(TodoItem.AssignedToId):
-                        var originalAssignee = originalValue ?? "(未指派)";
-                        var currentAssignee = currentValue ?? "(未指派)";
-                        descriptionBuilder.AppendLine($"指派對象已變更 (從 ID: {originalAssignee} 到 ID: {currentAssignee})。");
-                        break;
-
-                    case nameof(TodoItem.Id):
-                    case nameof(TodoItem.CreatorId):
-                    case nameof(TodoItem.CreationDate):
-                        break;
-
-                    default:
-                        descriptionBuilder.AppendLine($"{propertyName} 已從 '{originalValue}' 變更為 '{currentValue}'。");
-                        break;
-                }
-            }
+            if (string.IsNullOrEmpty(originalTask.Comments))
+                descriptionBuilder.AppendLine("已新增備註。");
+            else if (string.IsNullOrEmpty(newTask.Comments))
+                descriptionBuilder.AppendLine("備註已被清空。");
+            else
+                descriptionBuilder.AppendLine("備註已修改。");
         }
-        return descriptionBuilder.ToString().Trim();
-    }
 
-    /// <summary>
-    /// A simple helper to get a friendly, localized name for a property.
-    /// </summary>
-    private string GetFriendlyPropertyName(string propertyName)
-    {
-        return propertyName switch
+        if (originalTask.Status != newTask.Status)
+            descriptionBuilder.AppendLine($"狀態從 '{originalTask.Status}' 變更為 '{newTask.Status}'。");
+
+        if (originalTask.Priority != newTask.Priority)
+            descriptionBuilder.AppendLine($"優先級從 '{originalTask.Priority}' 變更為 '{newTask.Priority}'。");
+
+        if (originalTask.DueDate != newTask.DueDate)
         {
-            nameof(TodoItem.Status) => "狀態",
-            nameof(TodoItem.Priority) => "優先級",
-            _ => propertyName
-        };
+            var originalDate = originalTask.DueDate?.ToString("yyyy-MM-dd") ?? "無";
+            var currentDate = newTask.DueDate?.ToString("yyyy-MM-dd") ?? "無";
+            descriptionBuilder.AppendLine($"到期日從 '{originalDate}' 變更為 '{currentDate}'。");
+        }
+
+        if (originalTask.AssignedToId != newTask.AssignedToId)
+        {
+            var originalAssigneeId = originalTask.AssignedToId?.ToString() ?? "(未指派)";
+            var newAssigneeId = newTask.AssignedToId?.ToString() ?? "(未指派)";
+            descriptionBuilder.AppendLine($"指派對象 ID 已從 '{originalAssigneeId}' 變更為 '{newAssigneeId}'。");
+        }
+
+        return descriptionBuilder.ToString().Trim();
     }
 
     public async Task<TodoItem> UpdateTaskCommentsAsync(User currentUser, int taskId, string newComments)
@@ -294,7 +282,7 @@ public class TaskService : ITaskService
             await _context.SaveChangesAsync();
 
             _ = _historyService.LogHistoryAsync(taskId, currentUser.Id, "Update", "備註已修改。");
-            _ = NotifyTaskChangeAsync(trackedTask, currentUser, "更新", _appShutdownTokenSource.Token);
+            //_ = NotifyTaskChangeAsync(trackedTask, currentUser, "更新", _appShutdownTokenSource.Token);
 
             return trackedTask;
         }
