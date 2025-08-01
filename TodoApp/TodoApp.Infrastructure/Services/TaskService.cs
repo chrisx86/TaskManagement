@@ -14,10 +14,10 @@ namespace TodoApp.Infrastructure.Services;
 public class TaskService : ITaskService
 {
     private readonly AppDbContext _context;
+    private readonly CancellationTokenSource _appShutdownTokenSource;
     private readonly IEmailService _emailService;
     private readonly IUserService _userService;
     private readonly ITaskHistoryService _historyService;
-    private readonly CancellationTokenSource _appShutdownTokenSource;
 
     public TaskService(AppDbContext context, IEmailService emailService, IUserService userService, ITaskHistoryService historyService,
         CancellationTokenSource appShutdownTokenSource)
@@ -35,7 +35,7 @@ public class TaskService : ITaskService
             .Include(t => t.Creator)
             .Include(t => t.AssignedTo)
             .AsNoTracking()
-            .FirstOrDefaultAsync(t => t.Id == taskId);
+            .FirstOrDefaultAsync(t => t.Id == taskId, _appShutdownTokenSource.Token);
     }
 
     public async Task<List<TodoItem>> GetAllTasksAsync(
@@ -147,9 +147,9 @@ public class TaskService : ITaskService
         };
 
         _context.TodoItems.Add(newTask);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(_appShutdownTokenSource.Token);
         _ = _historyService.LogHistoryAsync(newTask.Id, currentUser.Id, "Create", "任務已建立。");
-        _ = NotifyTaskChangeAsync(newTask, currentUser, "建立", _appShutdownTokenSource.Token);
+        _ = NotifyTaskChangeAsync(newTask, currentUser, "建立");
 
         return await GetTaskByIdAsync(newTask.Id) ?? newTask;
     }
@@ -179,7 +179,7 @@ public class TaskService : ITaskService
 
         try
         {
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(_appShutdownTokenSource.Token);
         }
         catch (Exception ex)
         {
@@ -189,7 +189,7 @@ public class TaskService : ITaskService
         if (!string.IsNullOrEmpty(changeDescription))
             _ = _historyService.LogHistoryAsync(trackedTask.Id, currentUser.Id, "Update", changeDescription);
 
-        _ = NotifyTaskChangeAsync(trackedTask, currentUser, "更新", _appShutdownTokenSource.Token);
+        _ = NotifyTaskChangeAsync(trackedTask, currentUser, "更新");
 
         return trackedTask;
     }
@@ -245,7 +245,7 @@ public class TaskService : ITaskService
         var trackedTask = await _context.TodoItems
             .Include(t => t.Creator)
             .Include(t => t.AssignedTo)
-            .FirstOrDefaultAsync(t => t.Id == taskId);
+            .FirstOrDefaultAsync(t => t.Id == taskId, _appShutdownTokenSource.Token);
 
         if (trackedTask is null)
             throw new DbUpdateConcurrencyException($"操作失敗：找不到 ID 為 {taskId} 的任務。");
@@ -255,10 +255,10 @@ public class TaskService : ITaskService
 
         try
         {
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(_appShutdownTokenSource.Token);
 
             _ = _historyService.LogHistoryAsync(taskId, currentUser.Id, "Update", "備註已修改。");
-            //_ = NotifyTaskChangeAsync(trackedTask, currentUser, "更新", _appShutdownTokenSource.Token);
+            _ = NotifyTaskChangeAsync(trackedTask, currentUser, "更新");
 
             return trackedTask;
         }
@@ -279,9 +279,9 @@ public class TaskService : ITaskService
         var tombstone = new TodoItem { Id = taskToDelete.Id, Title = taskToDelete.Title };
 
         _context.TodoItems.Remove(taskToDelete);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(_appShutdownTokenSource.Token);
         _ = _historyService.LogHistoryAsync(tombstone.Id, currentUser.Id, "Delete", $"任務 '{tombstone.Title}' 已被刪除。");
-        _ = NotifyTaskChangeTombstoneAsync(tombstone, currentUser, "刪除", _appShutdownTokenSource.Token);
+        _ = NotifyTaskChangeTombstoneAsync(tombstone, currentUser, "刪除");
     }
 
     public async Task<Dictionary<User, List<TodoItem>>> GetTasksGroupedByUserAsync()
@@ -291,7 +291,7 @@ public class TaskService : ITaskService
             .Include(t => t.Creator)
             .Include(t => t.AssignedTo)
             .AsNoTracking()
-            .ToListAsync();
+            .ToListAsync(_appShutdownTokenSource.Token);
 
         var tasksByUser = allUsers.ToDictionary(
             user => user,
@@ -369,12 +369,12 @@ public class TaskService : ITaskService
     /// <param name="task">The task that was changed. It should have navigation properties loaded if needed.</param>
     /// <param name="currentUser">The user who performed the action.</param>
     /// <param name="action">The action performed (e.g., "建立", "更新").</param>
-    private async Task NotifyTaskChangeAsync(TodoItem task, User currentUser, string action, CancellationToken cancellationToken)
+    private async Task NotifyTaskChangeAsync(TodoItem task, User currentUser, string action)
     {
         return;
         try
         {
-            if (cancellationToken.IsCancellationRequested) return;
+            if (_appShutdownTokenSource.IsCancellationRequested) return;
             var subject = $"任務通知: '{task.Title}' 已被{action}";
             var body = BuildEmailBody(task, currentUser, action);
 
@@ -382,7 +382,7 @@ public class TaskService : ITaskService
             {
                 // If an admin makes a change, notify the person the task is assigned to.
                 if (task.AssignedTo?.Email is not null)
-                    await _emailService.SendEmailAsync(task.AssignedTo.Email, subject, body, cancellationToken);
+                    await _emailService.SendEmailAsync(task.AssignedTo.Email, subject, body);
             }
             else // A regular user made the change.
             {
@@ -391,7 +391,7 @@ public class TaskService : ITaskService
                     .Where(u => u.Role == UserRole.Admin && !string.IsNullOrEmpty(u.Email));
 
                 var notificationTasks = admins.Select(admin =>
-                    _emailService.SendEmailAsync(admin.Email!, subject, body, cancellationToken)
+                    _emailService.SendEmailAsync(admin.Email!, subject, body)
                 );
                 await Task.WhenAll(notificationTasks);
             }
@@ -408,7 +408,7 @@ public class TaskService : ITaskService
     /// <param name="deletedTask">The task object right before it was deleted (a "tombstone").</param>
     /// <param name="currentUser">The user who performed the deletion.</param>
     /// <param name="action">The action performed (typically "刪除").</param>
-    private async Task NotifyTaskChangeTombstoneAsync(TodoItem deletedTask, User currentUser, string action, CancellationToken cancellationToken)
+    private async Task NotifyTaskChangeTombstoneAsync(TodoItem deletedTask, User currentUser, string action)
     {
         return;
         try
@@ -426,7 +426,7 @@ public class TaskService : ITaskService
 
                     if (assignee?.Email != null)
                     {
-                        await _emailService.SendEmailAsync(assignee.Email, subject, body, cancellationToken);
+                        await _emailService.SendEmailAsync(assignee.Email, subject, body);
                     }
                 }
             }

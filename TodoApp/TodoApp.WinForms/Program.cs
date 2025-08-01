@@ -52,6 +52,8 @@ internal static class Program
             }
             finally
             {
+                if (!AppShutdownTokenSource.IsCancellationRequested)
+                    AppShutdownTokenSource.Cancel();
                 AppShutdownTokenSource.Dispose();
             }
         }
@@ -102,7 +104,7 @@ internal static class Program
         services.AddTransient<TaskDetailDialog>();
         services.AddTransient<UserManagementDialog>();
         services.AddTransient<AdminDashboardForm>();
-        services.AddSingleton<CancellationTokenSource>();
+        services.AddSingleton(AppShutdownTokenSource);
     }
 
     /// <summary>

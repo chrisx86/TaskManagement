@@ -10,13 +10,14 @@ namespace TodoApp.Infrastructure.Services;
 public class EmailService : IEmailService
 {
     private readonly SmtpSettings _smtpSettings;
-
-    public EmailService(IOptions<SmtpSettings> smtpSettings)
+    private readonly CancellationTokenSource _appShutdownTokenSource;
+    public EmailService(IOptions<SmtpSettings> smtpSettings, CancellationTokenSource appShutdownTokenSource)
     {
         _smtpSettings = smtpSettings.Value;
+        _appShutdownTokenSource = appShutdownTokenSource;
     }
 
-    public async Task SendEmailAsync(string toEmail, string subject, string body, CancellationToken cancellationToken = default)
+    public async Task SendEmailAsync(string toEmail, string subject, string body)
     {
         if (string.IsNullOrEmpty(toEmail)) return;
 
@@ -31,10 +32,10 @@ public class EmailService : IEmailService
         using (var client = new SmtpClient())
         {
             client.ServerCertificateValidationCallback = (s, c, h, e) => true;
-            await client.ConnectAsync(_smtpSettings.Host, _smtpSettings.Port, MailKit.Security.SecureSocketOptions.StartTls, cancellationToken);
-            await client.AuthenticateAsync(_smtpSettings.Username, _smtpSettings.Password, cancellationToken);
-            await client.SendAsync(message, cancellationToken);
-            await client.DisconnectAsync(true, cancellationToken);
+            await client.ConnectAsync(_smtpSettings.Host, _smtpSettings.Port, MailKit.Security.SecureSocketOptions.StartTls, _appShutdownTokenSource.Token);
+            await client.AuthenticateAsync(_smtpSettings.Username, _smtpSettings.Password, _appShutdownTokenSource.Token);
+            await client.SendAsync(message, _appShutdownTokenSource.Token);
+            await client.DisconnectAsync(true, _appShutdownTokenSource.Token);
         }
     }
 }
