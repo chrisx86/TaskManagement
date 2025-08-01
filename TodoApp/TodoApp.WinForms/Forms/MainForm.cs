@@ -278,52 +278,111 @@ public partial class MainForm : Form
 
     private async Task LoadTasksAsync()
     {
-        if (!this.IsHandleCreated || cmbFilterStatus.SelectedItem is null || 
-            cmbFilterByUserRelation.SelectedItem is null || cmbFilterByAssignedUser.SelectedItem is null) return;
-        var previousHoveredRowIndex = _hoveredRowIndex;
-        _hoveredRowIndex = -1;
-        if (previousHoveredRowIndex != -1)
-            SafeInvalidateRow(previousHoveredRowIndex);
+        if (!this.IsHandleCreated || IsAnyFilterNull()) return;
+
+        ResetHoverState();
+
+        if (_sortedColumn is null) ClearSortGlyphs();
+
         SetLoadingState(true);
+
         try
         {
-            string? searchKeyword = txtSearch.Text.Trim();
-            if (string.IsNullOrEmpty(searchKeyword)) searchKeyword = null;
+            var filterData = GetCurrentFilterData();
 
-            TodoStatus? statusFilter = (cmbFilterStatus.SelectedItem as StatusDisplayItem)?.Value;
-            var userFilter = (UserTaskFilter)cmbFilterByUserRelation.SelectedItem;
-            int? assignedToUserIdFilter = (cmbFilterByAssignedUser.SelectedItem as UserDisplayItem)?.Id;
-            if (assignedToUserIdFilter == 0) assignedToUserIdFilter = null;
+            var countTask = _taskService.GetTaskCountAsync(
+                    _currentUser, filterData.Status, filterData.UserRelation,
+                    filterData.AssignedToUser, filterData.SearchKeyword
+                );
 
-            _totalTasks = await _taskService.GetTaskCountAsync(
-                _currentUser, statusFilter, userFilter, assignedToUserIdFilter,
-                searchKeyword
-            );
+            var tasksTask = _taskService.GetAllTasksAsync(
+                    _currentUser, filterData.Status, filterData.UserRelation,
+                    filterData.AssignedToUser, _currentPage, _pageSize,
+                    _sortedColumn?.Name, _sortDirection == ListSortDirection.Ascending,
+                    filterData.SearchKeyword
+                );
 
-            _totalPages = (_pageSize > 0) ? (int)Math.Ceiling((double)_totalTasks / _pageSize) : 1;
-            if (_totalPages == 0) _totalPages = 1;
-            if (_currentPage > _totalPages) _currentPage = _totalPages;
+            await Task.WhenAll(countTask, tasksTask);
+            _totalTasks = await countTask;
+            var tasks = await tasksTask;
 
-            var tasks = await _taskService.GetAllTasksAsync(
-                _currentUser, statusFilter, userFilter, assignedToUserIdFilter,
-                _currentPage, _pageSize,
-                _sortedColumn?.Name,
-                _sortDirection == ListSortDirection.Ascending,
-                searchKeyword
-            );
-
-            _isUpdatingUI = true;
-            _tasksBindingList.Clear();
-            tasks.ForEach(task => _tasksBindingList.Add(task));
-            _isUpdatingUI = false; // Re-enable events after binding is complete
+            UpdatePaginationState();
+            UpdateBindingList(tasks);
             UpdatePaginationUI();
             UpdateSortGlyphs();
         }
-        catch (Exception ex) { MessageBox.Show($"載入任務時發生錯誤: {ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error); }
+        catch (Exception ex) { 
+            MessageBox.Show($"載入任務時發生錯誤: {ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error); 
+        }
         finally
         {
             SetLoadingState(false);
             DgvTasks_SelectionChanged(null, EventArgs.Empty);
+        }
+    }
+
+    private record FilterData(
+        TodoStatus? Status,
+        UserTaskFilter UserRelation,
+        int? AssignedToUser,
+        string? SearchKeyword
+    );
+
+    private FilterData GetCurrentFilterData()
+    {
+        var searchKeyword = txtSearch.Text.Trim();
+        if (string.IsNullOrEmpty(searchKeyword)) searchKeyword = null;
+        var statusFilter = (cmbFilterStatus.SelectedItem as StatusDisplayItem)?.Value;
+        var userFilter = (UserTaskFilter)cmbFilterByUserRelation.SelectedItem;
+        int? assignedToUserIdFilter = (cmbFilterByAssignedUser.SelectedItem as UserDisplayItem)?.Id;
+        if (assignedToUserIdFilter == 0) assignedToUserIdFilter = null;
+
+        return new FilterData(statusFilter, userFilter, assignedToUserIdFilter, searchKeyword);
+    }
+
+    private void ClearSortGlyphs()
+    {
+        foreach (DataGridViewColumn column in dgvTasks.Columns)
+        {
+            column.HeaderCell.SortGlyphDirection = SortOrder.None;
+        }
+    }
+
+    private bool IsAnyFilterNull()
+    {
+        return cmbFilterStatus.SelectedItem is null ||
+               cmbFilterByUserRelation.SelectedItem is null ||
+               cmbFilterByAssignedUser.SelectedItem is null;
+    }
+
+    private void ResetHoverState()
+    {
+        if (_hoveredRowIndex != -1)
+        {
+            var oldIndex = _hoveredRowIndex;
+            _hoveredRowIndex = -1;
+            SafeInvalidateRow(oldIndex);
+        }
+    }
+
+    private void UpdatePaginationState()
+    {
+        _totalPages = (_pageSize > 0) ? (int)Math.Ceiling((double)_totalTasks / _pageSize) : 1;
+        if (_totalPages == 0) _totalPages = 1;
+        if (_currentPage > _totalPages) _currentPage = _totalPages;
+    }
+
+    private void UpdateBindingList(List<TodoItem> tasks)
+    {
+        _isUpdatingUI = true;
+        try
+        {
+            _tasksBindingList.Clear();
+            tasks.ForEach(task => _tasksBindingList.Add(task));
+        }
+        finally
+        {
+            _isUpdatingUI = false;
         }
     }
 
@@ -841,13 +900,11 @@ public partial class MainForm : Form
 
     private async void TsbRefresh_Click(object? sender, EventArgs e)
     {
+        lblStatus.Text = "正在重新整理...";
         _sortedColumn = null;
-        foreach (DataGridViewColumn column in dgvTasks.Columns)
-        {
-            if (column.SortMode != DataGridViewColumnSortMode.NotSortable)
-                column.HeaderCell.SortGlyphDirection = SortOrder.None;
-        }
+        SetDefaultFiltersForCurrentUser();
         await LoadTasksAsync();
+        lblStatus.Text = "資料已重新整理。";
     }
     #endregion
 }
