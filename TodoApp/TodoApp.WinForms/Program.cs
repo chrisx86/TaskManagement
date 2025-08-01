@@ -19,7 +19,6 @@ internal static class Program
         var host = CreateHostBuilder().Build();
         var services = host.Services;
 
-        // Global Exception Handling Setup
         Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
         Application.ThreadException += (sender, args) => HandleException(args.Exception, "UI Thread");
         AppDomain.CurrentDomain.UnhandledException += (sender, args) => HandleException(args.ExceptionObject as Exception, "Non-UI Thread");
@@ -35,9 +34,7 @@ internal static class Program
                 var loginForm = scopedServices.GetRequiredService<LoginForm>();
 
                 if (loginForm.ShowDialog() == DialogResult.OK)
-                {
                     Application.Run(scopedServices.GetRequiredService<MainForm>());
-                }
             }
             catch (Exception ex)
             {

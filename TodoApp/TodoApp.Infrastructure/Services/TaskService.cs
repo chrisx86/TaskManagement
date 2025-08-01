@@ -201,6 +201,36 @@ public class TaskService : ITaskService
         }
     }
 
+    public async Task<TodoItem> UpdateTaskCommentsAsync(User currentUser, int taskId, string newComments)
+    {
+        var trackedTask = await _context.TodoItems
+            .Include(t => t.Creator)
+            .Include(t => t.AssignedTo)
+            .FirstOrDefaultAsync(t => t.Id == taskId);
+
+        if (trackedTask is null)
+        {
+            throw new DbUpdateConcurrencyException($"操作失敗：找不到 ID 為 {taskId} 的任務。");
+        }
+
+        trackedTask.Comments = newComments;
+        trackedTask.LastModifiedDate = DateTime.Now;
+
+        try
+        {
+            await _context.SaveChangesAsync();
+
+            _ = _historyService.LogHistoryAsync(taskId, currentUser.Id, "Update", "備註已修改。");
+            _ = NotifyTaskChangeAsync(trackedTask, currentUser, "更新");
+
+            return trackedTask;
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            throw new Exception("資料已被他人修改，請重新整理後再試。", ex);
+        }
+    }
+
     public async Task DeleteTaskAsync(User currentUser, int taskId)
     {
         var taskToDelete = await _context.TodoItems.FindAsync(taskId);

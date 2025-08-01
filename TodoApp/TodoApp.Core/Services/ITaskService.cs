@@ -34,7 +34,14 @@ public interface ITaskService
     Task<TodoItem> CreateTaskAsync(User currentUser, string title, string? comments, TodoStatus status, PriorityLevel priority, DateTime? dueDate, int? assignedToId);
 
     Task<TodoItem> UpdateTaskAsync(User currentUser, TodoItem taskToUpdate);
-
+    /// <summary>
+    /// Updates only the 'Comments' field of a specific task.
+    /// </summary>
+    /// <param name="currentUser">The user performing the action.</param>
+    /// <param name="taskId">The ID of the task to update.</param>
+    /// <param name="newComments">The new comments text.</param>
+    /// <returns>The updated TodoItem with the new LastModifiedDate.</returns>
+    Task<TodoItem> UpdateTaskCommentsAsync(User currentUser, int taskId, string newComments);
     Task DeleteTaskAsync(User currentUser, int taskId);
 
     /// <summary>

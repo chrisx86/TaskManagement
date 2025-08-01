@@ -37,7 +37,6 @@ public class AdminDashboardService : IAdminDashboardService
             .AsNoTracking()
             .ToListAsync();
 
-        // The statistics calculation is correct. No changes needed here.
         var viewModel = new DashboardViewModel
         {
             TotalTaskCount = allTasks.Count,
@@ -46,8 +45,6 @@ public class AdminDashboardService : IAdminDashboardService
             UnassignedTaskCount = allTasks.Count(t => t.AssignedToId == null),
             RejectedTaskCount = allTasks.Count(t => t.Status == TodoStatus.Reject)
         };
-
-        // --- THIS IS THE KEY FIX for grouping logic ---
 
         // 1. Initialize the dictionary with all real users.
         var tasksByUser = allUsers.ToDictionary(
@@ -65,20 +62,13 @@ public class AdminDashboardService : IAdminDashboardService
         {
             if (task.AssignedTo != null)
             {
-                // Task is assigned, add it to the assignee's list.
                 if (tasksByUser.TryGetValue(task.AssignedTo, out var taskList))
-                {
                     taskList.Add(task);
-                }
             }
             else
             {
-                // Task is unassigned, add it to our special unassigned list.
-                // We need to initialize the list for the unassigned key first.
                 if (!tasksByUser.ContainsKey(unassignedUserKey))
-                {
                     tasksByUser[unassignedUserKey] = new List<TodoItem>();
-                }
                 tasksByUser[unassignedUserKey].Add(task);
             }
         }

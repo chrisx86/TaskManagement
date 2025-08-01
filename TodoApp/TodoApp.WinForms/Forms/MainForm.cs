@@ -643,8 +643,8 @@ public partial class MainForm : Form
     private async void BtnSaveChanges_Click(object? sender, EventArgs e)
     {
         if (_selectedTaskForEditing is null) return;
-
-        if (_selectedTaskForEditing.Comments == txtCommentsPreview.Text.Trim())
+        var currentCommentsInBox = txtCommentsPreview.Text.Trim();
+        if (_selectedTaskForEditing.Comments == currentCommentsInBox)
         {
             btnSaveChanges.Enabled = false;
             return;
@@ -654,9 +654,11 @@ public partial class MainForm : Form
         {
             SetLoadingState(true);
 
-            _selectedTaskForEditing.Comments = txtCommentsPreview.Text.Trim();
-
-            var updatedTask = await _taskService.UpdateTaskAsync(_currentUser, _selectedTaskForEditing);
+            var updatedTask = await _taskService.UpdateTaskCommentsAsync(
+                _currentUser,
+                _selectedTaskForEditing.Id,
+                currentCommentsInBox
+            );
 
             _selectedTaskForEditing = updatedTask;
 
