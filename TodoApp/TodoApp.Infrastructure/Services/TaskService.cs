@@ -5,6 +5,7 @@ using TodoApp.Infrastructure.Data;
 using TodoApp.Infrastructure.Comparers;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
+using System.Threading;
 
 namespace TodoApp.Infrastructure.Services;
 
@@ -17,13 +18,16 @@ public class TaskService : ITaskService
     private readonly IEmailService _emailService;
     private readonly IUserService _userService;
     private readonly ITaskHistoryService _historyService;
+    private readonly CancellationTokenSource _appShutdownTokenSource;
 
-    public TaskService(AppDbContext context, IEmailService emailService, IUserService userService, ITaskHistoryService historyService)
+    public TaskService(AppDbContext context, IEmailService emailService, IUserService userService, ITaskHistoryService historyService,
+        CancellationTokenSource appShutdownTokenSource)
     {
         _context = context;
         _emailService = emailService;
         _userService = userService;
         _historyService = historyService;
+        _appShutdownTokenSource = appShutdownTokenSource;
     }
 
     public async Task<TodoItem?> GetTaskByIdAsync(int taskId)
@@ -146,7 +150,7 @@ public class TaskService : ITaskService
         _context.TodoItems.Add(newTask);
         await _context.SaveChangesAsync();
         _ = _historyService.LogHistoryAsync(newTask.Id, currentUser.Id, "Create", "任務已建立。");
-        _ = NotifyTaskChangeAsync(newTask, currentUser, "建立");
+        _ = NotifyTaskChangeAsync(newTask, currentUser, "建立", _appShutdownTokenSource.Token);
 
         return await GetTaskByIdAsync(newTask.Id) ?? newTask;
     }
@@ -159,45 +163,23 @@ public class TaskService : ITaskService
         var trackedTask = await _context.TodoItems
             .Include(t => t.Creator)
             .Include(t => t.AssignedTo)
-            .FirstOrDefaultAsync(t => t.Id == taskFromUI.Id);
+            .FirstOrDefaultAsync(t => t.Id == taskFromUI.Id, _appShutdownTokenSource.Token);
 
         if (trackedTask is null)
-            throw new DbUpdateConcurrencyException($"操作失敗：找不到 ID 為 {taskFromUI.Id} 的任務，它可能已被刪除。");
+            throw new DbUpdateConcurrencyException($"操作失敗：找不到 ID 為 {taskFromUI.Id} 的任務。");
 
-        var descriptionBuilder = new StringBuilder();
+        // --- Generate change description BEFORE applying changes fully ---
         var entry = _context.Entry(trackedTask);
+        var originalLastModified = trackedTask.LastModifiedDate; // Keep the original for concurrency
 
+        // Apply changes from UI object
         entry.CurrentValues.SetValues(taskFromUI);
 
-        foreach (var property in entry.Properties)
-        {
-            if (property.IsModified)
-            {
-                var propertyName = property.Metadata.Name;
-                var originalValue = property.OriginalValue;
-                var currentValue = property.CurrentValue;
-
-                switch (propertyName)
-                {
-                    case "Title":
-                    case "Comments":
-                        descriptionBuilder.AppendLine($"{propertyName} 已修改。");
-                        break;
-                    case "DueDate":
-                        descriptionBuilder.AppendLine($"到期日從 '{originalValue:yyyy-MM-dd}' 變更為 '{currentValue:yyyy-MM-dd}'。");
-                        break;
-                    case "AssignedToId":
-                        descriptionBuilder.AppendLine("指派對象已變更。");
-                        break;
-                    default:
-                        descriptionBuilder.AppendLine($"{propertyName} 從 '{originalValue}' 變更為 '{currentValue}'。");
-                        break;
-                }
-            }
-        }
-        var changeDescription = descriptionBuilder.ToString().Trim();
+        // Generate the description based on the detected changes
+        var changeDescription = BuildChangeDescription(entry);
 
         trackedTask.LastModifiedDate = DateTime.Now;
+        entry.Property(p => p.LastModifiedDate).OriginalValue = originalLastModified;
 
         try
         {
@@ -206,14 +188,92 @@ public class TaskService : ITaskService
             if (!string.IsNullOrEmpty(changeDescription))
                 _ = _historyService.LogHistoryAsync(trackedTask.Id, currentUser.Id, "Update", changeDescription);
 
-            _ = NotifyTaskChangeAsync(trackedTask, currentUser, "更新");
+            _ = NotifyTaskChangeAsync(trackedTask, currentUser, "更新", _appShutdownTokenSource.Token);
 
             return trackedTask;
         }
-        catch (DbUpdateConcurrencyException ex)
+        catch (DbUpdateConcurrencyException)
         {
-            throw new Exception("資料已被他人修改，請重新整理後再試。", ex);
+            throw new Exception("資料已被他人修改，請重新整理後再試。");
         }
+    }
+
+    /// <summary>
+    /// Builds a human-readable string describing the changes made to a TodoItem.
+    /// It inspects the EF Core change tracker to find modified properties.
+    /// </summary>
+    /// <param name="entry">The EntityEntry for the tracked TodoItem.</param>
+    /// <returns>A string detailing all changes, or an empty string if no significant changes were detected.</returns>
+    private string BuildChangeDescription(Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<TodoItem> entry)
+    {
+        var descriptionBuilder = new StringBuilder();
+
+        foreach (var property in entry.Properties)
+        {
+            if (property.IsModified && property.Metadata.Name != nameof(TodoItem.LastModifiedDate))
+            {
+                var propertyName = property.Metadata.Name;
+                var originalValue = property.OriginalValue;
+                var currentValue = property.CurrentValue;
+
+                if (object.Equals(originalValue, currentValue)) continue;
+
+                switch (propertyName)
+                {
+                    case nameof(TodoItem.Title):
+                        descriptionBuilder.AppendLine("標題已修改。");
+                        break;
+                    case nameof(TodoItem.Comments):
+                        if (string.IsNullOrEmpty(originalValue as string))
+                            descriptionBuilder.AppendLine("已新增備註。");
+                        else if (string.IsNullOrEmpty(currentValue as string))
+                            descriptionBuilder.AppendLine("備註已被清空。");
+                        else
+                            descriptionBuilder.AppendLine("備註已修改。");
+                        break;
+
+                    case nameof(TodoItem.Status):
+                    case nameof(TodoItem.Priority):
+                        descriptionBuilder.AppendLine($"{GetFriendlyPropertyName(propertyName)} 從 '{originalValue}' 變更為 '{currentValue}'。");
+                        break;
+
+                    case nameof(TodoItem.DueDate):
+                        string originalDate = (originalValue as DateTime?)?.ToString("yyyy-MM-dd") ?? "無";
+                        string currentDate = (currentValue as DateTime?)?.ToString("yyyy-MM-dd") ?? "無";
+                        descriptionBuilder.AppendLine($"到期日從 '{originalDate}' 變更為 '{currentDate}'。");
+                        break;
+
+                    case nameof(TodoItem.AssignedToId):
+                        var originalAssignee = originalValue ?? "(未指派)";
+                        var currentAssignee = currentValue ?? "(未指派)";
+                        descriptionBuilder.AppendLine($"指派對象已變更 (從 ID: {originalAssignee} 到 ID: {currentAssignee})。");
+                        break;
+
+                    case nameof(TodoItem.Id):
+                    case nameof(TodoItem.CreatorId):
+                    case nameof(TodoItem.CreationDate):
+                        break;
+
+                    default:
+                        descriptionBuilder.AppendLine($"{propertyName} 已從 '{originalValue}' 變更為 '{currentValue}'。");
+                        break;
+                }
+            }
+        }
+        return descriptionBuilder.ToString().Trim();
+    }
+
+    /// <summary>
+    /// A simple helper to get a friendly, localized name for a property.
+    /// </summary>
+    private string GetFriendlyPropertyName(string propertyName)
+    {
+        return propertyName switch
+        {
+            nameof(TodoItem.Status) => "狀態",
+            nameof(TodoItem.Priority) => "優先級",
+            _ => propertyName
+        };
     }
 
     public async Task<TodoItem> UpdateTaskCommentsAsync(User currentUser, int taskId, string newComments)
@@ -224,9 +284,7 @@ public class TaskService : ITaskService
             .FirstOrDefaultAsync(t => t.Id == taskId);
 
         if (trackedTask is null)
-        {
             throw new DbUpdateConcurrencyException($"操作失敗：找不到 ID 為 {taskId} 的任務。");
-        }
 
         trackedTask.Comments = newComments;
         trackedTask.LastModifiedDate = DateTime.Now;
@@ -236,7 +294,7 @@ public class TaskService : ITaskService
             await _context.SaveChangesAsync();
 
             _ = _historyService.LogHistoryAsync(taskId, currentUser.Id, "Update", "備註已修改。");
-            _ = NotifyTaskChangeAsync(trackedTask, currentUser, "更新");
+            _ = NotifyTaskChangeAsync(trackedTask, currentUser, "更新", _appShutdownTokenSource.Token);
 
             return trackedTask;
         }
@@ -259,7 +317,7 @@ public class TaskService : ITaskService
         _context.TodoItems.Remove(taskToDelete);
         await _context.SaveChangesAsync();
         _ = _historyService.LogHistoryAsync(tombstone.Id, currentUser.Id, "Delete", $"任務 '{tombstone.Title}' 已被刪除。");
-        _ = NotifyTaskChangeTombstoneAsync(tombstone, currentUser, "刪除");
+        _ = NotifyTaskChangeTombstoneAsync(tombstone, currentUser, "刪除", _appShutdownTokenSource.Token);
     }
 
     public async Task<Dictionary<User, List<TodoItem>>> GetTasksGroupedByUserAsync()
@@ -347,20 +405,20 @@ public class TaskService : ITaskService
     /// <param name="task">The task that was changed. It should have navigation properties loaded if needed.</param>
     /// <param name="currentUser">The user who performed the action.</param>
     /// <param name="action">The action performed (e.g., "建立", "更新").</param>
-    private async Task NotifyTaskChangeAsync(TodoItem task, User currentUser, string action)
+    private async Task NotifyTaskChangeAsync(TodoItem task, User currentUser, string action, CancellationToken cancellationToken)
     {
+        return;
         try
         {
+            if (cancellationToken.IsCancellationRequested) return;
             var subject = $"任務通知: '{task.Title}' 已被{action}";
             var body = BuildEmailBody(task, currentUser, action);
 
             if (currentUser.Role == UserRole.Admin)
             {
                 // If an admin makes a change, notify the person the task is assigned to.
-                if (task.AssignedTo?.Email != null)
-                {
-                    await _emailService.SendEmailAsync(task.AssignedTo.Email, subject, body);
-                }
+                if (task.AssignedTo?.Email is not null)
+                    await _emailService.SendEmailAsync(task.AssignedTo.Email, subject, body, cancellationToken);
             }
             else // A regular user made the change.
             {
@@ -369,7 +427,7 @@ public class TaskService : ITaskService
                     .Where(u => u.Role == UserRole.Admin && !string.IsNullOrEmpty(u.Email));
 
                 var notificationTasks = admins.Select(admin =>
-                    _emailService.SendEmailAsync(admin.Email!, subject, body)
+                    _emailService.SendEmailAsync(admin.Email!, subject, body, cancellationToken)
                 );
                 await Task.WhenAll(notificationTasks);
             }
@@ -386,8 +444,9 @@ public class TaskService : ITaskService
     /// <param name="deletedTask">The task object right before it was deleted (a "tombstone").</param>
     /// <param name="currentUser">The user who performed the deletion.</param>
     /// <param name="action">The action performed (typically "刪除").</param>
-    private async Task NotifyTaskChangeTombstoneAsync(TodoItem deletedTask, User currentUser, string action)
+    private async Task NotifyTaskChangeTombstoneAsync(TodoItem deletedTask, User currentUser, string action, CancellationToken cancellationToken)
     {
+        return;
         try
         {
             var subject = $"任務通知: '{deletedTask.Title}' 已被{action}";
@@ -403,7 +462,7 @@ public class TaskService : ITaskService
 
                     if (assignee?.Email != null)
                     {
-                        await _emailService.SendEmailAsync(assignee.Email, subject, body);
+                        await _emailService.SendEmailAsync(assignee.Email, subject, body, cancellationToken);
                     }
                 }
             }

@@ -589,6 +589,7 @@ public partial class MainForm : Form
 
     private async void DgvTasks_CellValueChanged(object? sender, DataGridViewCellEventArgs e)
     {
+        var cancellationToken = Program.AppShutdownTokenSource.Token;
         if (_isUpdatingUI || e.RowIndex < 0) return;
 
         var columnName = dgvTasks.Columns[e.ColumnIndex].Name;
@@ -600,10 +601,16 @@ public partial class MainForm : Form
         {
             SetLoadingState(true);
             await _taskService.UpdateTaskAsync(_currentUser, changedTask);
+            if (cancellationToken.IsCancellationRequested) return;
             ApplySort();
+        }
+        catch (OperationCanceledException ex)
+        {
+            Program.HandleException(ex, "CellValueChanged operation was cancelled due to application shutdown.");
         }
         catch (Exception ex)
         {
+            Program.HandleException(ex, "更新任務狀態時發生錯誤");
             MessageBox.Show($"更新任務狀態時發生錯誤: {ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
             await LoadTasksAsync();
         }
@@ -753,6 +760,7 @@ public partial class MainForm : Form
         }
         catch (Exception ex)
         {
+            Program.HandleException(ex, "資料已被他人修改，請重新整理後再試。");
             MessageBox.Show($"儲存備註時發生錯誤: {ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
         finally

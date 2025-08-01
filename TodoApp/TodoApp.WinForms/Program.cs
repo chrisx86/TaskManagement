@@ -13,6 +13,7 @@ namespace TodoApp.WinForms;
 
 internal static class Program
 {
+    internal static readonly CancellationTokenSource AppShutdownTokenSource = new();
     [STAThread]
     static void Main()
     {
@@ -25,7 +26,6 @@ internal static class Program
 
         ApplicationConfiguration.Initialize();
 
-        // Clean Application Startup Flow
         using (var serviceScope = services.CreateScope())
         {
             var scopedServices = serviceScope.ServiceProvider;
@@ -34,11 +34,25 @@ internal static class Program
                 var loginForm = scopedServices.GetRequiredService<LoginForm>();
 
                 if (loginForm.ShowDialog() == DialogResult.OK)
-                    Application.Run(scopedServices.GetRequiredService<MainForm>());
+                {
+                    var mainForm = scopedServices.GetRequiredService<MainForm>();
+
+                    mainForm.FormClosing += (s, e) =>
+                    {
+                        if (AppShutdownTokenSource.IsCancellationRequested) return;
+                        AppShutdownTokenSource.Cancel();
+                    };
+
+                    Application.Run(mainForm);
+                }
             }
             catch (Exception ex)
             {
                 HandleException(ex, "Application Startup");
+            }
+            finally
+            {
+                AppShutdownTokenSource.Dispose();
             }
         }
     }
@@ -69,9 +83,8 @@ internal static class Program
 
         string? connectionString = configuration.GetConnectionString("DefaultConnection");
         if (string.IsNullOrEmpty(connectionString))
-        {
             throw new InvalidOperationException("Fatal: ConnectionString is not configured.");
-        }
+
         services.AddDbContext<AppDbContext>(options =>
             options.UseSqlite(connectionString),
             ServiceLifetime.Transient);
@@ -89,14 +102,15 @@ internal static class Program
         services.AddTransient<TaskDetailDialog>();
         services.AddTransient<UserManagementDialog>();
         services.AddTransient<AdminDashboardForm>();
+        services.AddSingleton<CancellationTokenSource>();
     }
 
     /// <summary>
     /// Handles all unhandled exceptions gracefully.
     /// </summary>
-    private static void HandleException(Exception? ex, string source)
+    public static void HandleException(Exception? ex, string source)
     {
-        if (ex == null) return;
+        if (ex is null) return;
 
         try
         {
