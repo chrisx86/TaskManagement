@@ -151,53 +151,68 @@ public class TaskService : ITaskService
         return await GetTaskByIdAsync(newTask.Id) ?? newTask;
     }
 
+    /// <summary>
+    /// Updates an existing to-do item, handling concurrency and logging detailed changes.
+    /// </summary>
     public async Task<TodoItem> UpdateTaskAsync(User currentUser, TodoItem taskFromUI)
     {
-        var trackedTask = await _context.TodoItems.FindAsync(taskFromUI.Id);
-        if (trackedTask is null)
-        {
-            throw new DbUpdateConcurrencyException($"操作失敗：找不到 ID 為 {taskFromUI.Id} 的任務。");
-        }
+        var trackedTask = await _context.TodoItems
+            .Include(t => t.Creator)
+            .Include(t => t.AssignedTo)
+            .FirstOrDefaultAsync(t => t.Id == taskFromUI.Id);
 
-        if (trackedTask.LastModifiedDate != taskFromUI.LastModifiedDate)
-        {
-            throw new DbUpdateConcurrencyException("資料已被他人修改，請重新整理後再試。");
-        }
+        if (trackedTask is null)
+            throw new DbUpdateConcurrencyException($"操作失敗：找不到 ID 為 {taskFromUI.Id} 的任務，它可能已被刪除。");
+
         var descriptionBuilder = new StringBuilder();
-        var originalValues = _context.Entry(trackedTask).OriginalValues;
-        // Compare Status
-        if (originalValues.GetValue<TodoStatus>(nameof(TodoItem.Status)) != taskFromUI.Status)
-            descriptionBuilder.AppendLine($"狀態從 '{originalValues.GetValue<TodoStatus>(nameof(TodoItem.Status))}' 變更為 '{taskFromUI.Status}'。");
-        // Compare Priority
-        if (originalValues.GetValue<PriorityLevel>(nameof(TodoItem.Priority)) != taskFromUI.Priority)
-            descriptionBuilder.AppendLine($"優先級從 '{originalValues.GetValue<PriorityLevel>(nameof(TodoItem.Priority))}' 變更為 '{taskFromUI.Priority}'。");
-        // Compare Title
-        if (originalValues.GetValue<string>(nameof(TodoItem.Title)) != taskFromUI.Title)
-            descriptionBuilder.AppendLine("標題已修改。");
-        // Compare Comments
-        if (originalValues.GetValue<string>(nameof(TodoItem.Comments)) != taskFromUI.Comments)
-            descriptionBuilder.AppendLine("備註已修改。");
-        // Compare DueDate
-        if (originalValues.GetValue<DateTime?>(nameof(TodoItem.DueDate)) != taskFromUI.DueDate)
-            descriptionBuilder.AppendLine($"到期日已變更為 '{taskFromUI.DueDate:yyyy-MM-dd}'。");
-        // Compare AssignedToId
-        if (originalValues.GetValue<int?>(nameof(TodoItem.AssignedToId)) != taskFromUI.AssignedToId)
-            descriptionBuilder.AppendLine($"指派對象已變更。");
-        var changeDescription = descriptionBuilder.ToString();
-        _context.Entry(trackedTask).CurrentValues.SetValues(taskFromUI);
+        var entry = _context.Entry(trackedTask);
+
+        entry.CurrentValues.SetValues(taskFromUI);
+
+        foreach (var property in entry.Properties)
+        {
+            if (property.IsModified)
+            {
+                var propertyName = property.Metadata.Name;
+                var originalValue = property.OriginalValue;
+                var currentValue = property.CurrentValue;
+
+                switch (propertyName)
+                {
+                    case "Title":
+                    case "Comments":
+                        descriptionBuilder.AppendLine($"{propertyName} 已修改。");
+                        break;
+                    case "DueDate":
+                        descriptionBuilder.AppendLine($"到期日從 '{originalValue:yyyy-MM-dd}' 變更為 '{currentValue:yyyy-MM-dd}'。");
+                        break;
+                    case "AssignedToId":
+                        descriptionBuilder.AppendLine("指派對象已變更。");
+                        break;
+                    default:
+                        descriptionBuilder.AppendLine($"{propertyName} 從 '{originalValue}' 變更為 '{currentValue}'。");
+                        break;
+                }
+            }
+        }
+        var changeDescription = descriptionBuilder.ToString().Trim();
+
         trackedTask.LastModifiedDate = DateTime.Now;
 
         try
         {
             await _context.SaveChangesAsync();
-            if (!string.IsNullOrWhiteSpace(changeDescription))
-                _ = _historyService.LogHistoryAsync(trackedTask.Id, currentUser.Id, "Update", changeDescription.Trim());
+
+            if (!string.IsNullOrEmpty(changeDescription))
+                _ = _historyService.LogHistoryAsync(trackedTask.Id, currentUser.Id, "Update", changeDescription);
+
             _ = NotifyTaskChangeAsync(trackedTask, currentUser, "更新");
+
             return trackedTask;
         }
         catch (DbUpdateConcurrencyException ex)
         {
-            throw new Exception("儲存時發生並行衝突，請重試。", ex);
+            throw new Exception("資料已被他人修改，請重新整理後再試。", ex);
         }
     }
 
