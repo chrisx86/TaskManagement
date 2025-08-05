@@ -15,7 +15,7 @@ internal static class Program
 {
     internal static readonly CancellationTokenSource AppShutdownTokenSource = new();
     [STAThread]
-    static void Main()
+    static async Task Main()
     {
         var host = CreateHostBuilder().Build();
         var services = host.Services;
@@ -29,20 +29,27 @@ internal static class Program
         using (var serviceScope = services.CreateScope())
         {
             var scopedServices = serviceScope.ServiceProvider;
+            var loginSuccess = false;
             try
             {
-                var loginForm = scopedServices.GetRequiredService<LoginForm>();
+                loginSuccess = await TryAutoLoginAsync(scopedServices);
 
-                if (loginForm.ShowDialog() == DialogResult.OK)
+                if (!loginSuccess)
+                {
+                    var loginForm = scopedServices.GetRequiredService<LoginForm>();
+                    loginSuccess = loginForm.ShowDialog() == DialogResult.OK;
+                }
+
+                if (loginSuccess)
                 {
                     var mainForm = scopedServices.GetRequiredService<MainForm>();
 
+                    // Wire up the FormClosing event to our single, resolved mainForm instance.
                     mainForm.FormClosing += (s, e) =>
                     {
-                        if (AppShutdownTokenSource.IsCancellationRequested) return;
-                        AppShutdownTokenSource.Cancel();
+                        if (!AppShutdownTokenSource.IsCancellationRequested)
+                            AppShutdownTokenSource.Cancel();
                     };
-
                     Application.Run(mainForm);
                 }
             }
@@ -98,12 +105,12 @@ internal static class Program
         services.AddTransient<IEmailService, EmailService>();
         services.AddTransient<ITaskHistoryService, TaskHistoryService>();
 
-
         services.AddTransient<LoginForm>();
         services.AddTransient<MainForm>();
         services.AddTransient<TaskDetailDialog>();
         services.AddTransient<UserManagementDialog>();
         services.AddTransient<AdminDashboardForm>();
+        services.AddSingleton<LocalCredentialManager>();
         services.AddSingleton(AppShutdownTokenSource);
     }
 
@@ -136,11 +143,31 @@ internal static class Program
                 "Critical System Failure", MessageBoxButtons.OK, MessageBoxIcon.Stop);
         }
 
-        const string friendlyMessage = "應用程式發生未預期的錯誤，即將關閉。\n\n" +
+        var friendlyMessage = "應用程式發生未預期的錯誤，即將關閉。\n\n" +
                                        "詳細資訊已記錄供開發團隊參考。";
         MessageBox.Show(friendlyMessage, "系統錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
         try { Application.Exit(); }
         catch { Environment.Exit(1); }
+    }
+    private static async Task<bool> TryAutoLoginAsync(IServiceProvider services)
+    {
+        var credentialManager = services.GetRequiredService<LocalCredentialManager>();
+        var credentials = credentialManager.TryLoadCredentials();
+
+        if (credentials.HasValue)
+        {
+            var (username, token) = credentials.Value;
+            var userService = services.GetRequiredService<IUserService>();
+            var userContext = services.GetRequiredService<IUserContext>();
+
+            var user = await userService.AuthenticateByTokenAsync(username, token);
+            if (user is not null)
+            {
+                userContext.SetCurrentUser(user);
+                return true;
+            }
+        }
+        return false;
     }
 }

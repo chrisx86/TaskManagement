@@ -132,31 +132,52 @@ public class UserService : IUserService
         return rawToken;
     }
 
+    /// <summary>
+    /// Authenticates a user based on their username and a long-lived login token,
+    /// and slides the token's expiration date upon success.
+    /// </summary>
+    /// <param name="username">The user's username.</param>
+    /// <param name="token">The raw, unhashed login token provided by the client.</param>
+    /// <returns>A Task that represents the asynchronous operation.
+    /// The task result contains the User object if authentication is successful; otherwise, null.</returns>
     public async Task<User?> AuthenticateByTokenAsync(string username, string token)
     {
-        // --- This query MUST be tracked to allow for sliding expiration updates. ---
+        // --- Step 1: Find the user. ---
+        // IMPORTANT: This query MUST be tracked to allow for updates. Do NOT use AsNoTracking().
         var user = await _context.Users
             .FirstOrDefaultAsync(u => EF.Functions.Like(u.Username, username));
 
-        // --- Perform all validation checks ---
-        if (user is null ||
+        // --- Step 2: Perform all validation checks in a single block. ---
+        if (user == null ||
             string.IsNullOrEmpty(user.LoginTokenHash) ||
-            user.LoginTokenExpiryDate < DateTime.Now)
+            user.LoginTokenExpiryDate < DateTime.Now ||
+            !PasswordHasher.VerifyPassword(token, user.LoginTokenHash))
         {
-            // User not found, no token stored, or token has expired.
+            // If any check fails (user not found, no token, token expired, or token mismatch),
+            // authentication fails.
             return null;
         }
 
-        // Verify the provided token against the stored hash.
-        if (!PasswordHasher.VerifyPassword(token, user.LoginTokenHash)) return null;
+        // --- Step 3: SLIDING EXPIRATION LOGIC ---
+        // If all checks passed, authentication is successful.
+        // We now "slide" the expiration date forward.
+        user.LoginTokenExpiryDate = DateTime.Now.AddDays(30);
 
-        // --- All checks passed, authentication is successful. ---
+        // Also update the last login time for consistency.
+        user.LoginTime = DateTime.Now;
 
-        // --- Optional: Implement Sliding Expiration (Strategy B) ---
-        // If you want the token to be refreshed on each successful auto-login:
-        // user.LoginTokenExpiryDate = DateTime.Now.AddDays(30);
-        // await _context.SaveChangesAsync();
-
+        try
+        {
+            // Save the updated expiration date and login time to the database.
+            await _context.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            // If updating the expiry date fails, we should log it for diagnostics.
+            // However, we should NOT prevent the user from logging in, as the primary
+            // authentication was successful.
+            System.Diagnostics.Debug.WriteLine($"[WARNING] Failed to slide token expiration for user '{username}': {ex.Message}");
+        }
         return user;
     }
 }

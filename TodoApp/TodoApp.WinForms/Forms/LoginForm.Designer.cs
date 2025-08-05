@@ -6,7 +6,7 @@
         /// Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
-
+        private System.Windows.Forms.CheckBox chkRememberMe;
         /// <summary>
         /// Clean up any resources being used.
         /// </summary>
@@ -34,6 +34,7 @@
             txtPassword = new TextBox();
             btnLogin = new Button();
             btnCancel = new Button();
+            chkRememberMe = new CheckBox();
             SuspendLayout();
             // 
             // lblUsername
@@ -89,6 +90,17 @@
             btnCancel.UseVisualStyleBackColor = true;
             btnCancel.Click += BtnCancel_Click;
             // 
+            // chkRememberMe
+            // 
+            chkRememberMe.AutoSize = true;
+            chkRememberMe.Location = new Point(35, 119);
+            chkRememberMe.Name = "chkRememberMe";
+            chkRememberMe.Size = new Size(62, 19);
+            chkRememberMe.TabIndex = 4;
+            chkRememberMe.Text = "記住我";
+            chkRememberMe.Checked = true;
+            chkRememberMe.UseVisualStyleBackColor = true;
+            // 
             // LoginForm
             // 
             AcceptButton = btnLogin;
@@ -102,6 +114,7 @@
             Controls.Add(lblPassword);
             Controls.Add(txtUsername);
             Controls.Add(lblUsername);
+            Controls.Add(chkRememberMe);
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             MinimizeBox = false;

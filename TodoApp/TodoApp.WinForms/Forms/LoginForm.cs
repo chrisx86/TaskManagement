@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using TodoApp.Core.Models;
 using TodoApp.Core.Services;
+using TodoApp.Infrastructure.Services;
 
 namespace TodoApp.WinForms.Forms
 {
@@ -8,6 +9,7 @@ namespace TodoApp.WinForms.Forms
     {
         private readonly IUserService _userService;
         private readonly IUserContext _userContext;
+        private readonly LocalCredentialManager _credentialManager;
         /// <summary>
         /// Property to hold the authenticated user after a successful login.
         /// The main application can access this property to get the user info.
@@ -18,11 +20,13 @@ namespace TodoApp.WinForms.Forms
         /// Constructor for LoginForm. It receives the IUserService via dependency injection.
         /// </summary>
         /// <param name="userService">The user service implementation.</param>
-        public LoginForm(IUserService userService, IUserContext userContext)
+        public LoginForm(IUserService userService, IUserContext userContext, LocalCredentialManager credentialManager)
         {
             InitializeComponent();
             _userService = userService;
             _userContext = userContext;
+            _credentialManager = credentialManager;
+            this.btnLogin.Click += BtnLogin_Click;
         }
 
         private void LoginForm_Load(object sender, EventArgs e)
@@ -57,12 +61,16 @@ namespace TodoApp.WinForms.Forms
                 if (authenticatedUser is not null)
                 {
                     _userContext.SetCurrentUser(authenticatedUser);
-
-                    this.AuthenticatedUser = authenticatedUser;
-
-                    authenticatedUser.LoginTime = DateTime.Now;
-                    await _userService.UpdateUserAsync(authenticatedUser);
-
+                    if (chkRememberMe.Checked)
+                    {
+                        var token = await _userService.GenerateAndStoreLoginTokenAsync(authenticatedUser.Id);
+                        if (token is not null)
+                            _credentialManager.SaveCredentials(authenticatedUser.Username, token);
+                    }
+                    else
+                    {
+                        _credentialManager.ClearCredentials();
+                    }
                     this.DialogResult = DialogResult.OK;
                     this.Close();
                 }
