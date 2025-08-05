@@ -8,6 +8,7 @@ using TodoApp.Core.Services;
 using TodoApp.Infrastructure.Data;
 using TodoApp.Infrastructure.Services;
 using TodoApp.WinForms.Forms;
+using Microsoft.Data.Sqlite;
 
 namespace TodoApp.WinForms;
 
@@ -17,6 +18,11 @@ internal static class Program
     [STAThread]
     static async Task Main()
     {
+        // Before building the host or doing anything else, ensure that any lingering
+        // SQLite connections from a previous crash are cleared from the connection pool.
+        // This helps release locks on the .db-shm and .db-wal files.
+        ClearAllSqlitePools();
+
         var host = CreateHostBuilder().Build();
         var services = host.Services;
 
@@ -48,7 +54,10 @@ internal static class Program
                     mainForm.FormClosing += (s, e) =>
                     {
                         if (!AppShutdownTokenSource.IsCancellationRequested)
+                        {
                             AppShutdownTokenSource.Cancel();
+                            ClearAllSqlitePools();
+                        }
                     };
                     Application.Run(mainForm);
                 }
@@ -147,8 +156,13 @@ internal static class Program
                                        "詳細資訊已記錄供開發團隊參考。";
         MessageBox.Show(friendlyMessage, "系統錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
-        try { Application.Exit(); }
-        catch { Environment.Exit(1); }
+        try { 
+            Application.Exit();
+            ClearAllSqlitePools();
+        }
+        catch { 
+            Environment.Exit(1); 
+        }
     }
     private static async Task<bool> TryAutoLoginAsync(IServiceProvider services)
     {
@@ -169,5 +183,21 @@ internal static class Program
             }
         }
         return false;
+    }
+
+    /// <summary>
+    /// Clears all connection pools for the Microsoft.Data.Sqlite provider.
+    /// This is a robust way to handle "database is locked" errors after an application crash.
+    /// </summary>
+    private static void ClearAllSqlitePools()
+    {
+        try
+        {
+            SqliteConnection.ClearAllPools();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[INFO] Could not clear SQLite connection pools: {ex.Message}");
+        }
     }
 }
