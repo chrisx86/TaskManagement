@@ -309,7 +309,7 @@ public partial class MainForm : Form
             await Task.WhenAll(countTask, tasksTask);
             _totalTasks = await countTask;
             var tasks = await tasksTask;
-
+            await Task.Yield(); // A simple way to ensure we are back on the UI context.
             UpdatePaginationState();
             UpdateBindingList(tasks);
             UpdatePaginationUI();
@@ -581,6 +581,8 @@ public partial class MainForm : Form
             var columnName = dgvTasks.Columns[e.ColumnIndex].Name;
             if (columnName == "Status" || columnName == "Priority")
             {
+                var message = $"Thread Apartment State: {Thread.CurrentThread.GetApartmentState()}";
+                System.Diagnostics.Debug.WriteLine(message);
                 dgvTasks.BeginEdit(true);
                 if (dgvTasks.EditingControl is DataGridViewComboBoxEditingControl comboBox)
                     comboBox.DroppedDown = true;
