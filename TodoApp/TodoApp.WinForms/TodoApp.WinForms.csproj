@@ -12,7 +12,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
 
     <!-- Versioning and Icon (shared across all configurations) -->
-    <AssemblyVersion>1.5</AssemblyVersion>
+    <AssemblyVersion>1.6</AssemblyVersion>
     <ApplicationIcon>favicon.ico</ApplicationIcon>
 
     <!-- Build setting to avoid file lock issues during debugging -->

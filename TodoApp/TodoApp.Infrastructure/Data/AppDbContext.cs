@@ -62,7 +62,6 @@ public class AppDbContext : DbContext
             builder.Property(u => u.HashedPassword).IsRequired();
         });
 
-
         // --- TodoItem Entity Configuration ---
         modelBuilder.Entity<TodoItem>(builder =>
         {
@@ -74,19 +73,17 @@ public class AppDbContext : DbContext
 
             // Configure the relationship between TodoItem and User (Creator).
             // A TodoItem has one Creator, and a User can create many TodoItems.
-            builder.HasOne(t => t.Creator)
-                   .WithMany() // We don't need a navigation property on User for created items.
-                   .HasForeignKey(t => t.CreatorId)
-                   .OnDelete(DeleteBehavior.Restrict); // IMPORTANT: Prevents deleting a user if they have created tasks.
+            builder.HasOne(task => task.Creator)        // Each TodoItem has one Creator (a User)
+                    .WithMany(user => user.CreatedItems)   // Each User can have many CreatedItems
+                    .HasForeignKey(task => task.CreatorId) // The foreign key in TodoItem is CreatorId
+                    .OnDelete(DeleteBehavior.Restrict);    // On delete behavior
 
             // Configure the relationship between TodoItem and User (AssignedTo).
             // A TodoItem has one optional AssignedTo user, and a User can be assigned many TodoItems.
-            builder.HasOne(t => t.AssignedTo)
-                   .WithMany() // We don't need a navigation property on User for assigned items.
-                   .HasForeignKey(t => t.AssignedToId)
-                   .IsRequired(false) // This makes the foreign key nullable.
-                   .OnDelete(DeleteBehavior.SetNull); // IMPORTANT: If an assigned user is deleted, the task's AssignedToId becomes NULL.
-
+            builder.HasOne(task => task.AssignedTo)       // Each TodoItem has one (optional) AssignedTo (a User)
+                    .WithMany(user => user.AssignedItems)  // Each User can be assigned many AssignedItems
+                    .HasForeignKey(task => task.AssignedToId)// The foreign key in TodoItem is AssignedToId
+                    .OnDelete(DeleteBehavior.SetNull);     // On delete behavior
         });
 
         modelBuilder.Entity<TaskHistory>(builder =>

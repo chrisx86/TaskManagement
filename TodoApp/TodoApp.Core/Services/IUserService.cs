@@ -59,4 +59,21 @@ public interface IUserService
     /// <param name="newPassword">The new plain text password.</param>
     /// <returns>A Task representing the asynchronous operation.</returns>
     Task<bool> ResetPasswordAsync(int userId, string newPassword);
+
+    /// <summary>
+    /// Generates a new long-lived login token for a user, hashes it, and stores it in the database.
+    /// </summary>
+    /// <param name="userId">The ID of the user to generate a token for.</param>
+    /// <returns>A Task that represents the asynchronous operation. 
+    /// The task result contains the raw, unhashed login token string to be stored on the client.</returns>
+    Task<string?> GenerateAndStoreLoginTokenAsync(int userId);
+
+    /// <summary>
+    /// Authenticates a user based on their username and a long-lived login token.
+    /// </summary>
+    /// <param name="username">The user's username.</param>
+    /// <param name="token">The raw, unhashed login token provided by the client.</param>
+    /// <returns>A Task that represents the asynchronous operation.
+    /// The task result contains the User object if authentication is successful; otherwise, null.</returns>
+    Task<User?> AuthenticateByTokenAsync(string username, string token);
 }

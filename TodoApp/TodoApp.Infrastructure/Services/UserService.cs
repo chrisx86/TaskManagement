@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
 using TodoApp.Core.Models;
 using TodoApp.Core.Services;
 using TodoApp.Infrastructure.Data;
@@ -106,5 +107,56 @@ public class UserService : IUserService
             return true;
         }
         return false;
+    }
+
+    /// <inheritdoc />
+    public async Task<string?> GenerateAndStoreLoginTokenAsync(int userId)
+    {
+        // This query must be tracked to allow updates.
+        var user = await _context.Users.FindAsync(userId);
+        if (user is null) return null;
+
+        // 1. Generate a cryptographically secure, random token.
+        var rawTokenBytes = RandomNumberGenerator.GetBytes(64);
+        var rawToken = Convert.ToBase64String(rawTokenBytes);
+
+        // 2. Hash the token for secure storage in the database.
+        user.LoginTokenHash = PasswordHasher.HashPassword(rawToken);
+
+        // 3. Set the expiration date (e.g., 30 days from now).
+        user.LoginTokenExpiryDate = DateTime.Now.AddDays(30);
+
+        await _context.SaveChangesAsync();
+
+        // 4. Return the raw, unhashed token to the client. The client never sees the hash.
+        return rawToken;
+    }
+
+    public async Task<User?> AuthenticateByTokenAsync(string username, string token)
+    {
+        // --- This query MUST be tracked to allow for sliding expiration updates. ---
+        var user = await _context.Users
+            .FirstOrDefaultAsync(u => EF.Functions.Like(u.Username, username));
+
+        // --- Perform all validation checks ---
+        if (user is null ||
+            string.IsNullOrEmpty(user.LoginTokenHash) ||
+            user.LoginTokenExpiryDate < DateTime.Now)
+        {
+            // User not found, no token stored, or token has expired.
+            return null;
+        }
+
+        // Verify the provided token against the stored hash.
+        if (!PasswordHasher.VerifyPassword(token, user.LoginTokenHash)) return null;
+
+        // --- All checks passed, authentication is successful. ---
+
+        // --- Optional: Implement Sliding Expiration (Strategy B) ---
+        // If you want the token to be refreshed on each successful auto-login:
+        // user.LoginTokenExpiryDate = DateTime.Now.AddDays(30);
+        // await _context.SaveChangesAsync();
+
+        return user;
     }
 }
