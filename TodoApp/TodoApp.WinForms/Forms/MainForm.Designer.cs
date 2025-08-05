@@ -86,7 +86,7 @@ namespace TodoApp.WinForms.Forms
             toolStrip1.Items.AddRange(new ToolStripItem[] { tsbNewTask, tsbEditTask, tsbDeleteTask, toolStripSeparator1, tsbRefresh, toolStripSeparator2, tsbUserManagement, tsbAdminDashboard, toolStripSeparator3, tsbSwitchUser, tsbChangePassword });
             toolStrip1.Location = new Point(0, 0);
             toolStrip1.Name = "toolStrip1";
-            toolStrip1.Size = new Size(1235, 25);
+            toolStrip1.Size = new Size(1207, 25);
             toolStrip1.TabIndex = 0;
             toolStrip1.Text = "toolStrip1";
             // 
@@ -174,7 +174,7 @@ namespace TodoApp.WinForms.Forms
             statusStrip1.Location = new Point(0, 578);
             statusStrip1.Name = "statusStrip1";
             statusStrip1.Padding = new Padding(1, 0, 16, 0);
-            statusStrip1.Size = new Size(1235, 22);
+            statusStrip1.Size = new Size(1207, 22);
             statusStrip1.TabIndex = 1;
             statusStrip1.Text = "statusStrip1";
             // 
@@ -199,7 +199,7 @@ namespace TodoApp.WinForms.Forms
             panelFilters.Location = new Point(0, 25);
             panelFilters.Margin = new Padding(4, 3, 4, 3);
             panelFilters.Name = "panelFilters";
-            panelFilters.Size = new Size(1235, 40);
+            panelFilters.Size = new Size(1207, 40);
             panelFilters.TabIndex = 2;
             // 
             // lblFilterByAssignedUser
@@ -293,7 +293,7 @@ namespace TodoApp.WinForms.Forms
             panelPagination.Location = new Point(0, 533);
             panelPagination.Margin = new Padding(4, 3, 4, 3);
             panelPagination.Name = "panelPagination";
-            panelPagination.Size = new Size(1235, 45);
+            panelPagination.Size = new Size(1207, 45);
             panelPagination.TabIndex = 4;
             // 
             // lblPageSize
@@ -391,7 +391,7 @@ namespace TodoApp.WinForms.Forms
             // 
             splitContainerMain.Panel2.Controls.Add(btnSaveChanges);
             splitContainerMain.Panel2.Controls.Add(txtCommentsPreview);
-            splitContainerMain.Size = new Size(1235, 468);
+            splitContainerMain.Size = new Size(1207, 468);
             splitContainerMain.SplitterDistance = 358;
             splitContainerMain.TabIndex = 5;
             // 
@@ -416,14 +416,14 @@ namespace TodoApp.WinForms.Forms
             dgvTasks.Name = "dgvTasks";
             dgvTasks.RowHeadersVisible = false;
             dgvTasks.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvTasks.Size = new Size(1235, 358);
+            dgvTasks.Size = new Size(1207, 358);
             dgvTasks.TabIndex = 3;
             // 
             // btnSaveChanges
             // 
             btnSaveChanges.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             btnSaveChanges.Enabled = false;
-            btnSaveChanges.Location = new Point(1133, 77);
+            btnSaveChanges.Location = new Point(1164, 77);
             btnSaveChanges.Margin = new Padding(4, 3, 4, 3);
             btnSaveChanges.Name = "btnSaveChanges";
             btnSaveChanges.Size = new Size(88, 23);
@@ -441,14 +441,14 @@ namespace TodoApp.WinForms.Forms
             txtCommentsPreview.Multiline = true;
             txtCommentsPreview.Name = "txtCommentsPreview";
             txtCommentsPreview.ScrollBars = ScrollBars.Vertical;
-            txtCommentsPreview.Size = new Size(1235, 106);
+            txtCommentsPreview.Size = new Size(1207, 106);
             txtCommentsPreview.TabIndex = 0;
             // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1235, 600);
+            ClientSize = new Size(1207, 600);
             Controls.Add(splitContainerMain);
             Controls.Add(panelPagination);
             Controls.Add(panelFilters);

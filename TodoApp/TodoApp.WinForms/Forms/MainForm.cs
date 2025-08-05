@@ -6,6 +6,7 @@ using TodoApp.Core.Models;
 using TodoApp.Core.Services;
 using TodoApp.WinForms.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
+using TodoApp.Infrastructure.Services;
 
 namespace TodoApp.WinForms.Forms;
 
@@ -17,6 +18,7 @@ public partial class MainForm : Form
     private readonly IUserService _userService;
     private readonly IUserContext _userContext;
     private readonly User _currentUser;
+    private readonly LocalCredentialManager _credentialManager;
     private readonly Font _regularFont;
     private readonly Font _boldFont;
     private readonly Font _strikeoutFont;
@@ -48,7 +50,8 @@ public partial class MainForm : Form
         IServiceProvider serviceProvider,
         ITaskService taskService,
         IUserService userService,
-        IUserContext userContext)
+        IUserContext userContext,
+        LocalCredentialManager credentialManager)
     {
         InitializeComponent();
 
@@ -56,6 +59,7 @@ public partial class MainForm : Form
         _taskService = taskService;
         _userService = userService;
         _userContext = userContext;
+        _credentialManager = credentialManager;
 
         _currentUser = _userContext.CurrentUser
             ?? throw new InvalidOperationException("Cannot open MainForm without a logged-in user.");
@@ -891,11 +895,23 @@ public partial class MainForm : Form
         }
     }
 
-    private void TsbSwitchUser_Click(object? sender, EventArgs e)
+    private async void TsbSwitchUser_Click(object? sender, EventArgs e)
     {
         var confirmResult = MessageBox.Show("您確定要登出並切換使用者嗎？", "確認登出", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-        if (confirmResult == DialogResult.Yes) 
+        if (confirmResult == DialogResult.Yes)
+        {
+            try
+            {
+                _credentialManager.ClearCredentials();
+                if (_currentUser is not null)
+                    await _userService.LogoutAsync(_currentUser.Id);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[ERROR] Failed to clear credentials during logout: {ex.Message}");
+            }
             Application.Restart();
+        }
     }
 
     private async void TsbRefresh_Click(object? sender, EventArgs e)

@@ -109,26 +109,20 @@ public class UserService : IUserService
         return false;
     }
 
-    /// <inheritdoc />
     public async Task<string?> GenerateAndStoreLoginTokenAsync(int userId)
     {
-        // This query must be tracked to allow updates.
         var user = await _context.Users.FindAsync(userId);
         if (user is null) return null;
 
-        // 1. Generate a cryptographically secure, random token.
         var rawTokenBytes = RandomNumberGenerator.GetBytes(64);
         var rawToken = Convert.ToBase64String(rawTokenBytes);
 
-        // 2. Hash the token for secure storage in the database.
         user.LoginTokenHash = PasswordHasher.HashPassword(rawToken);
 
-        // 3. Set the expiration date (e.g., 30 days from now).
-        user.LoginTokenExpiryDate = DateTime.Now.AddDays(30);
+        user.LoginTokenExpiryDate = DateTime.Now.AddDays(15);
 
         await _context.SaveChangesAsync();
 
-        // 4. Return the raw, unhashed token to the client. The client never sees the hash.
         return rawToken;
     }
 
@@ -142,42 +136,48 @@ public class UserService : IUserService
     /// The task result contains the User object if authentication is successful; otherwise, null.</returns>
     public async Task<User?> AuthenticateByTokenAsync(string username, string token)
     {
-        // --- Step 1: Find the user. ---
-        // IMPORTANT: This query MUST be tracked to allow for updates. Do NOT use AsNoTracking().
         var user = await _context.Users
             .FirstOrDefaultAsync(u => EF.Functions.Like(u.Username, username));
 
-        // --- Step 2: Perform all validation checks in a single block. ---
-        if (user == null ||
+        if (user is null ||
             string.IsNullOrEmpty(user.LoginTokenHash) ||
             user.LoginTokenExpiryDate < DateTime.Now ||
             !PasswordHasher.VerifyPassword(token, user.LoginTokenHash))
         {
-            // If any check fails (user not found, no token, token expired, or token mismatch),
-            // authentication fails.
             return null;
         }
 
-        // --- Step 3: SLIDING EXPIRATION LOGIC ---
-        // If all checks passed, authentication is successful.
-        // We now "slide" the expiration date forward.
-        user.LoginTokenExpiryDate = DateTime.Now.AddDays(30);
+        user.LoginTokenExpiryDate = DateTime.Now.AddDays(15);
 
-        // Also update the last login time for consistency.
         user.LoginTime = DateTime.Now;
 
         try
         {
-            // Save the updated expiration date and login time to the database.
             await _context.SaveChangesAsync();
         }
         catch (Exception ex)
         {
-            // If updating the expiry date fails, we should log it for diagnostics.
-            // However, we should NOT prevent the user from logging in, as the primary
-            // authentication was successful.
             System.Diagnostics.Debug.WriteLine($"[WARNING] Failed to slide token expiration for user '{username}': {ex.Message}");
         }
         return user;
+    }
+
+    public async Task LogoutAsync(int userId)
+    {
+        var user = await _context.Users.FindAsync(userId);
+
+        if (user is not null && user.LoginTokenHash is not null)
+        {
+            try
+            {
+                user.LoginTokenHash = null;
+                user.LoginTokenExpiryDate = null;
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[ERROR] Failed to invalidate token on server for user ID {userId}: {ex.Message}");
+            }
+        }
     }
 }

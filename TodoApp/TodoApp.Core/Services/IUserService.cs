@@ -76,4 +76,12 @@ public interface IUserService
     /// <returns>A Task that represents the asynchronous operation.
     /// The task result contains the User object if authentication is successful; otherwise, null.</returns>
     Task<User?> AuthenticateByTokenAsync(string username, string token);
+
+    /// <summary>
+    /// Invalidates any active long-lived login token for a specific user.
+    /// This is a crucial security step for a logout or "switch user" feature.
+    /// </summary>
+    /// <param name="userId">The ID of the user to log out.</param>
+    /// <returns>A Task representing the asynchronous operation.</returns>
+    Task LogoutAsync(int userId);
 }
