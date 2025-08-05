@@ -134,10 +134,10 @@ public class UserService : IUserService
     /// <param name="token">The raw, unhashed login token provided by the client.</param>
     /// <returns>A Task that represents the asynchronous operation.
     /// The task result contains the User object if authentication is successful; otherwise, null.</returns>
-    public async Task<User?> AuthenticateByTokenAsync(string username, string token)
+    public User? AuthenticateByToken(string username, string token)
     {
-        var user = await _context.Users
-            .FirstOrDefaultAsync(u => EF.Functions.Like(u.Username, username));
+        var user = _context.Users
+            .FirstOrDefault(u => EF.Functions.Like(u.Username, username));
 
         if (user is null ||
             string.IsNullOrEmpty(user.LoginTokenHash) ||
@@ -153,7 +153,7 @@ public class UserService : IUserService
 
         try
         {
-            await _context.SaveChangesAsync();
+            _context.SaveChangesAsync();
         }
         catch (Exception ex)
         {

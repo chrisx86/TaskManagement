@@ -75,7 +75,7 @@ public interface IUserService
     /// <param name="token">The raw, unhashed login token provided by the client.</param>
     /// <returns>A Task that represents the asynchronous operation.
     /// The task result contains the User object if authentication is successful; otherwise, null.</returns>
-    Task<User?> AuthenticateByTokenAsync(string username, string token);
+    User? AuthenticateByToken(string username, string token);
 
     /// <summary>
     /// Invalidates any active long-lived login token for a specific user.

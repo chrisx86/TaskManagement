@@ -16,7 +16,7 @@ internal static class Program
 {
     internal static readonly CancellationTokenSource AppShutdownTokenSource = new();
     [STAThread]
-    static async Task Main()
+    static void Main()
     {
         // Before building the host or doing anything else, ensure that any lingering
         // SQLite connections from a previous crash are cleared from the connection pool.
@@ -38,7 +38,7 @@ internal static class Program
             var loginSuccess = false;
             try
             {
-                loginSuccess = await TryAutoLoginAsync(scopedServices);
+                loginSuccess = TryAutoLogin(scopedServices);
 
                 if (!loginSuccess)
                 {
@@ -54,10 +54,8 @@ internal static class Program
                     mainForm.FormClosing += (s, e) =>
                     {
                         if (!AppShutdownTokenSource.IsCancellationRequested)
-                        {
                             AppShutdownTokenSource.Cancel();
-                            ClearAllSqlitePools();
-                        }
+                        ClearAllSqlitePools();
                     };
                     Application.Run(mainForm);
                 }
@@ -164,7 +162,7 @@ internal static class Program
             Environment.Exit(1); 
         }
     }
-    private static async Task<bool> TryAutoLoginAsync(IServiceProvider services)
+    private static bool TryAutoLogin(IServiceProvider services)
     {
         var credentialManager = services.GetRequiredService<LocalCredentialManager>();
         var credentials = credentialManager.TryLoadCredentials();
@@ -175,7 +173,7 @@ internal static class Program
             var userService = services.GetRequiredService<IUserService>();
             var userContext = services.GetRequiredService<IUserContext>();
 
-            var user = await userService.AuthenticateByTokenAsync(username, token);
+            var user = userService.AuthenticateByToken(username, token);
             if (user is not null)
             {
                 userContext.SetCurrentUser(user);

@@ -423,7 +423,7 @@ namespace TodoApp.WinForms.Forms
             // 
             btnSaveChanges.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             btnSaveChanges.Enabled = false;
-            btnSaveChanges.Location = new Point(1164, 77);
+            btnSaveChanges.Location = new Point(1097, 77);
             btnSaveChanges.Margin = new Padding(4, 3, 4, 3);
             btnSaveChanges.Name = "btnSaveChanges";
             btnSaveChanges.Size = new Size(88, 23);
