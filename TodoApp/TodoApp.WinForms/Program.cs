@@ -9,6 +9,7 @@ using TodoApp.Infrastructure.Data;
 using TodoApp.Infrastructure.Services;
 using TodoApp.WinForms.Forms;
 using Microsoft.Data.Sqlite;
+using TodoApp.Infrastructure.Extensions;
 
 namespace TodoApp.WinForms;
 
@@ -38,6 +39,9 @@ internal static class Program
             var loginSuccess = false;
             try
             {
+                var dbContext = scopedServices.GetRequiredService<AppDbContext>();
+                dbContext.ApplySharedCachePragma();
+
                 loginSuccess = TryAutoLogin(scopedServices);
 
                 if (!loginSuccess)
@@ -55,7 +59,6 @@ internal static class Program
                     {
                         if (!AppShutdownTokenSource.IsCancellationRequested)
                             AppShutdownTokenSource.Cancel();
-                        ClearAllSqlitePools();
                     };
                     Application.Run(mainForm);
                 }
