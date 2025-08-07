@@ -598,26 +598,41 @@ public partial class MainForm : Form
         var columnName = dgvTasks.Columns[e.ColumnIndex].Name;
         if (columnName != "Status" && columnName != "Priority") return;
 
-        if (dgvTasks.Rows[e.RowIndex].DataBoundItem is not TodoItem changedTask) return;
+        if (dgvTasks.Rows[e.RowIndex].DataBoundItem is not TodoItem taskToUpdate) return;
+        dgvTasks.InvalidateRow(e.RowIndex);
+        _ = SaveTaskChangesInBackground(taskToUpdate);
+    }
 
+    /// <summary>
+    /// Saves changes to a TodoItem in the background without blocking the UI.
+    /// Includes error handling and updates the UI with the final state from the server.
+    /// </summary>
+    private async Task SaveTaskChangesInBackground(TodoItem taskToSave)
+    {
         try
         {
-            SetLoadingState(true);
-            await _taskService.UpdateTaskAsync(_currentUser, changedTask);
-            if (cancellationToken.IsCancellationRequested) return;
-            ApplySort();
-        }
-        catch (OperationCanceledException ex)
-        {
-            Program.HandleException(ex, "CellValueChanged operation was cancelled due to application shutdown.");
+            // Call the full update service in the background.
+            var updatedTaskFromServer = await _taskService.UpdateTaskAsync(_currentUser, taskToSave);
+
+            // --- Step 3 (Optional but Recommended): Re-sync the UI cache with the server state ---
+            // After the server confirms the save, update our local object with the final version
+            // from the database (which includes the new LastModifiedDate).
+            var indexInList = _tasksBindingList.IndexOf(taskToSave);
+            if (indexInList != -1)
+            {
+                _isUpdatingUI = true;
+                _tasksBindingList[indexInList] = updatedTaskFromServer;
+                _isUpdatingUI = false;
+
+                // We don't need ResetItem here as InvalidateRow is sufficient for repainting.
+            }
         }
         catch (Exception ex)
         {
-            Program.HandleException(ex, "更新任務狀態時發生錯誤");
-            MessageBox.Show($"更新任務狀態時發生錯誤: {ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show($"自動儲存任務 '{taskToSave.Title}' 時發生錯誤: {ex.Message}", "儲存失敗", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            // A full reload is the safest way to ensure data consistency after an error.
             await LoadTasksAsync();
         }
-        finally { SetLoadingState(false); }
     }
 
     private void DgvTasks_CellBeginEdit(object? sender, DataGridViewCellCancelEventArgs e)
