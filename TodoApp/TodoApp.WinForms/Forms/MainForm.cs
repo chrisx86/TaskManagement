@@ -735,50 +735,62 @@ public partial class MainForm : Form
             btnSaveChanges.Enabled = false;
             return;
         }
+
+        // Immediately update the in-memory object and the UI state.
+        // This provides an instant feeling of responsiveness to the user.
+        selectedTask.Comments = currentCommentsInBox;
+        lblStatus.Text = "正在儲存備註...";
+        btnSaveChanges.Enabled = false;
+
+        // Trigger the actual save operation in the background without awaiting it.
+        // The UI thread is now free and the application remains fully responsive.
+        _ = SyncCommentChangesToServerAsync(selectedTask);
+    }
+
+    /// <summary>
+    /// A helper method to handle the asynchronous server-side update for comments.
+    /// This runs in the background.
+    /// </summary>
+    /// <param name="taskToSync">The task object with the updated comments.</param>
+    private async Task SyncCommentChangesToServerAsync(TodoItem taskToSync)
+    {
         try
         {
-            SetLoadingState(true);
-            selectedTask.Comments = currentCommentsInBox;
+            // We now use the dedicated, lightweight service method.
+            var updatedTaskFromServer = await _taskService.UpdateTaskCommentsAsync(
+                _currentUser,
+                taskToSync.Id,
+                taskToSync.Comments ?? string.Empty // Pass the already updated comments
+            );
 
-            var updatedTask = await _taskService.UpdateTaskAsync(_currentUser, selectedTask);
-
-            _selectedTaskForEditing = updatedTask;
-
-            var indexInList = -1;
-            for (int i = 0; i < _tasksBindingList.Count; i++)
-            {
-                if (_tasksBindingList[i].Id == updatedTask.Id)
-                {
-                    indexInList = i;
-                    break;
-                }
-            }
-
+            // After the server confirms, find the item in our BindingList and
+            // replace it with the authoritative version from the server.
+            // This updates properties like LastModifiedDate.
+            var indexInList = _tasksBindingList.IndexOf(taskToSync);
             if (indexInList != -1)
             {
-                _tasksBindingList[indexInList] = updatedTask;
-            }
-            else
-            {
-                await LoadTasksAsync();
+                _isUpdatingUI = true;
+                _tasksBindingList[indexInList] = updatedTaskFromServer;
+                _isUpdatingUI = false;
+
+                // We don't need a full ResetItem. A targeted repaint is more efficient.
+                SafeInvalidateRow(indexInList);
             }
 
-            btnSaveChanges.Enabled = false;
-            lblStatus.Text = "備註已成功儲存。";
-
-            // InvalidateRow is still a good, efficient way to repaint.
-            // The underlying data is now fresh.
-            if (dgvTasks.SelectedRows.Count > 0)
-                SafeInvalidateRow(dgvTasks.SelectedRows[0].Index);
+            // This needs to be invoked to run on the UI thread.
+            this.Invoke(() => {
+                lblStatus.Text = "備註已成功儲存。";
+            });
         }
         catch (Exception ex)
         {
-            Program.HandleException(ex, "資料已被他人修改，請重新整理後再試。");
-            MessageBox.Show($"儲存備註時發生錯誤: {ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
-        finally
-        {
-            SetLoadingState(false);
+            // If the background save fails, inform the user and trigger a full reload
+            // to ensure the UI is consistent with the database.
+            this.Invoke(() => {
+                MessageBox.Show($"儲存備註時發生錯誤: {ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                // Trigger a full, safe reload on the UI thread.
+                _ = LoadTasksAsync();
+            });
         }
     }
     #endregion
