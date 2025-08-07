@@ -7,9 +7,9 @@ using TodoApp.Core.Models;
 using TodoApp.Core.Services;
 using TodoApp.Infrastructure.Data;
 using TodoApp.Infrastructure.Services;
+using TodoApp.Infrastructure.Extensions;
 using TodoApp.WinForms.Forms;
 using Microsoft.Data.Sqlite;
-using TodoApp.Infrastructure.Extensions;
 
 namespace TodoApp.WinForms;
 

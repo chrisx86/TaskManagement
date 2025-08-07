@@ -26,7 +26,7 @@ public static class DbContextExtensions
             using (var command = connection.CreateCommand())
             {
                 // This PRAGMA command is the standard way to set the journal mode.
-                command.CommandText = "PRAGMA journal_mode = DELETE;";
+                command.CommandText = "PRAGMA journal_mode = WAL;";
                 command.ExecuteNonQuery();
             }
         }
