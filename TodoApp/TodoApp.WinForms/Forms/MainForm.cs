@@ -7,6 +7,7 @@ using TodoApp.Core.Services;
 using TodoApp.WinForms.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using TodoApp.Infrastructure.Services;
+using Microsoft.Extensions.Configuration;
 
 namespace TodoApp.WinForms.Forms;
 
@@ -17,6 +18,7 @@ public partial class MainForm : Form
     private readonly ITaskService _taskService;
     private readonly IUserService _userService;
     private readonly IUserContext _userContext;
+    private readonly IConfiguration _configuration;
     private readonly User _currentUser;
     private readonly LocalCredentialManager _credentialManager;
     private readonly Font _regularFont;
@@ -51,6 +53,7 @@ public partial class MainForm : Form
         ITaskService taskService,
         IUserService userService,
         IUserContext userContext,
+        IConfiguration configuration,
         LocalCredentialManager credentialManager)
     {
         InitializeComponent();
@@ -59,6 +62,7 @@ public partial class MainForm : Form
         _taskService = taskService;
         _userService = userService;
         _userContext = userContext;
+        _configuration = configuration;
         _credentialManager = credentialManager;
 
         _currentUser = _userContext.CurrentUser
@@ -137,7 +141,7 @@ public partial class MainForm : Form
         var mainAssembly = Assembly.GetExecutingAssembly();
         var version = mainAssembly.GetName().Version;
         var versionString = version != null ? $"V {version.Major}.{version.Minor}" : "V ?.?";
-        this.Text = $"Task Management App - Login : [ {_currentUser.Username} ] - {versionString}";
+        this.Text = $"{_configuration["ProjectName"]} App - Login : [ {_currentUser.Username} ] - {versionString}";
     }
 
     private void SetupDataGridView()

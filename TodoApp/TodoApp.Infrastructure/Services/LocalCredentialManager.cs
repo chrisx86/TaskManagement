@@ -1,6 +1,7 @@
 ﻿#nullable enable
 using System.Text;
 using System.Security.Cryptography;
+using Microsoft.Extensions.Configuration;
 
 namespace TodoApp.Infrastructure.Services;
 
@@ -11,13 +12,14 @@ namespace TodoApp.Infrastructure.Services;
 public class LocalCredentialManager
 {
     private readonly string _filePath;
-
-    public LocalCredentialManager()
+    private readonly IConfiguration _configuration;
+    public LocalCredentialManager(IConfiguration configuration)
     {
+        _configuration = configuration;
         var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         var appFolder = Path.Combine(appDataPath, "TaskManagmentApp");
         Directory.CreateDirectory(appFolder);
-        _filePath = Path.Combine(appFolder, "TM_User.dat");
+        _filePath = Path.Combine(appFolder, $"{_configuration["ProjectName"]}_User.dat");
     }
 
     /// <summary>
