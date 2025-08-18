@@ -764,7 +764,7 @@ public partial class MainForm : Form
             var updatedTaskFromServer = await _taskService.UpdateTaskCommentsAsync(
                 _currentUser,
                 taskToSync.Id,
-                taskToSync.Comments ?? string.Empty // Pass the already updated comments
+                taskToSync.Comments ?? string.Empty
             );
 
             // After the server confirms, find the item in our BindingList and

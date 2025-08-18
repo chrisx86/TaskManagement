@@ -3,7 +3,6 @@ using TodoApp.Core.Models;
 using TodoApp.Core.Services;
 using TodoApp.WinForms.ViewModels;
 using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
 
 namespace TodoApp.WinForms.Forms;
 
@@ -29,13 +28,15 @@ public partial class TaskDetailDialog : Form
 
         this.Load += OnFormLoad;
         this.btnSave.Click += OnSaveButtonClick;
-    }
 
+        WireUpFormatButtons();
+    }
     /// <summary>
-    /// Sets the dialog to "Edit" mode by providing the task to be edited.
-    /// This method should be called before showing the dialog for editing an existing task.
+    /// Gets the updated task object after a successful save.
+    /// This is useful for the calling form to update its UI without a full reload.
     /// </summary>
-    /// <param name="taskToEdit">The task object to be edited.</param>
+    public TodoItem? GetUpdatedTask() => _editingTask;
+
     public void SetTaskForEdit(TodoItem taskToEdit)
     {
         _editingTask = taskToEdit;
@@ -124,7 +125,44 @@ public partial class TaskDetailDialog : Form
             MessageBox.Show($"儲存任務時發生未預期的錯誤: {ex.Message}", "系統錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
+    private void WireUpFormatButtons()
+    {
+        tsBtnBold.Click += (s, e) => ToggleFontStyle(FontStyle.Bold);
+        tsBtnItalic.Click += (s, e) => ToggleFontStyle(FontStyle.Italic);
+        tsBtnUnderline.Click += (s, e) => ToggleFontStyle(FontStyle.Underline);
 
+        tsBtnSetColorRed.Click += (s, e) => txtComments.SelectionColor = Color.Red;
+        tsBtnSetColorBlack.Click += (s, e) => txtComments.SelectionColor = Color.Black;
+        tsBtnSetColorBlue.Click += (s, e) => { txtComments.SelectionColor = Color.Blue; };
+        tsBtnSetColorGreen.Click += (s, e) => { txtComments.SelectionColor = Color.Green; };
+
+        tsBtnBulletList.Click += (s, e) => {
+            txtComments.SelectionBullet = !txtComments.SelectionBullet;
+        };
+        int IndentSize = 20;
+        tsBtnIndent.Click += (s, e) =>
+        {
+            txtComments.SelectionIndent += IndentSize;
+        };
+        tsBtnOutdent.Click += (s, e) =>
+        {
+            txtComments.SelectionIndent = Math.Max(0, txtComments.SelectionIndent - IndentSize);
+        };
+        tsBtnHighlightYellow.Click += (s, e) => { txtComments.SelectionBackColor = Color.Yellow; };
+        tsBtnHighlightGreen.Click += (s, e) => { txtComments.SelectionBackColor = Color.LightGreen; };
+
+        tsBtnClearHighlight.Click += (s, e) => { txtComments.SelectionBackColor = txtComments.BackColor; };
+    }
+
+    private void ToggleFontStyle(FontStyle style)
+    {
+        if (txtComments.SelectionFont == null) return;
+
+        var currentFont = txtComments.SelectionFont;
+        var newStyle = currentFont.Style ^ style;
+
+        txtComments.SelectionFont = new Font(currentFont, newStyle);
+    }
     private async Task PopulateComboBoxesAsync()
     {
         cmbStatus.DataSource = Enum.GetValues<TodoStatus>();
@@ -154,7 +192,21 @@ public partial class TaskDetailDialog : Form
         try
         {
             txtTitle.Text = task.Title;
-            txtComments.Text = task.Comments;
+            if (!string.IsNullOrEmpty(task.Comments))
+            {
+                try
+                {
+                    txtComments.Rtf = task.Comments;
+                }
+                catch (ArgumentException)
+                {
+                    txtComments.Text = task.Comments;
+                }
+            }
+            else
+            {
+                txtComments.Clear();
+            }
 
             cmbStatus.SelectedItem = task.Status;
 
@@ -180,7 +232,7 @@ public partial class TaskDetailDialog : Form
     private void UpdateTaskFromControls(TodoItem task)
     {
         task.Title = txtTitle.Text.Trim();
-        task.Comments = txtComments.Text.Trim();
+        task.Comments = txtComments.TextLength > 0 ? txtComments.Rtf : string.Empty;
         task.Status = (TodoStatus)cmbStatus.SelectedItem;
         task.Priority = (PriorityLevel)cmbPriority.SelectedItem;
         task.DueDate = dtpDueDate.Checked ? dtpDueDate.Value.Date : null;
