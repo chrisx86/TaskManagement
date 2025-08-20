@@ -89,37 +89,37 @@ namespace TodoApp.WinForms.Forms
             // 
             // panelCommentsContainer
             // 
-            this.panelCommentsContainer.Controls.Add(this.btnSaveChanges);
-            this.panelCommentsContainer.Controls.Add(this.txtCommentsPreview);
-            this.panelCommentsContainer.Controls.Add(this.commentsFormatToolStrip);
-            this.panelCommentsContainer.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panelCommentsContainer.Location = new System.Drawing.Point(0, 0);
-            this.panelCommentsContainer.Name = "panelCommentsContainer";
-            this.panelCommentsContainer.Size = new System.Drawing.Size(1207, 144);
-            this.panelCommentsContainer.TabIndex = 0;
+            panelCommentsContainer.Controls.Add(btnSaveChanges);
+            panelCommentsContainer.Controls.Add(txtCommentsPreview);
+            panelCommentsContainer.Controls.Add(commentsFormatToolStrip);
+            panelCommentsContainer.Dock = System.Windows.Forms.DockStyle.Fill;
+            panelCommentsContainer.Location = new System.Drawing.Point(0, 0);
+            panelCommentsContainer.Name = "panelCommentsContainer";
+            panelCommentsContainer.Size = new System.Drawing.Size(1207, 144);
+            panelCommentsContainer.TabIndex = 0;
             // 
             // btnSaveChanges
             // 
-            this.btnSaveChanges.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnSaveChanges.Enabled = false;
-            this.btnSaveChanges.Location = new System.Drawing.Point(1112, 114);
-            this.btnSaveChanges.Name = "btnSaveChanges";
-            this.btnSaveChanges.Size = new System.Drawing.Size(88, 27);
-            this.btnSaveChanges.TabIndex = 2;
-            this.btnSaveChanges.Text = "儲存";
-            this.btnSaveChanges.UseVisualStyleBackColor = true;
+            btnSaveChanges.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            btnSaveChanges.Enabled = false;
+            btnSaveChanges.Location = new System.Drawing.Point(1112, 114);
+            btnSaveChanges.Name = "btnSaveChanges";
+            btnSaveChanges.Size = new System.Drawing.Size(88, 27);
+            btnSaveChanges.TabIndex = 2;
+            btnSaveChanges.Text = "儲存";
+            btnSaveChanges.UseVisualStyleBackColor = true;
             // 
             // txtCommentsPreview
             // 
-            this.txtCommentsPreview.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            txtCommentsPreview.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
             | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtCommentsPreview.BackColor = System.Drawing.SystemColors.Info;
-            this.txtCommentsPreview.Location = new System.Drawing.Point(3, 28);
-            this.txtCommentsPreview.Name = "txtCommentsPreview";
-            this.txtCommentsPreview.Size = new System.Drawing.Size(1201, 113);
-            this.txtCommentsPreview.TabIndex = 1;
-            this.txtCommentsPreview.Text = "";
+            txtCommentsPreview.BackColor = System.Drawing.SystemColors.Info;
+            txtCommentsPreview.Location = new System.Drawing.Point(3, 28);
+            txtCommentsPreview.Name = "txtCommentsPreview";
+            txtCommentsPreview.Size = new System.Drawing.Size(1201, 113);
+            txtCommentsPreview.TabIndex = 1;
+            txtCommentsPreview.Text = "";
             // 
             // commentsFormatToolStrip
             // 
@@ -613,23 +613,20 @@ namespace TodoApp.WinForms.Forms
 
         private RichTextBox txtCommentsPreview;
         private Panel panelCommentsContainer;
-        private System.Windows.Forms.ToolStrip commentsFormatToolStrip;
-        private System.Windows.Forms.ToolStripButton tsBtnBold;
-        private System.Windows.Forms.ToolStripButton tsBtnItalic;
-        private System.Windows.Forms.ToolStripButton tsBtnUnderline;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
-        private System.Windows.Forms.ToolStripButton tsBtnSetColorRed;
-        private System.Windows.Forms.ToolStripButton tsBtnSetColorBlue;
-        private System.Windows.Forms.ToolStripButton tsBtnSetColorGreen;
-        private System.Windows.Forms.ToolStripButton tsBtnSetColorBlack;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator5;
-        private System.Windows.Forms.ToolStripButton tsBtnBulletList;
-        private System.Windows.Forms.ToolStripButton tsBtnIndent;
-        private System.Windows.Forms.ToolStripButton tsBtnOutdent;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator6;
-        private System.Windows.Forms.ToolStripButton tsBtnHighlightYellow;
-        private System.Windows.Forms.ToolStripButton tsBtnHighlightGreen;
-        private System.Windows.Forms.ToolStripButton tsBtnClearHighlight;
+        private ToolStrip commentsFormatToolStrip;
+        private ToolStripButton tsBtnBold;
+        private ToolStripButton tsBtnItalic;
+        private ToolStripButton tsBtnUnderline;
+        private ToolStripButton tsBtnSetColorRed;
+        private ToolStripButton tsBtnSetColorBlue;
+        private ToolStripButton tsBtnSetColorGreen;
+        private ToolStripButton tsBtnSetColorBlack;
+        private ToolStripButton tsBtnBulletList;
+        private ToolStripButton tsBtnIndent;
+        private ToolStripButton tsBtnOutdent;
+        private ToolStripButton tsBtnHighlightYellow;
+        private ToolStripButton tsBtnHighlightGreen;
+        private ToolStripButton tsBtnClearHighlight;
 
         private ToolStrip toolStrip1;
         private ToolStripButton tsbNewTask;

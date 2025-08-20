@@ -123,7 +123,12 @@ public partial class MainForm : Form
 
         this.dgvTasks.CellMouseMove += DgvTasks_CellMouseMove;
         this.dgvTasks.MouseLeave += DgvTasks_MouseLeave;
+
+        this.txtCommentsPreview.Enter += TxtCommentsPreview_Enter;
+
+        this.txtCommentsPreview.Leave += TxtCommentsPreview_Leave;
     }
+
 
     private async void MainForm_Load(object? sender, EventArgs e)
     {
@@ -131,6 +136,7 @@ public partial class MainForm : Form
         SetupDataGridView();
         SetupUIPermissions();
         InitializePaginationControls();
+        commentsFormatToolStrip.Visible = false;
         await PopulateFilterDropDownsAsync();
         SetDefaultFiltersForCurrentUser();
         await LoadTasksAsync();
@@ -521,6 +527,17 @@ public partial class MainForm : Form
     {
         if (!_isUpdatingUI) btnSaveChanges.Enabled = true;
     }
+
+    private void TxtCommentsPreview_Enter(object? sender, EventArgs e)
+    {
+        commentsFormatToolStrip.Visible = true;
+    }
+
+    private void TxtCommentsPreview_Leave(object? sender, EventArgs e)
+    {
+        commentsFormatToolStrip.Visible = false;
+    }
+
 
     private async void DgvTasks_ColumnHeaderMouseClick(object? sender, DataGridViewCellMouseEventArgs e)
     {
