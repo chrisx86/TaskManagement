@@ -24,16 +24,13 @@ namespace TodoApp.WinForms.Forms
         private ToolStripButton tsBtnBold;
         private ToolStripButton tsBtnItalic;
         private ToolStripButton tsBtnUnderline;
-        private ToolStripSeparator toolStripSeparator1;
         private ToolStripButton tsBtnSetColorRed;
         private ToolStripButton tsBtnSetColorBlue;
         private ToolStripButton tsBtnSetColorGreen;
         private ToolStripButton tsBtnSetColorBlack;
-        private ToolStripSeparator toolStripSeparator2;
         private ToolStripButton tsBtnBulletList;
         private ToolStripButton tsBtnIndent;
         private ToolStripButton tsBtnOutdent;
-        private ToolStripSeparator toolStripSeparator3;
         private ToolStripButton tsBtnHighlightYellow;
         private ToolStripButton tsBtnHighlightGreen;
         private ToolStripButton tsBtnClearHighlight;
@@ -78,16 +75,13 @@ namespace TodoApp.WinForms.Forms
             tsBtnBold = new ToolStripButton();
             tsBtnItalic = new ToolStripButton();
             tsBtnUnderline = new ToolStripButton();
-            toolStripSeparator1 = new ToolStripSeparator();
             tsBtnSetColorRed = new ToolStripButton();
             tsBtnSetColorBlue = new ToolStripButton();
             tsBtnSetColorGreen = new ToolStripButton();
             tsBtnSetColorBlack = new ToolStripButton();
-            toolStripSeparator2 = new ToolStripSeparator();
             tsBtnBulletList = new ToolStripButton();
             tsBtnIndent = new ToolStripButton();
             tsBtnOutdent = new ToolStripButton();
-            toolStripSeparator3 = new ToolStripSeparator();
             tsBtnHighlightYellow = new ToolStripButton();
             tsBtnHighlightGreen = new ToolStripButton();
             tsBtnClearHighlight = new ToolStripButton();
@@ -211,7 +205,7 @@ namespace TodoApp.WinForms.Forms
             commentsFormatToolStrip.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             commentsFormatToolStrip.Dock = DockStyle.None;
             commentsFormatToolStrip.GripStyle = ToolStripGripStyle.Hidden;
-            commentsFormatToolStrip.Items.AddRange(new ToolStripItem[] { tsBtnBold, tsBtnItalic, tsBtnUnderline, toolStripSeparator1, tsBtnSetColorRed, tsBtnSetColorBlue, tsBtnSetColorGreen, tsBtnSetColorBlack, toolStripSeparator2, tsBtnBulletList, tsBtnIndent, tsBtnOutdent, toolStripSeparator3, tsBtnHighlightYellow, tsBtnHighlightGreen, tsBtnClearHighlight });
+            commentsFormatToolStrip.Items.AddRange(new ToolStripItem[] { tsBtnBold, tsBtnItalic, tsBtnUnderline, tsBtnSetColorRed, tsBtnSetColorBlue, tsBtnSetColorGreen, tsBtnSetColorBlack, tsBtnHighlightYellow, tsBtnHighlightGreen, tsBtnClearHighlight, tsBtnBulletList, tsBtnIndent, tsBtnOutdent });
             commentsFormatToolStrip.Location = new Point(120, 202);
             commentsFormatToolStrip.Name = "commentsFormatToolStrip";
             commentsFormatToolStrip.Size = new Size(320, 28);
@@ -244,11 +238,6 @@ namespace TodoApp.WinForms.Forms
             tsBtnUnderline.Size = new Size(23, 25);
             tsBtnUnderline.Text = "U";
             tsBtnUnderline.ToolTipText = "底線";
-            // 
-            // toolStripSeparator1
-            // 
-            toolStripSeparator1.Name = "toolStripSeparator1";
-            toolStripSeparator1.Size = new Size(6, 28);
             // 
             // tsBtnSetColorRed
             // 
@@ -287,11 +276,6 @@ namespace TodoApp.WinForms.Forms
             tsBtnSetColorBlack.Text = "A";
             tsBtnSetColorBlack.ToolTipText = "黑色文字 (預設)";
             // 
-            // toolStripSeparator2
-            // 
-            toolStripSeparator2.Name = "toolStripSeparator2";
-            toolStripSeparator2.Size = new Size(6, 28);
-            // 
             // tsBtnBulletList
             // 
             tsBtnBulletList.DisplayStyle = ToolStripItemDisplayStyle.Text;
@@ -318,11 +302,6 @@ namespace TodoApp.WinForms.Forms
             tsBtnOutdent.Size = new Size(23, 25);
             tsBtnOutdent.Text = "←";
             tsBtnOutdent.ToolTipText = "減少縮排";
-            // 
-            // toolStripSeparator3
-            // 
-            toolStripSeparator3.Name = "toolStripSeparator3";
-            toolStripSeparator3.Size = new Size(6, 28);
             // 
             // tsBtnHighlightYellow
             // 

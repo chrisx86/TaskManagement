@@ -1,5 +1,7 @@
 ﻿#nullable disable
 
+using System.Windows.Forms;
+
 namespace TodoApp.WinForms.Forms
 {
     partial class AdminDashboardForm
@@ -80,7 +82,27 @@ namespace TodoApp.WinForms.Forms
             this.btnDetailDelete = new System.Windows.Forms.Button();
             this.btnDetailReassign = new System.Windows.Forms.Button();
             this.btnDetailEdit = new System.Windows.Forms.Button();
-            this.txtDetailComments = new System.Windows.Forms.TextBox();
+
+            this.txtDetailComments = new System.Windows.Forms.RichTextBox();
+            this.commentsFormatToolStrip = new System.Windows.Forms.ToolStrip();
+            this.tsBtnBold = new System.Windows.Forms.ToolStripButton();
+            this.tsBtnItalic = new System.Windows.Forms.ToolStripButton();
+            this.tsBtnUnderline = new System.Windows.Forms.ToolStripButton();
+            this.tsBtnStrikeout = new System.Windows.Forms.ToolStripButton();
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.tsBtnSetColorRed = new System.Windows.Forms.ToolStripButton();
+            this.tsBtnSetColorBlue = new System.Windows.Forms.ToolStripButton();
+            this.tsBtnSetColorGreen = new System.Windows.Forms.ToolStripButton();
+            this.tsBtnSetColorBlack = new System.Windows.Forms.ToolStripButton();
+            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            this.tsBtnBulletList = new System.Windows.Forms.ToolStripButton();
+            this.tsBtnIndent = new System.Windows.Forms.ToolStripButton();
+            this.tsBtnOutdent = new System.Windows.Forms.ToolStripButton();
+            this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
+            this.tsBtnHighlightYellow = new System.Windows.Forms.ToolStripButton();
+            this.tsBtnHighlightGreen = new System.Windows.Forms.ToolStripButton();
+            this.tsBtnClearHighlight = new System.Windows.Forms.ToolStripButton();
+
             this.lblDetailCommentsTitle = new System.Windows.Forms.Label();
             this.lblDetailAssignedTo = new System.Windows.Forms.Label();
             this.lblDetailAssignedToTitle = new System.Windows.Forms.Label();
@@ -95,21 +117,7 @@ namespace TodoApp.WinForms.Forms
             this.lblDetailTitle = new System.Windows.Forms.Label();
             this.btnSaveComment = new System.Windows.Forms.Button();
             this.btnViewHistory = new System.Windows.Forms.Button();
-            this.panelFilters.SuspendLayout();
-            this.statusStrip1.SuspendLayout();
-            this.treeViewContextMenu.SuspendLayout();
-            this.mainTableLayoutPanel.SuspendLayout();
-            this.panelLeft.SuspendLayout();
-            this.panelStatistics.SuspendLayout();
-            this.cardCompleted.SuspendLayout();
-            this.cardRejected.SuspendLayout();
-            this.cardUnassigned.SuspendLayout();
-            this.cardOverdue.SuspendLayout();
-            this.cardUncompleted.SuspendLayout();
-            this.cardTotalTasks.SuspendLayout();
-            this.panelRight.SuspendLayout();
-            this.panelTaskDetails.SuspendLayout();
-            this.panelDetailActions.SuspendLayout();
+
             this.SuspendLayout();
             // 
             // panelFilters
@@ -513,6 +521,7 @@ namespace TodoApp.WinForms.Forms
             // 
             // panelTaskDetails
             // 
+            panelTaskDetails.Controls.Add(this.commentsFormatToolStrip);
             panelTaskDetails.Controls.Add(btnSaveComment);
             panelTaskDetails.Controls.Add(lblDetailLastModified);
             panelTaskDetails.Controls.Add(lblDetailLastModifiedTitle);
@@ -639,25 +648,180 @@ namespace TodoApp.WinForms.Forms
             // 
             // txtDetailComments
             // 
-            txtDetailComments.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            txtDetailComments.BackColor = SystemColors.Window;
-            txtDetailComments.BorderStyle = BorderStyle.FixedSingle;
-            txtDetailComments.Location = new Point(0, 248);
-            txtDetailComments.Multiline = true;
-            txtDetailComments.Name = "txtDetailComments";
-            txtDetailComments.ReadOnly = false;
-            txtDetailComments.ScrollBars = ScrollBars.Vertical;
-            txtDetailComments.Size = new Size(277, 180);
-            txtDetailComments.TabIndex = 12;
+            this.txtDetailComments.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtDetailComments.BackColor = System.Drawing.SystemColors.Window;
+            this.txtDetailComments.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.txtDetailComments.Location = new System.Drawing.Point(0, 273);
+            this.txtDetailComments.Name = "txtDetailComments";
+            this.txtDetailComments.Size = new System.Drawing.Size(277, 165);
+            this.txtDetailComments.TabIndex = 12;
+            this.txtDetailComments.Text = "";
+            // 
+            // tsBtnBold
+            // 
+            tsBtnBold.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            tsBtnBold.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            tsBtnBold.Name = "tsBtnBold";
+            tsBtnBold.Size = new Size(23, 25);
+            tsBtnBold.Text = "B";
+            tsBtnBold.ToolTipText = "粗體";
+            // 
+            // tsBtnItalic
+            // 
+            tsBtnItalic.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            tsBtnItalic.Font = new Font("Segoe UI", 9F, FontStyle.Italic);
+            tsBtnItalic.Name = "tsBtnItalic";
+            tsBtnItalic.Size = new Size(23, 25);
+            tsBtnItalic.Text = "I";
+            tsBtnItalic.ToolTipText = "斜體";
+            // 
+            // tsBtnUnderline
+            // 
+            tsBtnUnderline.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            tsBtnUnderline.Font = new Font("Segoe UI", 9F, FontStyle.Underline);
+            tsBtnUnderline.Name = "tsBtnUnderline";
+            tsBtnUnderline.Size = new Size(23, 25);
+            tsBtnUnderline.Text = "U";
+            tsBtnUnderline.ToolTipText = "底線";
+            // 
+            // tsBtnStrikeout
+            // 
+            tsBtnStrikeout.Name = "tsBtnStrikeout";
+            tsBtnStrikeout.Size = new Size(23, 25);
+            // 
+            // toolStripSeparator1
+            // 
+            toolStripSeparator1.Name = "toolStripSeparator1";
+            toolStripSeparator1.Size = new Size(6, 25);
+            // 
+            // tsBtnSetColorRed
+            // 
+            tsBtnSetColorRed.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            tsBtnSetColorRed.ForeColor = Color.Red;
+            tsBtnSetColorRed.Name = "tsBtnSetColorRed";
+            tsBtnSetColorRed.Size = new Size(23, 25);
+            tsBtnSetColorRed.Text = "A";
+            tsBtnSetColorRed.ToolTipText = "紅色文字";
+            // 
+            // tsBtnSetColorBlue
+            // 
+            tsBtnSetColorBlue.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            tsBtnSetColorBlue.ForeColor = Color.Blue;
+            tsBtnSetColorBlue.Name = "tsBtnSetColorBlue";
+            tsBtnSetColorBlue.Size = new Size(23, 25);
+            tsBtnSetColorBlue.Text = "A";
+            tsBtnSetColorBlue.ToolTipText = "藍色文字";
+            // 
+            // tsBtnSetColorGreen
+            // 
+            tsBtnSetColorGreen.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            tsBtnSetColorGreen.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            tsBtnSetColorGreen.ForeColor = Color.Green;
+            tsBtnSetColorGreen.Name = "tsBtnSetColorGreen";
+            tsBtnSetColorGreen.Size = new Size(23, 25);
+            tsBtnSetColorGreen.Text = "A";
+            tsBtnSetColorGreen.ToolTipText = "綠色文字";
+            // 
+            // tsBtnSetColorBlack
+            // 
+            tsBtnSetColorBlack.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            tsBtnSetColorBlack.ForeColor = Color.Black;
+            tsBtnSetColorBlack.Name = "tsBtnSetColorBlack";
+            tsBtnSetColorBlack.Size = new Size(23, 25);
+            tsBtnSetColorBlack.Text = "A";
+            tsBtnSetColorBlack.ToolTipText = "黑色文字 (預設)";
+            // 
+            // toolStripSeparator2
+            // 
+            toolStripSeparator2.Name = "toolStripSeparator2";
+            toolStripSeparator2.Size = new Size(6, 25);
+            // 
+            // tsBtnBulletList
+            // 
+            tsBtnBulletList.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            tsBtnBulletList.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
+            tsBtnBulletList.Name = "tsBtnBulletList";
+            tsBtnBulletList.Size = new Size(23, 25);
+            tsBtnBulletList.Text = "•";
+            tsBtnBulletList.ToolTipText = "項目符號";
+            // 
+            // tsBtnIndent
+            // 
+            tsBtnIndent.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            tsBtnIndent.Font = new Font("Segoe UI", 9F);
+            tsBtnIndent.Name = "tsBtnIndent";
+            tsBtnIndent.Size = new Size(23, 25);
+            tsBtnIndent.Text = "→";
+            tsBtnIndent.ToolTipText = "增加縮排";
+            // 
+            // tsBtnOutdent
+            // 
+            tsBtnOutdent.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            tsBtnOutdent.Font = new Font("Segoe UI", 9F);
+            tsBtnOutdent.Name = "tsBtnOutdent";
+            tsBtnOutdent.Size = new Size(23, 25);
+            tsBtnOutdent.Text = "←";
+            tsBtnOutdent.ToolTipText = "減少縮排";
+            // 
+            // toolStripSeparator3
+            // 
+            toolStripSeparator3.Name = "toolStripSeparator3";
+            toolStripSeparator3.Size = new Size(6, 25);
+            // 
+            // tsBtnHighlightYellow
+            // 
+            tsBtnHighlightYellow.BackColor = Color.Yellow;
+            tsBtnHighlightYellow.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            tsBtnHighlightYellow.ImageTransparentColor = Color.Magenta;
+            tsBtnHighlightYellow.Name = "tsBtnHighlightYellow";
+            tsBtnHighlightYellow.Size = new Size(23, 25);
+            tsBtnHighlightYellow.Text = "Yellow Highlight";
+            tsBtnHighlightYellow.ToolTipText = "黃色螢光筆";
+            // 
+            // tsBtnHighlightGreen
+            // 
+            tsBtnHighlightGreen.BackColor = Color.LightGreen;
+            tsBtnHighlightGreen.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            tsBtnHighlightGreen.ImageTransparentColor = Color.Magenta;
+            tsBtnHighlightGreen.Name = "tsBtnHighlightGreen";
+            tsBtnHighlightGreen.Size = new Size(23, 25);
+            tsBtnHighlightGreen.Text = "Green Highlight";
+            tsBtnHighlightGreen.ToolTipText = "綠色螢光筆";
+            // 
+            // tsBtnClearHighlight
+            // 
+            tsBtnClearHighlight.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            tsBtnClearHighlight.Font = new Font("Segoe UI", 9F, FontStyle.Strikeout);
+            tsBtnClearHighlight.Name = "tsBtnClearHighlight";
+            tsBtnClearHighlight.Size = new Size(23, 25);
+            tsBtnClearHighlight.Text = "C";
+            tsBtnClearHighlight.ToolTipText = "清除底色標示";
             // 
             // lblDetailCommentsTitle
             // 
             lblDetailCommentsTitle.AutoSize = true;
-            lblDetailCommentsTitle.Location = new Point(0, 230);
+            this.lblDetailCommentsTitle.Location = new System.Drawing.Point(0, 225);
             lblDetailCommentsTitle.Name = "lblDetailCommentsTitle";
             lblDetailCommentsTitle.Size = new Size(31, 15);
             lblDetailCommentsTitle.TabIndex = 11;
             lblDetailCommentsTitle.Text = "備註";
+            // 
+            // commentsFormatToolStrip
+            // 
+            this.commentsFormatToolStrip.Items.Clear();
+            this.commentsFormatToolStrip.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.commentsFormatToolStrip.Dock = System.Windows.Forms.DockStyle.None;
+            this.commentsFormatToolStrip.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
+            // Position it correctly above the RichTextBox
+            this.commentsFormatToolStrip.Location = new System.Drawing.Point(0, 245);
+            this.commentsFormatToolStrip.Name = "commentsFormatToolStrip";
+            this.commentsFormatToolStrip.Size = new System.Drawing.Size(277, 25);
+            this.commentsFormatToolStrip.TabIndex = 18;
+            this.commentsFormatToolStrip.Items.AddRange(new ToolStripItem[] { tsBtnBold, tsBtnItalic, tsBtnUnderline, tsBtnSetColorRed, tsBtnSetColorBlue, tsBtnSetColorGreen, tsBtnSetColorBlack, tsBtnHighlightYellow, tsBtnHighlightGreen, tsBtnClearHighlight, tsBtnBulletList, tsBtnIndent, tsBtnOutdent });
+
             // 
             // lblDetailAssignedTo
             // 
@@ -776,24 +940,7 @@ namespace TodoApp.WinForms.Forms
             Name = "AdminDashboardForm";
             StartPosition = FormStartPosition.CenterParent;
             Text = "管理員儀表板";
-            panelFilters.ResumeLayout(false);
-            panelFilters.PerformLayout();
-            statusStrip1.ResumeLayout(false);
-            statusStrip1.PerformLayout();
-            treeViewContextMenu.ResumeLayout(false);
-            mainTableLayoutPanel.ResumeLayout(false);
-            panelLeft.ResumeLayout(false);
-            panelStatistics.ResumeLayout(false);
-            cardCompleted.ResumeLayout(false);
-            cardRejected.ResumeLayout(false);
-            cardUnassigned.ResumeLayout(false);
-            cardOverdue.ResumeLayout(false);
-            cardUncompleted.ResumeLayout(false);
-            cardTotalTasks.ResumeLayout(false);
-            panelRight.ResumeLayout(false);
-            panelTaskDetails.ResumeLayout(false);
-            panelTaskDetails.PerformLayout();
-            panelDetailActions.ResumeLayout(false);
+
             ResumeLayout(false);
             PerformLayout();
         }
@@ -838,7 +985,27 @@ namespace TodoApp.WinForms.Forms
         private System.Windows.Forms.Label lblDetailAssignedToTitle;
         private System.Windows.Forms.Label lblDetailAssignedTo;
         private System.Windows.Forms.Label lblDetailCommentsTitle;
-        private System.Windows.Forms.TextBox txtDetailComments;
+        private System.Windows.Forms.RichTextBox txtDetailComments;
+        private System.Windows.Forms.ToolStrip commentsFormatToolStrip;
+        private System.Windows.Forms.ToolStripButton tsBtnBold;
+        private System.Windows.Forms.ToolStripButton tsBtnItalic;
+        private System.Windows.Forms.ToolStripButton tsBtnUnderline;
+        private System.Windows.Forms.ToolStripButton tsBtnStrikeout;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
+        private System.Windows.Forms.ToolStripButton tsBtnSetColorRed;
+        private System.Windows.Forms.ToolStripButton tsBtnSetColorBlue;
+        private System.Windows.Forms.ToolStripButton tsBtnSetColorGreen;
+        private System.Windows.Forms.ToolStripButton tsBtnSetColorBlack;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
+        private System.Windows.Forms.ToolStripButton tsBtnBulletList;
+        private System.Windows.Forms.ToolStripButton tsBtnIndent;
+        private System.Windows.Forms.ToolStripButton tsBtnOutdent;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
+        private System.Windows.Forms.ToolStripButton tsBtnHighlightYellow;
+        private System.Windows.Forms.ToolStripButton tsBtnHighlightGreen;
+        private System.Windows.Forms.ToolStripButton tsBtnClearHighlight;
+
+
         private System.Windows.Forms.Label lblFilterStatus;
         private System.Windows.Forms.ComboBox cmbFilterStatus;
         private System.Windows.Forms.CheckBox chkFilterOverdue;

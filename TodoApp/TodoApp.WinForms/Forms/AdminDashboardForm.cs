@@ -6,6 +6,7 @@ using TodoApp.WinForms.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using TodoApp.Infrastructure.Comparers;
+using TodoApp.WinForms.Helpers;
 
 namespace TodoApp.WinForms.Forms;
 
@@ -39,6 +40,7 @@ public partial class AdminDashboardForm : Form
 
         WireUpEvents();
         WireUpCardClickEvents();
+        WireUpFormattingEvents();
     }
 
     private void WireUpEvents()
@@ -79,6 +81,7 @@ public partial class AdminDashboardForm : Form
         this.cardCompleted.Cursor = Cursors.Hand;
 
     }
+
     private void WireUpCardClickEvents()
     {
         // Card 1: Total Tasks
@@ -112,6 +115,26 @@ public partial class AdminDashboardForm : Form
         lblCompletedValue.Click += Card_Click;
     }
 
+    private void WireUpFormattingEvents()
+    {
+        tsBtnBold.Click += (s, e) => txtDetailComments.ToggleFontStyle(FontStyle.Bold);
+        tsBtnItalic.Click += (s, e) => txtDetailComments.ToggleFontStyle(FontStyle.Italic);
+        tsBtnUnderline.Click += (s, e) => txtDetailComments.ToggleFontStyle(FontStyle.Underline);
+        tsBtnStrikeout.Click += (s, e) => txtDetailComments.ToggleFontStyle(FontStyle.Strikeout);
+
+        tsBtnSetColorRed.Click += (s, e) => txtDetailComments.SetSelectionColor(Color.Red);
+        tsBtnSetColorBlue.Click += (s, e) => txtDetailComments.SetSelectionColor(Color.Blue);
+        tsBtnSetColorGreen.Click += (s, e) => txtDetailComments.SetSelectionColor(Color.Green);
+        tsBtnSetColorBlack.Click += (s, e) => txtDetailComments.SetSelectionColor(Color.Black);
+
+        tsBtnBulletList.Click += (s, e) => txtDetailComments.ToggleBullet();
+        tsBtnIndent.Click += (s, e) => txtDetailComments.IncreaseIndent();
+        tsBtnOutdent.Click += (s, e) => txtDetailComments.DecreaseIndent();
+
+        tsBtnHighlightYellow.Click += (s, e) => txtDetailComments.SetSelectionBackColor(Color.Yellow);
+        tsBtnHighlightGreen.Click += (s, e) => txtDetailComments.SetSelectionBackColor(Color.LightGreen);
+        tsBtnClearHighlight.Click += (s, e) => txtDetailComments.ClearSelectionBackColor();
+    }
     private void Card_Click(object? sender, EventArgs e)
     {
         Panel? clickedCard = null;
@@ -472,7 +495,22 @@ public partial class AdminDashboardForm : Form
         lblDetailCreationDate.Text = task.CreationDate.ToLocalTime().ToString("yyyy-MM-dd HH:mm");
         lblDetailLastModified.Text = task.LastModifiedDate.ToLocalTime().ToString("yyyy-MM-dd HH:mm");
 
-        txtDetailComments.Text = task.Comments ?? string.Empty;
+        try
+        {
+            if (!string.IsNullOrEmpty(task.Comments))
+            {
+                txtDetailComments.Rtf = task.Comments;
+            }
+            else
+            {
+                txtDetailComments.Clear();
+            }
+        }
+        catch (ArgumentException)
+        {
+            // Fallback for old, non-RTF data.
+            txtDetailComments.Text = task.Comments;
+        }
         _isUpdatingUI = false;
         btnSaveComment.Enabled = false;
         lblStatus.Text = $"已選取任務: {task.Title}";
@@ -600,12 +638,23 @@ public partial class AdminDashboardForm : Form
         finally { SetLoadingState(false); }
     }
 
+    /// <summary>
+    /// Handles the Click event for the "Save Comment" button in the details panel.
+    /// It saves the RTF content of the comment and refreshes the dashboard.
+    /// </summary>
     private async void BtnSaveComment_Click(object? sender, EventArgs e)
     {
-        if (_selectedTaskForDetails is null || _userContext.CurrentUser is null) return;
+        // Use the currently selected node's tag, which is the most reliable source.
+        if (tvTasks.SelectedNode?.Tag is not TodoItem selectedTask || _userContext.CurrentUser is null)
+        {
+            btnSaveComment.Enabled = false;
+            return;
+        }
 
-        var newComments = txtDetailComments.Text.Trim();
-        if (_selectedTaskForDetails.Comments == newComments)
+        var newRtfContent = txtDetailComments.Rtf;
+
+        // Compare the RTF content to avoid unnecessary saves.
+        if (selectedTask.Comments == newRtfContent)
         {
             btnSaveComment.Enabled = false;
             return;
@@ -614,41 +663,28 @@ public partial class AdminDashboardForm : Form
         try
         {
             SetLoadingState(true);
+            lblStatus.Text = "正在儲存備註...";
 
-            var taskToUpdate = _selectedTaskForDetails;
-            taskToUpdate.Comments = newComments;
+            // --- FIX 2: Call the dedicated, lightweight service for updating comments ---
+            // This is safer and more efficient than a full update.
+            await _taskService.UpdateTaskCommentsAsync(
+                _userContext.CurrentUser,
+                selectedTask.Id,
+                newRtfContent
+            );
 
-            var updatedTask = await _taskService.UpdateTaskAsync(_userContext.CurrentUser, taskToUpdate);
-
-            _selectedTaskForDetails = updatedTask;
-
-            var owner = updatedTask.AssignedTo ?? updatedTask.Creator;
-            if (owner is not null && _dashboardViewModel.GroupedTasks.TryGetValue(owner, out var taskList))
-            {
-                var index = taskList.FindIndex(t => t.Id == updatedTask.Id);
-                if (index != -1)
-                {
-                    taskList[index] = updatedTask;
-                }
-            }
-
-            if (tvTasks.SelectedNode is not null && tvTasks.SelectedNode.Tag is TodoItem)
-            {
-                tvTasks.SelectedNode.Tag = updatedTask;
-                PopulateTaskDetails(updatedTask);
-            }
-
+            lblStatus.Text = "備註已成功儲存，正在重新整理...";
             btnSaveComment.Enabled = false;
-            lblStatus.Text = "備註已成功儲存。";
-        }
-        catch (DbUpdateConcurrencyException ex)
-        {
-            MessageBox.Show($"儲存備註失敗: {ex.Message}", "並行衝突", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+            // --- FIX 3: Perform a full, safe reload to ensure UI consistency ---
+            // In a complex view like the dashboard, a full reload is the most reliable
+            // way to ensure all elements (stats, tree order, details) are in sync.
             await LoadAndDisplayDataAsync();
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"儲存備註時發生錯誤: {ex.Message}", "系統錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            Program.HandleException(ex, "Save Comment");
+            await LoadAndDisplayDataAsync();
         }
         finally
         {

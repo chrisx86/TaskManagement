@@ -38,7 +38,6 @@ namespace TodoApp.WinForms.Forms
             tsBtnBold = new ToolStripButton();
             tsBtnItalic = new ToolStripButton();
             tsBtnUnderline = new ToolStripButton();
-            tsBtnStrikeout = new ToolStripButton();
             toolStripSeparator1 = new ToolStripSeparator();
             tsBtnSetColorRed = new ToolStripButton();
             tsBtnSetColorBlue = new ToolStripButton();
@@ -125,7 +124,7 @@ namespace TodoApp.WinForms.Forms
             // commentsFormatToolStrip
             // 
             commentsFormatToolStrip.GripStyle = ToolStripGripStyle.Hidden;
-            commentsFormatToolStrip.Items.AddRange(new ToolStripItem[] { tsBtnBold, tsBtnItalic, tsBtnUnderline, tsBtnStrikeout, tsBtnSetColorRed, tsBtnSetColorBlue, tsBtnSetColorGreen, tsBtnSetColorBlack, tsBtnBulletList, tsBtnIndent, tsBtnOutdent, tsBtnHighlightYellow, tsBtnHighlightGreen, tsBtnClearHighlight });
+            commentsFormatToolStrip.Items.AddRange(new ToolStripItem[] { tsBtnBold, tsBtnItalic, tsBtnUnderline, tsBtnSetColorRed, tsBtnSetColorBlue, tsBtnSetColorGreen, tsBtnSetColorBlack, tsBtnHighlightYellow, tsBtnHighlightGreen, tsBtnClearHighlight, tsBtnBulletList, tsBtnIndent, tsBtnOutdent });
             commentsFormatToolStrip.Location = new Point(0, 0);
             commentsFormatToolStrip.Name = "commentsFormatToolStrip";
             commentsFormatToolStrip.Size = new Size(1207, 28);
@@ -158,11 +157,6 @@ namespace TodoApp.WinForms.Forms
             tsBtnUnderline.Size = new Size(23, 25);
             tsBtnUnderline.Text = "U";
             tsBtnUnderline.ToolTipText = "底線";
-            // 
-            // tsBtnStrikeout
-            // 
-            tsBtnStrikeout.Name = "tsBtnStrikeout";
-            tsBtnStrikeout.Size = new Size(23, 25);
             // 
             // toolStripSeparator1
             // 
@@ -623,7 +617,6 @@ namespace TodoApp.WinForms.Forms
         private System.Windows.Forms.ToolStripButton tsBtnBold;
         private System.Windows.Forms.ToolStripButton tsBtnItalic;
         private System.Windows.Forms.ToolStripButton tsBtnUnderline;
-        private System.Windows.Forms.ToolStripButton tsBtnStrikeout;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
         private System.Windows.Forms.ToolStripButton tsBtnSetColorRed;
         private System.Windows.Forms.ToolStripButton tsBtnSetColorBlue;

@@ -208,7 +208,6 @@ public partial class MainForm : Form
         tsBtnBold.Click += (s, e) => txtCommentsPreview.ToggleFontStyle(FontStyle.Bold);
         tsBtnItalic.Click += (s, e) => txtCommentsPreview.ToggleFontStyle(FontStyle.Italic);
         tsBtnUnderline.Click += (s, e) => txtCommentsPreview.ToggleFontStyle(FontStyle.Underline);
-        tsBtnStrikeout.Click += (s, e) => txtCommentsPreview.ToggleFontStyle(FontStyle.Strikeout);
 
         // --- Font Color ---
         tsBtnSetColorRed.Click += (s, e) => txtCommentsPreview.SetSelectionColor(Color.Red);
@@ -225,16 +224,6 @@ public partial class MainForm : Form
         tsBtnHighlightYellow.Click += (s, e) => txtCommentsPreview.SetSelectionBackColor(Color.Yellow);
         tsBtnHighlightGreen.Click += (s, e) => txtCommentsPreview.SetSelectionBackColor(Color.LightGreen);
         tsBtnClearHighlight.Click += (s, e) => txtCommentsPreview.ClearSelectionBackColor();
-    }
-
-    private void ToggleFontStyle(FontStyle style)
-    {
-        if (txtCommentsPreview.SelectionFont == null) return;
-
-        var currentFont = txtCommentsPreview.SelectionFont;
-        var newStyle = currentFont.Style ^ style;
-
-        txtCommentsPreview.SelectionFont = new Font(currentFont, newStyle);
     }
 
     private void SetupUIPermissions()
@@ -429,12 +418,6 @@ public partial class MainForm : Form
         {
             _isUpdatingUI = false;
         }
-    }
-
-    private async void ApplySort()
-    {
-        _currentPage = 1;
-        await LoadTasksAsync();
     }
 
     private void UpdateSortGlyphs()
