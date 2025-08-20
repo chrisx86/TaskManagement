@@ -4,9 +4,10 @@ using System.Reflection;
 using System.ComponentModel;
 using TodoApp.Core.Models;
 using TodoApp.Core.Services;
+using TodoApp.Infrastructure.Services;
+using TodoApp.WinForms.Helpers;
 using TodoApp.WinForms.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
-using TodoApp.Infrastructure.Services;
 using Microsoft.Extensions.Configuration;
 
 namespace TodoApp.WinForms.Forms;
@@ -203,31 +204,27 @@ public partial class MainForm : Form
 
     private void WireUpFormatButtons()
     {
-        tsBtnBold.Click += (s, e) => ToggleFontStyle(FontStyle.Bold);
-        tsBtnItalic.Click += (s, e) => ToggleFontStyle(FontStyle.Italic);
-        tsBtnUnderline.Click += (s, e) => ToggleFontStyle(FontStyle.Underline);
+        // --- Font Style ---
+        tsBtnBold.Click += (s, e) => txtCommentsPreview.ToggleFontStyle(FontStyle.Bold);
+        tsBtnItalic.Click += (s, e) => txtCommentsPreview.ToggleFontStyle(FontStyle.Italic);
+        tsBtnUnderline.Click += (s, e) => txtCommentsPreview.ToggleFontStyle(FontStyle.Underline);
+        tsBtnStrikeout.Click += (s, e) => txtCommentsPreview.ToggleFontStyle(FontStyle.Strikeout);
 
-        tsBtnSetColorRed.Click += (s, e) => txtCommentsPreview.SelectionColor = Color.Red;
-        tsBtnSetColorBlack.Click += (s, e) => txtCommentsPreview.SelectionColor = Color.Black;
-        tsBtnSetColorBlue.Click += (s, e) => { txtCommentsPreview.SelectionColor = Color.Blue; };
-        tsBtnSetColorGreen.Click += (s, e) => { txtCommentsPreview.SelectionColor = Color.Green; };
+        // --- Font Color ---
+        tsBtnSetColorRed.Click += (s, e) => txtCommentsPreview.SetSelectionColor(Color.Red);
+        tsBtnSetColorBlue.Click += (s, e) => txtCommentsPreview.SetSelectionColor(Color.Blue);
+        tsBtnSetColorGreen.Click += (s, e) => txtCommentsPreview.SetSelectionColor(Color.Green);
+        tsBtnSetColorBlack.Click += (s, e) => txtCommentsPreview.SetSelectionColor(Color.Black);
 
-        tsBtnBulletList.Click += (s, e) => {
-            txtCommentsPreview.SelectionBullet = !txtCommentsPreview.SelectionBullet;
-        };
-        int IndentSize = 20;
-        tsBtnIndent.Click += (s, e) =>
-        {
-            txtCommentsPreview.SelectionIndent += IndentSize;
-        };
-        tsBtnOutdent.Click += (s, e) =>
-        {
-            txtCommentsPreview.SelectionIndent = Math.Max(0, txtCommentsPreview.SelectionIndent - IndentSize);
-        };
-        tsBtnHighlightYellow.Click += (s, e) => { txtCommentsPreview.SelectionBackColor = Color.Yellow; };
-        tsBtnHighlightGreen.Click += (s, e) => { txtCommentsPreview.SelectionBackColor = Color.LightGreen; };
+        // --- Paragraph ---
+        tsBtnBulletList.Click += (s, e) => txtCommentsPreview.ToggleBullet();
+        tsBtnIndent.Click += (s, e) => txtCommentsPreview.IncreaseIndent();
+        tsBtnOutdent.Click += (s, e) => txtCommentsPreview.DecreaseIndent();
 
-        tsBtnClearHighlight.Click += (s, e) => { txtCommentsPreview.SelectionBackColor = txtCommentsPreview.BackColor; };
+        // --- Highlighting ---
+        tsBtnHighlightYellow.Click += (s, e) => txtCommentsPreview.SetSelectionBackColor(Color.Yellow);
+        tsBtnHighlightGreen.Click += (s, e) => txtCommentsPreview.SetSelectionBackColor(Color.LightGreen);
+        tsBtnClearHighlight.Click += (s, e) => txtCommentsPreview.ClearSelectionBackColor();
     }
 
     private void ToggleFontStyle(FontStyle style)
