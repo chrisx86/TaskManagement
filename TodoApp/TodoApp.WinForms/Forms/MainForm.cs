@@ -74,6 +74,7 @@ public partial class MainForm : Form
         _italicFont = new Font(this.Font, FontStyle.Italic);
 
         WireUpEvents();
+        WireUpFormatButtons();
     }
 
     private void WireUpEvents()
@@ -198,6 +199,45 @@ public partial class MainForm : Form
         dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "Creator", HeaderText = "建立者", DataPropertyName = "Creator", Width = 80, SortMode = DataGridViewColumnSortMode.Programmatic });
         dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "CreationDate", HeaderText = "建立日期", DataPropertyName = "CreationDate", Width = 80, DefaultCellStyle = { Format = "yyyy-MM-dd" }, ReadOnly = true, SortMode = DataGridViewColumnSortMode.Programmatic });
         dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "LastModifiedDate", HeaderText = "最後更新", DataPropertyName = "LastModifiedDate", Width = 120, DefaultCellStyle = { Format = "yyyy-MM-dd HH:mm" }, ReadOnly = true, SortMode = DataGridViewColumnSortMode.Programmatic });
+    }
+
+    private void WireUpFormatButtons()
+    {
+        tsBtnBold.Click += (s, e) => ToggleFontStyle(FontStyle.Bold);
+        tsBtnItalic.Click += (s, e) => ToggleFontStyle(FontStyle.Italic);
+        tsBtnUnderline.Click += (s, e) => ToggleFontStyle(FontStyle.Underline);
+
+        tsBtnSetColorRed.Click += (s, e) => txtCommentsPreview.SelectionColor = Color.Red;
+        tsBtnSetColorBlack.Click += (s, e) => txtCommentsPreview.SelectionColor = Color.Black;
+        tsBtnSetColorBlue.Click += (s, e) => { txtCommentsPreview.SelectionColor = Color.Blue; };
+        tsBtnSetColorGreen.Click += (s, e) => { txtCommentsPreview.SelectionColor = Color.Green; };
+
+        tsBtnBulletList.Click += (s, e) => {
+            txtCommentsPreview.SelectionBullet = !txtCommentsPreview.SelectionBullet;
+        };
+        int IndentSize = 20;
+        tsBtnIndent.Click += (s, e) =>
+        {
+            txtCommentsPreview.SelectionIndent += IndentSize;
+        };
+        tsBtnOutdent.Click += (s, e) =>
+        {
+            txtCommentsPreview.SelectionIndent = Math.Max(0, txtCommentsPreview.SelectionIndent - IndentSize);
+        };
+        tsBtnHighlightYellow.Click += (s, e) => { txtCommentsPreview.SelectionBackColor = Color.Yellow; };
+        tsBtnHighlightGreen.Click += (s, e) => { txtCommentsPreview.SelectionBackColor = Color.LightGreen; };
+
+        tsBtnClearHighlight.Click += (s, e) => { txtCommentsPreview.SelectionBackColor = txtCommentsPreview.BackColor; };
+    }
+
+    private void ToggleFontStyle(FontStyle style)
+    {
+        if (txtCommentsPreview.SelectionFont == null) return;
+
+        var currentFont = txtCommentsPreview.SelectionFont;
+        var newStyle = currentFont.Style ^ style;
+
+        txtCommentsPreview.SelectionFont = new Font(currentFont, newStyle);
     }
 
     private void SetupUIPermissions()

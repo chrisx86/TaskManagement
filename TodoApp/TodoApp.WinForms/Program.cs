@@ -130,7 +130,6 @@ internal static class Program
     public static void HandleException(Exception? ex, string source)
     {
         if (ex is null) return;
-
         try
         {
             var logFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "error_log.txt");
@@ -153,9 +152,7 @@ internal static class Program
                 "Critical System Failure", MessageBoxButtons.OK, MessageBoxIcon.Stop);
         }
 
-        var friendlyMessage = "應用程式發生未預期的錯誤，即將關閉。\n\n" +
-                                       "詳細資訊已記錄供開發團隊參考。";
-        MessageBox.Show(friendlyMessage, "系統錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        MessageBox.Show($"應用程式發生未預期的錯誤，即將關閉。\n\n{ex.Message}。", "系統錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
         try { 
             Application.Exit();
