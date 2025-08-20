@@ -80,24 +80,23 @@ namespace TodoApp.WinForms.Forms
             tsBtnUnderline = new ToolStripButton();
             toolStripSeparator1 = new ToolStripSeparator();
             tsBtnSetColorRed = new ToolStripButton();
+            tsBtnSetColorBlue = new ToolStripButton();
+            tsBtnSetColorGreen = new ToolStripButton();
             tsBtnSetColorBlack = new ToolStripButton();
-            this.tsBtnSetColorBlue = new System.Windows.Forms.ToolStripButton();
-            this.tsBtnSetColorGreen = new System.Windows.Forms.ToolStripButton();
             toolStripSeparator2 = new ToolStripSeparator();
             tsBtnBulletList = new ToolStripButton();
-            this.tsBtnIndent = new System.Windows.Forms.ToolStripButton();
-            this.tsBtnOutdent = new System.Windows.Forms.ToolStripButton();
-
-            this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
-            this.tsBtnHighlightYellow = new System.Windows.Forms.ToolStripButton();
-            this.tsBtnHighlightGreen = new System.Windows.Forms.ToolStripButton();
-            this.tsBtnClearHighlight = new System.Windows.Forms.ToolStripButton();
+            tsBtnIndent = new ToolStripButton();
+            tsBtnOutdent = new ToolStripButton();
+            toolStripSeparator3 = new ToolStripSeparator();
+            tsBtnHighlightYellow = new ToolStripButton();
+            tsBtnHighlightGreen = new ToolStripButton();
+            tsBtnClearHighlight = new ToolStripButton();
             btnSave = new Button();
             btnCancel = new Button();
             errorProvider1 = new ErrorProvider(components);
+            commentsFormatToolStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)errorProvider1).BeginInit();
             SuspendLayout();
-            commentsFormatToolStrip.SuspendLayout();
             // 
             // lblTitle
             // 
@@ -199,40 +198,23 @@ namespace TodoApp.WinForms.Forms
             // 
             // txtComments
             // 
-            txtComments.Anchor = ((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-            | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right);
+            txtComments.AcceptsTab = true;
+            txtComments.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             txtComments.Location = new Point(120, 237);
-            txtComments.Multiline = true;
             txtComments.Name = "txtComments";
-            txtComments.Size = new Size(444, 120);
+            txtComments.Size = new Size(444, 144);
             txtComments.TabIndex = 12;
+            txtComments.Text = "";
             // 
             // commentsFormatToolStrip
             // 
             commentsFormatToolStrip.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             commentsFormatToolStrip.Dock = DockStyle.None;
             commentsFormatToolStrip.GripStyle = ToolStripGripStyle.Hidden;
-            commentsFormatToolStrip.Items.AddRange(new ToolStripItem[] {
-                tsBtnBold,
-                tsBtnItalic,
-                tsBtnUnderline,
-                toolStripSeparator1,
-                tsBtnSetColorRed,
-                tsBtnSetColorBlue,
-                tsBtnSetColorGreen,
-                tsBtnSetColorBlack,
-                toolStripSeparator2,
-                tsBtnBulletList,
-                tsBtnIndent,
-                tsBtnOutdent,
-                toolStripSeparator3,
-                tsBtnHighlightYellow,
-                tsBtnHighlightGreen,
-                tsBtnClearHighlight
-            });
+            commentsFormatToolStrip.Items.AddRange(new ToolStripItem[] { tsBtnBold, tsBtnItalic, tsBtnUnderline, toolStripSeparator1, tsBtnSetColorRed, tsBtnSetColorBlue, tsBtnSetColorGreen, tsBtnSetColorBlack, toolStripSeparator2, tsBtnBulletList, tsBtnIndent, tsBtnOutdent, toolStripSeparator3, tsBtnHighlightYellow, tsBtnHighlightGreen, tsBtnClearHighlight });
             commentsFormatToolStrip.Location = new Point(120, 202);
             commentsFormatToolStrip.Name = "commentsFormatToolStrip";
-            commentsFormatToolStrip.Size = new Size(444, 25);
+            commentsFormatToolStrip.Size = new Size(320, 28);
             commentsFormatToolStrip.TabIndex = 11;
             commentsFormatToolStrip.Text = "toolStrip1";
             // 
@@ -241,7 +223,7 @@ namespace TodoApp.WinForms.Forms
             tsBtnBold.DisplayStyle = ToolStripItemDisplayStyle.Text;
             tsBtnBold.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             tsBtnBold.Name = "tsBtnBold";
-            tsBtnBold.Size = new Size(23, 22);
+            tsBtnBold.Size = new Size(23, 25);
             tsBtnBold.Text = "B";
             tsBtnBold.ToolTipText = "粗體";
             // 
@@ -250,7 +232,7 @@ namespace TodoApp.WinForms.Forms
             tsBtnItalic.DisplayStyle = ToolStripItemDisplayStyle.Text;
             tsBtnItalic.Font = new Font("Segoe UI", 9F, FontStyle.Italic);
             tsBtnItalic.Name = "tsBtnItalic";
-            tsBtnItalic.Size = new Size(23, 22);
+            tsBtnItalic.Size = new Size(23, 25);
             tsBtnItalic.Text = "I";
             tsBtnItalic.ToolTipText = "斜體";
             // 
@@ -259,125 +241,125 @@ namespace TodoApp.WinForms.Forms
             tsBtnUnderline.DisplayStyle = ToolStripItemDisplayStyle.Text;
             tsBtnUnderline.Font = new Font("Segoe UI", 9F, FontStyle.Underline);
             tsBtnUnderline.Name = "tsBtnUnderline";
-            tsBtnUnderline.Size = new Size(23, 22);
+            tsBtnUnderline.Size = new Size(23, 25);
             tsBtnUnderline.Text = "U";
             tsBtnUnderline.ToolTipText = "底線";
             // 
             // toolStripSeparator1
             // 
             toolStripSeparator1.Name = "toolStripSeparator1";
-            toolStripSeparator1.Size = new Size(6, 25);
+            toolStripSeparator1.Size = new Size(6, 28);
             // 
             // tsBtnSetColorRed
             // 
             tsBtnSetColorRed.DisplayStyle = ToolStripItemDisplayStyle.Text;
             tsBtnSetColorRed.ForeColor = Color.Red;
             tsBtnSetColorRed.Name = "tsBtnSetColorRed";
-            tsBtnSetColorRed.Size = new Size(23, 22);
+            tsBtnSetColorRed.Size = new Size(23, 25);
             tsBtnSetColorRed.Text = "A";
             tsBtnSetColorRed.ToolTipText = "紅色文字";
+            // 
+            // tsBtnSetColorBlue
+            // 
+            tsBtnSetColorBlue.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            tsBtnSetColorBlue.ForeColor = Color.Blue;
+            tsBtnSetColorBlue.Name = "tsBtnSetColorBlue";
+            tsBtnSetColorBlue.Size = new Size(23, 25);
+            tsBtnSetColorBlue.Text = "A";
+            tsBtnSetColorBlue.ToolTipText = "藍色文字";
+            // 
+            // tsBtnSetColorGreen
+            // 
+            tsBtnSetColorGreen.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            tsBtnSetColorGreen.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            tsBtnSetColorGreen.ForeColor = Color.Green;
+            tsBtnSetColorGreen.Name = "tsBtnSetColorGreen";
+            tsBtnSetColorGreen.Size = new Size(23, 25);
+            tsBtnSetColorGreen.Text = "A";
+            tsBtnSetColorGreen.ToolTipText = "綠色文字";
             // 
             // tsBtnSetColorBlack
             // 
             tsBtnSetColorBlack.DisplayStyle = ToolStripItemDisplayStyle.Text;
             tsBtnSetColorBlack.ForeColor = Color.Black;
             tsBtnSetColorBlack.Name = "tsBtnSetColorBlack";
-            tsBtnSetColorBlack.Size = new Size(23, 22);
+            tsBtnSetColorBlack.Size = new Size(23, 25);
             tsBtnSetColorBlack.Text = "A";
             tsBtnSetColorBlack.ToolTipText = "黑色文字 (預設)";
-            // tsBtnSetColorBlue
-            tsBtnSetColorBlue.DisplayStyle = ToolStripItemDisplayStyle.Text;
-            tsBtnSetColorBlue.ForeColor = Color.Blue;
-            tsBtnSetColorBlue.Name = "tsBtnSetColorBlue";
-            tsBtnSetColorBlue.Size = new Size(23, 22);
-            tsBtnSetColorBlue.Text = "A";
-            tsBtnSetColorBlue.ToolTipText = "藍色文字";
             // 
-            // tsBtnSetColorGreen
-            // 
-            this.tsBtnSetColorGreen.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.tsBtnSetColorGreen.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            this.tsBtnSetColorGreen.ForeColor = System.Drawing.Color.Green;
-            this.tsBtnSetColorGreen.Name = "tsBtnSetColorGreen";
-            this.tsBtnSetColorGreen.Size = new System.Drawing.Size(23, 22);
-            this.tsBtnSetColorGreen.Text = "A";
-            this.tsBtnSetColorGreen.ToolTipText = "綠色文字";
-            //
             // toolStripSeparator2
-            //
+            // 
             toolStripSeparator2.Name = "toolStripSeparator2";
-            toolStripSeparator2.Size = new Size(6, 25);
+            toolStripSeparator2.Size = new Size(6, 28);
             // 
             // tsBtnBulletList
             // 
-            this.tsBtnBulletList.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.tsBtnBulletList.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point); // Use a larger font for better visibility
-            this.tsBtnBulletList.Name = "tsBtnBulletList";
-            this.tsBtnBulletList.Size = new System.Drawing.Size(23, 22);
-            this.tsBtnBulletList.Text = "•"; // Using a solid bullet character (Alt+7 on numpad)
-            this.tsBtnBulletList.ToolTipText = "項目符號";
-
+            tsBtnBulletList.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            tsBtnBulletList.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
+            tsBtnBulletList.Name = "tsBtnBulletList";
+            tsBtnBulletList.Size = new Size(23, 25);
+            tsBtnBulletList.Text = "•";
+            tsBtnBulletList.ToolTipText = "項目符號";
             // 
             // tsBtnIndent
             // 
-            this.tsBtnIndent.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.tsBtnIndent.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.tsBtnIndent.Name = "tsBtnIndent";
-            this.tsBtnIndent.Size = new System.Drawing.Size(23, 22);
-            this.tsBtnIndent.Text = "→"; // Using right arrow character
-            this.tsBtnIndent.ToolTipText = "增加縮排";
+            tsBtnIndent.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            tsBtnIndent.Font = new Font("Segoe UI", 9F);
+            tsBtnIndent.Name = "tsBtnIndent";
+            tsBtnIndent.Size = new Size(23, 25);
+            tsBtnIndent.Text = "→";
+            tsBtnIndent.ToolTipText = "增加縮排";
             // 
             // tsBtnOutdent
             // 
-            this.tsBtnOutdent.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.tsBtnOutdent.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.tsBtnOutdent.Name = "tsBtnOutdent";
-            this.tsBtnOutdent.Size = new System.Drawing.Size(23, 22);
-            this.tsBtnOutdent.Text = "←"; // Using left arrow character
-            this.tsBtnOutdent.ToolTipText = "減少縮排";
+            tsBtnOutdent.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            tsBtnOutdent.Font = new Font("Segoe UI", 9F);
+            tsBtnOutdent.Name = "tsBtnOutdent";
+            tsBtnOutdent.Size = new Size(23, 25);
+            tsBtnOutdent.Text = "←";
+            tsBtnOutdent.ToolTipText = "減少縮排";
             // 
             // toolStripSeparator3
             // 
-            this.toolStripSeparator3.Name = "toolStripSeparator3";
-            this.toolStripSeparator3.Size = new System.Drawing.Size(6, 25);
+            toolStripSeparator3.Name = "toolStripSeparator3";
+            toolStripSeparator3.Size = new Size(6, 28);
             // 
             // tsBtnHighlightYellow
             // 
-            this.tsBtnHighlightYellow.BackColor = System.Drawing.Color.Yellow;
-            this.tsBtnHighlightYellow.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image; // Show as a color block
-            this.tsBtnHighlightYellow.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsBtnHighlightYellow.Name = "tsBtnHighlightYellow";
-            this.tsBtnHighlightYellow.Size = new System.Drawing.Size(23, 22);
-            this.tsBtnHighlightYellow.Text = "Yellow Highlight";
-            this.tsBtnHighlightYellow.ToolTipText = "黃色螢光筆";
+            tsBtnHighlightYellow.BackColor = Color.Yellow;
+            tsBtnHighlightYellow.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            tsBtnHighlightYellow.ImageTransparentColor = Color.Magenta;
+            tsBtnHighlightYellow.Name = "tsBtnHighlightYellow";
+            tsBtnHighlightYellow.Size = new Size(23, 25);
+            tsBtnHighlightYellow.Text = "Yellow Highlight";
+            tsBtnHighlightYellow.ToolTipText = "黃色螢光筆";
             // 
             // tsBtnHighlightGreen
             // 
-            this.tsBtnHighlightGreen.BackColor = System.Drawing.Color.LightGreen;
-            this.tsBtnHighlightGreen.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.tsBtnHighlightGreen.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsBtnHighlightGreen.Name = "tsBtnHighlightGreen";
-            this.tsBtnHighlightGreen.Size = new System.Drawing.Size(23, 22);
-            this.tsBtnHighlightGreen.Text = "Green Highlight";
-            this.tsBtnHighlightGreen.ToolTipText = "綠色螢光筆";
+            tsBtnHighlightGreen.BackColor = Color.LightGreen;
+            tsBtnHighlightGreen.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            tsBtnHighlightGreen.ImageTransparentColor = Color.Magenta;
+            tsBtnHighlightGreen.Name = "tsBtnHighlightGreen";
+            tsBtnHighlightGreen.Size = new Size(23, 25);
+            tsBtnHighlightGreen.Text = "Green Highlight";
+            tsBtnHighlightGreen.ToolTipText = "綠色螢光筆";
             // 
             // tsBtnClearHighlight
             // 
-            this.tsBtnClearHighlight.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.tsBtnClearHighlight.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Strikeout);
-            this.tsBtnClearHighlight.Name = "tsBtnClearHighlight";
-            this.tsBtnClearHighlight.Size = new System.Drawing.Size(23, 22);
-            this.tsBtnClearHighlight.Text = "C";
-            this.tsBtnClearHighlight.ToolTipText = "清除底色標示";
-
+            tsBtnClearHighlight.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            tsBtnClearHighlight.Font = new Font("Segoe UI", 9F, FontStyle.Strikeout);
+            tsBtnClearHighlight.Name = "tsBtnClearHighlight";
+            tsBtnClearHighlight.Size = new Size(23, 25);
+            tsBtnClearHighlight.Text = "C";
+            tsBtnClearHighlight.ToolTipText = "清除底色標示";
             // 
             // btnSave
             // 
             btnSave.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnSave.Location = new Point(408, 336);
+            btnSave.Location = new Point(408, 387);
             btnSave.Name = "btnSave";
             btnSave.Size = new Size(75, 23);
-            btnSave.TabIndex = 12;
+            btnSave.TabIndex = 13;
             btnSave.Text = "儲存(&S)";
             btnSave.UseVisualStyleBackColor = true;
             // 
@@ -385,10 +367,10 @@ namespace TodoApp.WinForms.Forms
             // 
             btnCancel.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             btnCancel.DialogResult = DialogResult.Cancel;
-            btnCancel.Location = new Point(489, 336);
+            btnCancel.Location = new Point(489, 387);
             btnCancel.Name = "btnCancel";
             btnCancel.Size = new Size(75, 23);
-            btnCancel.TabIndex = 13;
+            btnCancel.TabIndex = 14;
             btnCancel.Text = "取消(&C)";
             btnCancel.UseVisualStyleBackColor = true;
             // 
@@ -402,7 +384,7 @@ namespace TodoApp.WinForms.Forms
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             CancelButton = btnCancel;
-            ClientSize = new Size(596, 381);
+            ClientSize = new Size(596, 440);
             Controls.Add(cmbStatus);
             Controls.Add(lblStatus);
             Controls.Add(commentsFormatToolStrip);

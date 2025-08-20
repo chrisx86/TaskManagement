@@ -83,18 +83,10 @@ namespace TodoApp.WinForms.Forms
             btnFirstPage = new Button();
             splitContainerMain = new SplitContainer();
             dgvTasks = new DataGridView();
-            panelCommentsContainer.SuspendLayout();
-            commentsFormatToolStrip.SuspendLayout();
-            toolStrip1.SuspendLayout();
-            statusStrip1.SuspendLayout();
-            panelFilters.SuspendLayout();
-            panelPagination.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)splitContainerMain).BeginInit();
-            splitContainerMain.Panel1.SuspendLayout();
-            splitContainerMain.Panel2.SuspendLayout();
-            splitContainerMain.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)dgvTasks).BeginInit();
-            SuspendLayout();
+
+            // --- 階段 1: 暫停所有容器的佈局邏輯 ---
+            SuspendLayout(); // 這是針對 MainForm 自身的呼叫
+
             // 
             // panelCommentsContainer
             // 
@@ -604,9 +596,11 @@ namespace TodoApp.WinForms.Forms
             // 
             // MainForm
             // 
+            // --- 階段 2: 設定 MainForm 本身的屬性 ---
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1207, 600);
+            // --- 階段 3: 將頂層容器加入到 MainForm ---
             Controls.Add(splitContainerMain);
             Controls.Add(panelPagination);
             Controls.Add(panelFilters);
@@ -616,24 +610,7 @@ namespace TodoApp.WinForms.Forms
             MinimumSize = new Size(1192, 600);
             Name = "MainForm";
             Text = "Task Management";
-
-            panelCommentsContainer.ResumeLayout(false);
-            panelCommentsContainer.PerformLayout();
-            commentsFormatToolStrip.ResumeLayout(false);
-            commentsFormatToolStrip.PerformLayout();
-            toolStrip1.ResumeLayout(false);
-            toolStrip1.PerformLayout();
-            statusStrip1.ResumeLayout(false);
-            statusStrip1.PerformLayout();
-            panelFilters.ResumeLayout(false);
-            panelFilters.PerformLayout();
-            panelPagination.ResumeLayout(false);
-            panelPagination.PerformLayout();
-            splitContainerMain.Panel1.ResumeLayout(false);
-            splitContainerMain.Panel2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)splitContainerMain).EndInit();
-            splitContainerMain.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)dgvTasks).EndInit();
+            // --- 階段 4: 恢復所有容器的佈局邏輯 ---
             ResumeLayout(false);
             PerformLayout();
         }

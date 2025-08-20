@@ -487,7 +487,6 @@ public partial class MainForm : Form
 
     private void DgvTasks_SelectionChanged(object? sender, EventArgs e)
     {
-        // This method now becomes much simpler.
         bool isRowSelected = dgvTasks.SelectedRows.Count > 0;
         tsbEditTask.Enabled = isRowSelected;
         tsbDeleteTask.Enabled = isRowSelected;
@@ -497,17 +496,43 @@ public partial class MainForm : Form
 
         if (isRowSelected && dgvTasks.SelectedRows[0].DataBoundItem is TodoItem selectedTask)
         {
+            _selectedTaskForEditing = selectedTask;
             // We still need to prevent TextChanged from firing when we set the text.
             _isUpdatingUI = true;
-            txtCommentsPreview.Text = selectedTask.Comments ?? "";
+            try
+            {
+                if (!string.IsNullOrEmpty(selectedTask.Comments))
+                {
+                    try
+                    {
+                        // Attempt to load as RTF first.
+                        txtCommentsPreview.Rtf = selectedTask.Comments;
+                    }
+                    catch (ArgumentException)
+                    {
+                        // If it fails (because it's plain text), fall back to setting the Text property.
+                        txtCommentsPreview.Text = selectedTask.Comments;
+                    }
+                }
+                else
+                {
+                    txtCommentsPreview.Clear();
+                }
+            }
+            finally
+            {
+                _isUpdatingUI = false;
+            }
             txtCommentsPreview.Enabled = true;
-            _isUpdatingUI = false;
+            btnSaveChanges.Enabled = false;
         }
         else
         {
+            _selectedTaskForEditing = null;
             _isUpdatingUI = true;
             txtCommentsPreview.Clear();
             txtCommentsPreview.Enabled = false;
+            btnSaveChanges.Enabled = false;
             _isUpdatingUI = false;
         }
     }
@@ -773,16 +798,15 @@ public partial class MainForm : Form
         if (dgvTasks.SelectedRows.Count == 0 || dgvTasks.SelectedRows[0].DataBoundItem is not TodoItem selectedTask)
             return;
 
-        var currentCommentsInBox = txtCommentsPreview.Text.Trim();
-        if (selectedTask.Comments == currentCommentsInBox)
+        var currentRtfContent = txtCommentsPreview.Rtf;
+
+        if (selectedTask.Comments == currentRtfContent)
         {
             btnSaveChanges.Enabled = false;
             return;
         }
 
-        // Immediately update the in-memory object and the UI state.
-        // This provides an instant feeling of responsiveness to the user.
-        selectedTask.Comments = currentCommentsInBox;
+        selectedTask.Comments = currentRtfContent;
         lblStatus.Text = "正在儲存備註...";
         btnSaveChanges.Enabled = false;
 

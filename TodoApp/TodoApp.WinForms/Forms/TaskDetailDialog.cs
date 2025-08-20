@@ -127,6 +127,7 @@ public partial class TaskDetailDialog : Form
     }
     private void WireUpFormatButtons()
     {
+        txtComments.Leave += (s, e) => { this.AcceptButton = this.btnSave; };
         tsBtnBold.Click += (s, e) => ToggleFontStyle(FontStyle.Bold);
         tsBtnItalic.Click += (s, e) => ToggleFontStyle(FontStyle.Italic);
         tsBtnUnderline.Click += (s, e) => ToggleFontStyle(FontStyle.Underline);
@@ -150,7 +151,6 @@ public partial class TaskDetailDialog : Form
         };
         tsBtnHighlightYellow.Click += (s, e) => { txtComments.SelectionBackColor = Color.Yellow; };
         tsBtnHighlightGreen.Click += (s, e) => { txtComments.SelectionBackColor = Color.LightGreen; };
-
         tsBtnClearHighlight.Click += (s, e) => { txtComments.SelectionBackColor = txtComments.BackColor; };
     }
 
