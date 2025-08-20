@@ -1,6 +1,6 @@
 ﻿#nullable disable
 
-using System.Windows.Forms;
+using System.ComponentModel;
 
 namespace TodoApp.WinForms.Forms
 {
@@ -9,7 +9,7 @@ namespace TodoApp.WinForms.Forms
         /// <summary>
         /// Required designer variable.
         /// </summary>
-        private System.ComponentModel.IContainer components = null;
+        private IContainer components = null;
 
         /// <summary>
         /// Clean up any resources being used.
@@ -32,93 +32,93 @@ namespace TodoApp.WinForms.Forms
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
-            this.panelFilters = new System.Windows.Forms.Panel();
-            this.cmbFilterByUser = new System.Windows.Forms.ComboBox();
-            this.lblFilterByUser = new System.Windows.Forms.Label();
-            this.chkFilterOverdue = new System.Windows.Forms.CheckBox();
-            this.cmbFilterStatus = new System.Windows.Forms.ComboBox();
-            this.lblFilterStatus = new System.Windows.Forms.Label();
-            this.btnClearFilter = new System.Windows.Forms.Button();
-            this.cmbFilterPriority = new System.Windows.Forms.ComboBox();
-            this.lblFilterPriority = new System.Windows.Forms.Label();
-            this.txtSearch = new System.Windows.Forms.TextBox();
-            this.lblSearch = new System.Windows.Forms.Label();
-            this.statusStrip1 = new System.Windows.Forms.StatusStrip();
-            this.lblStatus = new System.Windows.Forms.ToolStripStatusLabel();
-            this.tvTasks = new System.Windows.Forms.TreeView();
-            this.treeViewContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.ctxEditTask = new System.Windows.Forms.ToolStripMenuItem();
-            this.ctxReassignTask = new System.Windows.Forms.ToolStripMenuItem();
-            this.ctxDeleteTask = new System.Windows.Forms.ToolStripMenuItem();
-            this.mainTableLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
-            this.panelLeft = new System.Windows.Forms.Panel();
-            this.panelStatistics = new System.Windows.Forms.Panel();
-            this.cardCompleted = new System.Windows.Forms.Panel();
-            this.lblCompletedValue = new System.Windows.Forms.Label();
-            this.lblCompletedTitle = new System.Windows.Forms.Label();
-            this.cardRejected = new System.Windows.Forms.Panel();
-            this.lblRejectedValue = new System.Windows.Forms.Label();
-            this.lblRejectedTitle = new System.Windows.Forms.Label();
-            this.cardUnassigned = new System.Windows.Forms.Panel();
-            this.lblUnassignedValue = new System.Windows.Forms.Label();
-            this.lblUnassignedTitle = new System.Windows.Forms.Label();
-            this.cardOverdue = new System.Windows.Forms.Panel();
-            this.lblOverdueValue = new System.Windows.Forms.Label();
-            this.lblOverdueTitle = new System.Windows.Forms.Label();
-            this.cardUncompleted = new System.Windows.Forms.Panel();
-            this.lblUncompletedValue = new System.Windows.Forms.Label();
-            this.lblUncompletedTitle = new System.Windows.Forms.Label();
-            this.cardTotalTasks = new System.Windows.Forms.Panel();
-            this.lblTotalTasksValue = new System.Windows.Forms.Label();
-            this.lblTotalTasksTitle = new System.Windows.Forms.Label();
-            this.panelRight = new System.Windows.Forms.Panel();
-            this.panelTaskDetails = new System.Windows.Forms.Panel();
-            this.lblDetailLastModified = new System.Windows.Forms.Label();
-            this.lblDetailLastModifiedTitle = new System.Windows.Forms.Label();
-            this.lblDetailCreationDate = new System.Windows.Forms.Label();
-            this.lblDetailCreationDateTitle = new System.Windows.Forms.Label();
-            this.panelDetailActions = new System.Windows.Forms.Panel();
-            this.btnDetailDelete = new System.Windows.Forms.Button();
-            this.btnDetailReassign = new System.Windows.Forms.Button();
-            this.btnDetailEdit = new System.Windows.Forms.Button();
+            components = new Container();
+            panelFilters = new Panel();
+            cmbFilterByUser = new ComboBox();
+            lblFilterByUser = new Label();
+            chkFilterOverdue = new CheckBox();
+            cmbFilterStatus = new ComboBox();
+            lblFilterStatus = new Label();
+            btnClearFilter = new Button();
+            cmbFilterPriority = new ComboBox();
+            lblFilterPriority = new Label();
+            txtSearch = new TextBox();
+            lblSearch = new Label();
+            statusStrip1 = new StatusStrip();
+            lblStatus = new ToolStripStatusLabel();
+            tvTasks = new TreeView();
+            treeViewContextMenu = new ContextMenuStrip(components);
+            ctxEditTask = new ToolStripMenuItem();
+            ctxReassignTask = new ToolStripMenuItem();
+            ctxDeleteTask = new ToolStripMenuItem();
+            mainTableLayoutPanel = new TableLayoutPanel();
+            panelLeft = new Panel();
+            panelStatistics = new Panel();
+            cardCompleted = new Panel();
+            lblCompletedValue = new Label();
+            lblCompletedTitle = new Label();
+            cardRejected = new Panel();
+            lblRejectedValue = new Label();
+            lblRejectedTitle = new Label();
+            cardUnassigned = new Panel();
+            lblUnassignedValue = new Label();
+            lblUnassignedTitle = new Label();
+            cardOverdue = new Panel();
+            lblOverdueValue = new Label();
+            lblOverdueTitle = new Label();
+            cardUncompleted = new Panel();
+            lblUncompletedValue = new Label();
+            lblUncompletedTitle = new Label();
+            cardTotalTasks = new Panel();
+            lblTotalTasksValue = new Label();
+            lblTotalTasksTitle = new Label();
+            panelRight = new Panel();
+            panelTaskDetails = new Panel();
+            lblDetailLastModified = new Label();
+            lblDetailLastModifiedTitle = new Label();
+            lblDetailCreationDate = new Label();
+            lblDetailCreationDateTitle = new Label();
+            panelDetailActions = new Panel();
+            btnDetailDelete = new Button();
+            btnDetailReassign = new Button();
+            btnDetailEdit = new Button();
 
-            this.txtDetailComments = new System.Windows.Forms.RichTextBox();
-            this.commentsFormatToolStrip = new System.Windows.Forms.ToolStrip();
-            this.tsBtnBold = new System.Windows.Forms.ToolStripButton();
-            this.tsBtnItalic = new System.Windows.Forms.ToolStripButton();
-            this.tsBtnUnderline = new System.Windows.Forms.ToolStripButton();
-            this.tsBtnStrikeout = new System.Windows.Forms.ToolStripButton();
-            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
-            this.tsBtnSetColorRed = new System.Windows.Forms.ToolStripButton();
-            this.tsBtnSetColorBlue = new System.Windows.Forms.ToolStripButton();
-            this.tsBtnSetColorGreen = new System.Windows.Forms.ToolStripButton();
-            this.tsBtnSetColorBlack = new System.Windows.Forms.ToolStripButton();
-            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
-            this.tsBtnBulletList = new System.Windows.Forms.ToolStripButton();
-            this.tsBtnIndent = new System.Windows.Forms.ToolStripButton();
-            this.tsBtnOutdent = new System.Windows.Forms.ToolStripButton();
-            this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
-            this.tsBtnHighlightYellow = new System.Windows.Forms.ToolStripButton();
-            this.tsBtnHighlightGreen = new System.Windows.Forms.ToolStripButton();
-            this.tsBtnClearHighlight = new System.Windows.Forms.ToolStripButton();
+            txtDetailComments = new RichTextBox();
+            commentsFormatToolStrip = new ToolStrip();
+            tsBtnBold = new ToolStripButton();
+            tsBtnItalic = new ToolStripButton();
+            tsBtnUnderline = new ToolStripButton();
+            tsBtnStrikeout = new ToolStripButton();
+            toolStripSeparator1 = new ToolStripSeparator();
+            tsBtnSetColorRed = new ToolStripButton();
+            tsBtnSetColorBlue = new ToolStripButton();
+            tsBtnSetColorGreen = new ToolStripButton();
+            tsBtnSetColorBlack = new ToolStripButton();
+            toolStripSeparator2 = new ToolStripSeparator();
+            tsBtnBulletList = new ToolStripButton();
+            tsBtnIndent = new ToolStripButton();
+            tsBtnOutdent = new ToolStripButton();
+            toolStripSeparator3 = new ToolStripSeparator();
+            tsBtnHighlightYellow = new ToolStripButton();
+            tsBtnHighlightGreen = new ToolStripButton();
+            tsBtnClearHighlight = new ToolStripButton();
 
-            this.lblDetailCommentsTitle = new System.Windows.Forms.Label();
-            this.lblDetailAssignedTo = new System.Windows.Forms.Label();
-            this.lblDetailAssignedToTitle = new System.Windows.Forms.Label();
-            this.lblDetailCreator = new System.Windows.Forms.Label();
-            this.lblDetailCreatorTitle = new System.Windows.Forms.Label();
-            this.lblDetailDueDate = new System.Windows.Forms.Label();
-            this.lblDetailDueDateTitle = new System.Windows.Forms.Label();
-            this.lblDetailPriority = new System.Windows.Forms.Label();
-            this.lblDetailPriorityTitle = new System.Windows.Forms.Label();
-            this.lblDetailStatus = new System.Windows.Forms.Label();
-            this.lblDetailStatusTitle = new System.Windows.Forms.Label();
-            this.lblDetailTitle = new System.Windows.Forms.Label();
-            this.btnSaveComment = new System.Windows.Forms.Button();
-            this.btnViewHistory = new System.Windows.Forms.Button();
+            lblDetailCommentsTitle = new Label();
+            lblDetailAssignedTo = new Label();
+            lblDetailAssignedToTitle = new Label();
+            lblDetailCreator = new Label();
+            lblDetailCreatorTitle = new Label();
+            lblDetailDueDate = new Label();
+            lblDetailDueDateTitle = new Label();
+            lblDetailPriority = new Label();
+            lblDetailPriorityTitle = new Label();
+            lblDetailStatus = new Label();
+            lblDetailStatusTitle = new Label();
+            lblDetailTitle = new Label();
+            btnSaveComment = new Button();
+            btnViewHistory = new Button();
 
-            this.SuspendLayout();
+            SuspendLayout();
             // 
             // panelFilters
             // 
@@ -638,26 +638,26 @@ namespace TodoApp.WinForms.Forms
             // 
             // btnViewHistory
             // 
-            this.btnViewHistory.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnViewHistory.Location = new System.Drawing.Point(213, 8);
-            this.btnViewHistory.Name = "btnViewHistory";
-            this.btnViewHistory.Size = new System.Drawing.Size(75, 23);
-            this.btnViewHistory.TabIndex = 3; // Ensure correct tab order
-            this.btnViewHistory.Text = "查看歷史";
-            this.btnViewHistory.UseVisualStyleBackColor = true;
+            btnViewHistory.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            btnViewHistory.Location = new System.Drawing.Point(213, 8);
+            btnViewHistory.Name = "btnViewHistory";
+            btnViewHistory.Size = new System.Drawing.Size(75, 23);
+            btnViewHistory.TabIndex = 3; // Ensure correct tab order
+            btnViewHistory.Text = "查看歷史";
+            btnViewHistory.UseVisualStyleBackColor = true;
             // 
             // txtDetailComments
             // 
-            this.txtDetailComments.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            txtDetailComments.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
             | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtDetailComments.BackColor = System.Drawing.SystemColors.Window;
-            this.txtDetailComments.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtDetailComments.Location = new System.Drawing.Point(0, 273);
-            this.txtDetailComments.Name = "txtDetailComments";
-            this.txtDetailComments.Size = new System.Drawing.Size(277, 165);
-            this.txtDetailComments.TabIndex = 12;
-            this.txtDetailComments.Text = "";
+            txtDetailComments.BackColor = System.Drawing.SystemColors.Window;
+            txtDetailComments.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            txtDetailComments.Location = new System.Drawing.Point(0, 273);
+            txtDetailComments.Name = "txtDetailComments";
+            txtDetailComments.Size = new System.Drawing.Size(277, 165);
+            txtDetailComments.TabIndex = 12;
+            txtDetailComments.Text = "";
             // 
             // tsBtnBold
             // 
@@ -802,7 +802,7 @@ namespace TodoApp.WinForms.Forms
             // lblDetailCommentsTitle
             // 
             lblDetailCommentsTitle.AutoSize = true;
-            this.lblDetailCommentsTitle.Location = new System.Drawing.Point(0, 225);
+            lblDetailCommentsTitle.Location = new System.Drawing.Point(0, 225);
             lblDetailCommentsTitle.Name = "lblDetailCommentsTitle";
             lblDetailCommentsTitle.Size = new Size(31, 15);
             lblDetailCommentsTitle.TabIndex = 11;
@@ -810,17 +810,17 @@ namespace TodoApp.WinForms.Forms
             // 
             // commentsFormatToolStrip
             // 
-            this.commentsFormatToolStrip.Items.Clear();
-            this.commentsFormatToolStrip.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            commentsFormatToolStrip.Items.Clear();
+            commentsFormatToolStrip.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.commentsFormatToolStrip.Dock = System.Windows.Forms.DockStyle.None;
-            this.commentsFormatToolStrip.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
+            commentsFormatToolStrip.Dock = System.Windows.Forms.DockStyle.None;
+            commentsFormatToolStrip.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
             // Position it correctly above the RichTextBox
-            this.commentsFormatToolStrip.Location = new System.Drawing.Point(0, 245);
-            this.commentsFormatToolStrip.Name = "commentsFormatToolStrip";
-            this.commentsFormatToolStrip.Size = new System.Drawing.Size(277, 25);
-            this.commentsFormatToolStrip.TabIndex = 18;
-            this.commentsFormatToolStrip.Items.AddRange(new ToolStripItem[] { tsBtnBold, tsBtnItalic, tsBtnUnderline, tsBtnSetColorRed, tsBtnSetColorBlue, tsBtnSetColorGreen, tsBtnSetColorBlack, tsBtnHighlightYellow, tsBtnHighlightGreen, tsBtnClearHighlight, tsBtnBulletList, tsBtnIndent, tsBtnOutdent });
+            commentsFormatToolStrip.Location = new System.Drawing.Point(0, 245);
+            commentsFormatToolStrip.Name = "commentsFormatToolStrip";
+            commentsFormatToolStrip.Size = new System.Drawing.Size(277, 25);
+            commentsFormatToolStrip.TabIndex = 18;
+            commentsFormatToolStrip.Items.AddRange(new ToolStripItem[] { tsBtnBold, tsBtnItalic, tsBtnUnderline, tsBtnSetColorRed, tsBtnSetColorBlue, tsBtnSetColorGreen, tsBtnSetColorBlack, tsBtnHighlightYellow, tsBtnHighlightGreen, tsBtnClearHighlight, tsBtnBulletList, tsBtnIndent, tsBtnOutdent });
 
             // 
             // lblDetailAssignedTo
@@ -947,89 +947,89 @@ namespace TodoApp.WinForms.Forms
 
         #endregion
 
-        private System.Windows.Forms.Panel panelFilters;
-        private System.Windows.Forms.StatusStrip statusStrip1;
-        private System.Windows.Forms.TreeView tvTasks;
-        private System.Windows.Forms.TextBox txtSearch;
-        private System.Windows.Forms.Label lblSearch;
-        private System.Windows.Forms.ComboBox cmbFilterPriority;
-        private System.Windows.Forms.Label lblFilterPriority;
-        private System.Windows.Forms.Button btnClearFilter;
-        private System.Windows.Forms.ToolStripStatusLabel lblStatus;
-        private System.Windows.Forms.TableLayoutPanel mainTableLayoutPanel;
-        private System.Windows.Forms.Panel panelLeft;
-        private System.Windows.Forms.Panel panelRight;
-        private System.Windows.Forms.Panel panelStatistics;
-        private System.Windows.Forms.Panel cardTotalTasks;
-        private System.Windows.Forms.Label lblTotalTasksValue;
-        private System.Windows.Forms.Label lblTotalTasksTitle;
-        private System.Windows.Forms.Panel cardUncompleted;
-        private System.Windows.Forms.Label lblUncompletedValue;
-        private System.Windows.Forms.Label lblUncompletedTitle;
-        private System.Windows.Forms.Panel cardOverdue;
-        private System.Windows.Forms.Label lblOverdueValue;
-        private System.Windows.Forms.Label lblOverdueTitle;
-        private System.Windows.Forms.Panel cardUnassigned;
-        private System.Windows.Forms.Label lblUnassignedValue;
-        private System.Windows.Forms.Label lblUnassignedTitle;
-        private System.Windows.Forms.Panel panelTaskDetails;
-        private System.Windows.Forms.Label lblDetailTitle;
-        private System.Windows.Forms.Label lblDetailStatusTitle;
-        private System.Windows.Forms.Label lblDetailStatus;
-        private System.Windows.Forms.Label lblDetailPriorityTitle;
-        private System.Windows.Forms.Label lblDetailPriority;
-        private System.Windows.Forms.Label lblDetailDueDateTitle;
-        private System.Windows.Forms.Label lblDetailDueDate;
-        private System.Windows.Forms.Label lblDetailCreatorTitle;
-        private System.Windows.Forms.Label lblDetailCreator;
-        private System.Windows.Forms.Label lblDetailAssignedToTitle;
-        private System.Windows.Forms.Label lblDetailAssignedTo;
-        private System.Windows.Forms.Label lblDetailCommentsTitle;
-        private System.Windows.Forms.RichTextBox txtDetailComments;
-        private System.Windows.Forms.ToolStrip commentsFormatToolStrip;
-        private System.Windows.Forms.ToolStripButton tsBtnBold;
-        private System.Windows.Forms.ToolStripButton tsBtnItalic;
-        private System.Windows.Forms.ToolStripButton tsBtnUnderline;
-        private System.Windows.Forms.ToolStripButton tsBtnStrikeout;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
-        private System.Windows.Forms.ToolStripButton tsBtnSetColorRed;
-        private System.Windows.Forms.ToolStripButton tsBtnSetColorBlue;
-        private System.Windows.Forms.ToolStripButton tsBtnSetColorGreen;
-        private System.Windows.Forms.ToolStripButton tsBtnSetColorBlack;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
-        private System.Windows.Forms.ToolStripButton tsBtnBulletList;
-        private System.Windows.Forms.ToolStripButton tsBtnIndent;
-        private System.Windows.Forms.ToolStripButton tsBtnOutdent;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
-        private System.Windows.Forms.ToolStripButton tsBtnHighlightYellow;
-        private System.Windows.Forms.ToolStripButton tsBtnHighlightGreen;
-        private System.Windows.Forms.ToolStripButton tsBtnClearHighlight;
+        private Panel panelFilters;
+        private StatusStrip statusStrip1;
+        private TreeView tvTasks;
+        private TextBox txtSearch;
+        private Label lblSearch;
+        private ComboBox cmbFilterPriority;
+        private Label lblFilterPriority;
+        private Button btnClearFilter;
+        private ToolStripStatusLabel lblStatus;
+        private TableLayoutPanel mainTableLayoutPanel;
+        private Panel panelLeft;
+        private Panel panelRight;
+        private Panel panelStatistics;
+        private Panel cardTotalTasks;
+        private Label lblTotalTasksValue;
+        private Label lblTotalTasksTitle;
+        private Panel cardUncompleted;
+        private Label lblUncompletedValue;
+        private Label lblUncompletedTitle;
+        private Panel cardOverdue;
+        private Label lblOverdueValue;
+        private Label lblOverdueTitle;
+        private Panel cardUnassigned;
+        private Label lblUnassignedValue;
+        private Label lblUnassignedTitle;
+        private Panel panelTaskDetails;
+        private Label lblDetailTitle;
+        private Label lblDetailStatusTitle;
+        private Label lblDetailStatus;
+        private Label lblDetailPriorityTitle;
+        private Label lblDetailPriority;
+        private Label lblDetailDueDateTitle;
+        private Label lblDetailDueDate;
+        private Label lblDetailCreatorTitle;
+        private Label lblDetailCreator;
+        private Label lblDetailAssignedToTitle;
+        private Label lblDetailAssignedTo;
+        private Label lblDetailCommentsTitle;
+        private RichTextBox txtDetailComments;
+        private ToolStrip commentsFormatToolStrip;
+        private ToolStripButton tsBtnBold;
+        private ToolStripButton tsBtnItalic;
+        private ToolStripButton tsBtnUnderline;
+        private ToolStripButton tsBtnStrikeout;
+        private ToolStripSeparator toolStripSeparator1;
+        private ToolStripButton tsBtnSetColorRed;
+        private ToolStripButton tsBtnSetColorBlue;
+        private ToolStripButton tsBtnSetColorGreen;
+        private ToolStripButton tsBtnSetColorBlack;
+        private ToolStripSeparator toolStripSeparator2;
+        private ToolStripButton tsBtnBulletList;
+        private ToolStripButton tsBtnIndent;
+        private ToolStripButton tsBtnOutdent;
+        private ToolStripSeparator toolStripSeparator3;
+        private ToolStripButton tsBtnHighlightYellow;
+        private ToolStripButton tsBtnHighlightGreen;
+        private ToolStripButton tsBtnClearHighlight;
 
 
-        private System.Windows.Forms.Label lblFilterStatus;
-        private System.Windows.Forms.ComboBox cmbFilterStatus;
-        private System.Windows.Forms.CheckBox chkFilterOverdue;
-        private System.Windows.Forms.Panel panelDetailActions;
-        private System.Windows.Forms.Button btnDetailDelete;
-        private System.Windows.Forms.Button btnDetailReassign;
-        private System.Windows.Forms.Button btnDetailEdit;
-        private System.Windows.Forms.ContextMenuStrip treeViewContextMenu;
-        private System.Windows.Forms.ToolStripMenuItem ctxEditTask;
-        private System.Windows.Forms.ToolStripMenuItem ctxReassignTask;
-        private System.Windows.Forms.ToolStripMenuItem ctxDeleteTask;
-        private System.Windows.Forms.Label lblDetailLastModified;
-        private System.Windows.Forms.Label lblDetailLastModifiedTitle;
-        private System.Windows.Forms.Label lblDetailCreationDate;
-        private System.Windows.Forms.Label lblDetailCreationDateTitle;
-        private System.Windows.Forms.Panel cardRejected;
-        private System.Windows.Forms.Label lblRejectedValue;
-        private System.Windows.Forms.Label lblRejectedTitle;
-        private System.Windows.Forms.Label lblFilterByUser;
-        private System.Windows.Forms.ComboBox cmbFilterByUser;
-        private System.Windows.Forms.Panel cardCompleted;
-        private System.Windows.Forms.Label lblCompletedValue;
-        private System.Windows.Forms.Label lblCompletedTitle;
-        private System.Windows.Forms.Button btnSaveComment;
-        private System.Windows.Forms.Button btnViewHistory;
+        private Label lblFilterStatus;
+        private ComboBox cmbFilterStatus;
+        private CheckBox chkFilterOverdue;
+        private Panel panelDetailActions;
+        private Button btnDetailDelete;
+        private Button btnDetailReassign;
+        private Button btnDetailEdit;
+        private ContextMenuStrip treeViewContextMenu;
+        private ToolStripMenuItem ctxEditTask;
+        private ToolStripMenuItem ctxReassignTask;
+        private ToolStripMenuItem ctxDeleteTask;
+        private Label lblDetailLastModified;
+        private Label lblDetailLastModifiedTitle;
+        private Label lblDetailCreationDate;
+        private Label lblDetailCreationDateTitle;
+        private Panel cardRejected;
+        private Label lblRejectedValue;
+        private Label lblRejectedTitle;
+        private Label lblFilterByUser;
+        private ComboBox cmbFilterByUser;
+        private Panel cardCompleted;
+        private Label lblCompletedValue;
+        private Label lblCompletedTitle;
+        private Button btnSaveComment;
+        private Button btnViewHistory;
     }
 }
