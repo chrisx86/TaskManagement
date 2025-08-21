@@ -75,7 +75,6 @@ public partial class MainForm : Form
         _italicFont = new Font(this.Font, FontStyle.Italic);
 
         WireUpEvents();
-        WireUpFormatButtons();
     }
 
     private void WireUpEvents()
@@ -116,7 +115,6 @@ public partial class MainForm : Form
         this.cmbPageSize.SelectedIndexChanged += CmbPageSize_Changed;
         this.txtCurrentPage.KeyDown += TxtCurrentPage_KeyDown;
 
-        this.txtCommentsPreview.TextChanged += TxtCommentsPreview_TextChanged;
         this.btnSaveChanges.Click += BtnSaveChanges_Click;
 
         this.txtSearch.TextChanged += Filter_Changed;
@@ -124,11 +122,8 @@ public partial class MainForm : Form
         this.dgvTasks.CellMouseMove += DgvTasks_CellMouseMove;
         this.dgvTasks.MouseLeave += DgvTasks_MouseLeave;
 
-        this.txtCommentsPreview.Enter += TxtCommentsPreview_Enter;
-
-        this.txtCommentsPreview.Leave += TxtCommentsPreview_Leave;
+        this.richTextEditorComments.TextChanged += TxtCommentsPreview_TextChanged;
     }
-
 
     private async void MainForm_Load(object? sender, EventArgs e)
     {
@@ -136,7 +131,6 @@ public partial class MainForm : Form
         SetupDataGridView();
         SetupUIPermissions();
         InitializePaginationControls();
-        commentsFormatToolStrip.Visible = false;
         await PopulateFilterDropDownsAsync();
         SetDefaultFiltersForCurrentUser();
         await LoadTasksAsync();
@@ -206,31 +200,6 @@ public partial class MainForm : Form
         dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "Creator", HeaderText = "建立者", DataPropertyName = "Creator", Width = 80, SortMode = DataGridViewColumnSortMode.Programmatic });
         dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "CreationDate", HeaderText = "建立日期", DataPropertyName = "CreationDate", Width = 80, DefaultCellStyle = { Format = "yyyy-MM-dd" }, ReadOnly = true, SortMode = DataGridViewColumnSortMode.Programmatic });
         dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "LastModifiedDate", HeaderText = "最後更新", DataPropertyName = "LastModifiedDate", Width = 120, DefaultCellStyle = { Format = "yyyy-MM-dd HH:mm" }, ReadOnly = true, SortMode = DataGridViewColumnSortMode.Programmatic });
-    }
-
-    private void WireUpFormatButtons()
-    {
-        // --- Font Style ---
-        tsBtnBold.Click += (s, e) => txtCommentsPreview.ToggleFontStyle(FontStyle.Bold);
-        tsBtnItalic.Click += (s, e) => txtCommentsPreview.ToggleFontStyle(FontStyle.Italic);
-        tsBtnUnderline.Click += (s, e) => txtCommentsPreview.ToggleFontStyle(FontStyle.Underline);
-
-        // --- Font Color ---
-        tsBtnMoreColors.Click += (s, e) => txtCommentsPreview.ShowTextColorPicker();
-        tsBtnSetColorRed.Click += (s, e) => txtCommentsPreview.SetSelectionColor(Color.Red);
-        tsBtnSetColorBlack.Click += (s, e) => txtCommentsPreview.SetSelectionColor(Color.Black);
-
-        // --- Paragraph ---
-        tsBtnBulletList.Click += (s, e) => txtCommentsPreview.ToggleBullet();
-        tsBtnIndent.Click += (s, e) => txtCommentsPreview.IncreaseIndent();
-        tsBtnOutdent.Click += (s, e) => txtCommentsPreview.DecreaseIndent();
-
-        // --- Highlighting ---
-        tsBtnHighlight.Click += (s, e) => txtCommentsPreview.ShowBackColorPicker();
-        tsBtnClearHighlight.Click += (s, e) => txtCommentsPreview.ClearSelectionBackColor();
-
-        // --- CodeSnippet ---
-        tsBtnCodeSnippet.Click += (s, e) => txtCommentsPreview.ToggleCodeSnippetStyle();
     }
 
     private void SetupUIPermissions()
@@ -484,43 +453,20 @@ public partial class MainForm : Form
         if (isRowSelected && dgvTasks.SelectedRows[0].DataBoundItem is TodoItem selectedTask)
         {
             _selectedTaskForEditing = selectedTask;
-            // We still need to prevent TextChanged from firing when we set the text.
-            _isUpdatingUI = true;
-            try
-            {
-                if (!string.IsNullOrEmpty(selectedTask.Comments))
-                {
-                    try
-                    {
-                        // Attempt to load as RTF first.
-                        txtCommentsPreview.Rtf = selectedTask.Comments;
-                    }
-                    catch (ArgumentException)
-                    {
-                        // If it fails (because it's plain text), fall back to setting the Text property.
-                        txtCommentsPreview.Text = selectedTask.Comments;
-                    }
-                }
-                else
-                {
-                    txtCommentsPreview.Clear();
-                }
-            }
-            finally
-            {
-                _isUpdatingUI = false;
-            }
-            txtCommentsPreview.Enabled = true;
+
+            // The logic for setting the Rtf property remains the same.
+            // The User Control's name in the designer is likely 'richTextEditor1'.
+            richTextEditorComments.Rtf = selectedTask.Comments ?? "";
+
+            richTextEditorComments.Enabled = true;
             btnSaveChanges.Enabled = false;
         }
         else
         {
             _selectedTaskForEditing = null;
-            _isUpdatingUI = true;
-            txtCommentsPreview.Clear();
-            txtCommentsPreview.Enabled = false;
+            richTextEditorComments.Clear();
+            richTextEditorComments.Enabled = false;
             btnSaveChanges.Enabled = false;
-            _isUpdatingUI = false;
         }
     }
 
@@ -528,17 +474,6 @@ public partial class MainForm : Form
     {
         if (!_isUpdatingUI) btnSaveChanges.Enabled = true;
     }
-
-    private void TxtCommentsPreview_Enter(object? sender, EventArgs e)
-    {
-        commentsFormatToolStrip.Visible = true;
-    }
-
-    private void TxtCommentsPreview_Leave(object? sender, EventArgs e)
-    {
-        commentsFormatToolStrip.Visible = false;
-    }
-
 
     private async void DgvTasks_ColumnHeaderMouseClick(object? sender, DataGridViewCellMouseEventArgs e)
     {
@@ -796,7 +731,7 @@ public partial class MainForm : Form
         if (dgvTasks.SelectedRows.Count == 0 || dgvTasks.SelectedRows[0].DataBoundItem is not TodoItem selectedTask)
             return;
 
-        var currentRtfContent = txtCommentsPreview.Rtf;
+        var currentRtfContent = richTextEditorComments.Rtf;
 
         if (selectedTask.Comments == currentRtfContent)
         {

@@ -8,21 +8,8 @@ namespace TodoApp.WinForms.Forms
         ///  Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
-        private RichTextBox txtCommentsPreview;
         private Panel panelCommentsContainer;
-        private ToolStrip commentsFormatToolStrip;
-        private ToolStripButton tsBtnBold;
-        private ToolStripButton tsBtnItalic;
-        private ToolStripButton tsBtnUnderline;
-        private ToolStripButton tsBtnSetColorRed;
-        private ToolStripButton tsBtnSetColorBlack;
-        private ToolStripButton tsBtnBulletList;
-        private ToolStripButton tsBtnIndent;
-        private ToolStripButton tsBtnOutdent;
-        private ToolStripButton tsBtnClearHighlight;
-        private ToolStripButton tsBtnHighlight;
-        private ToolStripButton tsBtnCodeSnippet;
-        private ToolStripButton tsBtnMoreColors;
+        private Controls.RichTextEditor richTextEditorComments;
 
         private ToolStrip toolStrip1;
         private ToolStripButton tsbNewTask;
@@ -60,7 +47,6 @@ namespace TodoApp.WinForms.Forms
         private Label lblSearch;
         private TextBox txtSearch;
 
-
         /// <summary>
         ///  Clean up any resources being used.
         /// </summary>
@@ -82,23 +68,14 @@ namespace TodoApp.WinForms.Forms
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
             panelCommentsContainer = new Panel();
+            richTextEditorComments = new Controls.RichTextEditor();
             btnSaveChanges = new Button();
-            txtCommentsPreview = new RichTextBox();
-            commentsFormatToolStrip = new ToolStrip();
-            tsBtnBold = new ToolStripButton();
-            tsBtnItalic = new ToolStripButton();
-            tsBtnUnderline = new ToolStripButton();
             toolStripSeparator1 = new ToolStripSeparator();
-            tsBtnSetColorRed = new ToolStripButton();
-            tsBtnSetColorBlack = new ToolStripButton();
             toolStripSeparator2 = new ToolStripSeparator();
-            tsBtnBulletList = new ToolStripButton();
-            tsBtnIndent = new ToolStripButton();
-            tsBtnOutdent = new ToolStripButton();
             toolStripSeparator3 = new ToolStripSeparator();
-            tsBtnClearHighlight = new ToolStripButton();
             toolStrip1 = new ToolStrip();
             tsbNewTask = new ToolStripButton();
             tsbEditTask = new ToolStripButton();
@@ -130,179 +107,63 @@ namespace TodoApp.WinForms.Forms
             btnFirstPage = new Button();
             splitContainerMain = new SplitContainer();
             dgvTasks = new DataGridView();
-            this.tsBtnCodeSnippet = new System.Windows.Forms.ToolStripButton();
-            this.tsBtnMoreColors = new System.Windows.Forms.ToolStripButton();
-            this.tsBtnHighlight = new System.Windows.Forms.ToolStripButton();
 
-            // --- 階段 1: 暫停所有容器的佈局邏輯 ---
-            SuspendLayout(); // 這是針對 MainForm 自身的呼叫
-
+            panelCommentsContainer.SuspendLayout();
+            toolStrip1.SuspendLayout();
+            statusStrip1.SuspendLayout();
+            panelFilters.SuspendLayout();
+            panelPagination.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainerMain).BeginInit();
+            splitContainerMain.Panel1.SuspendLayout();
+            splitContainerMain.Panel2.SuspendLayout();
+            splitContainerMain.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)dgvTasks).BeginInit();
+            SuspendLayout();
             // 
             // panelCommentsContainer
             // 
-            panelCommentsContainer.Controls.Add(btnSaveChanges);
-            panelCommentsContainer.Controls.Add(txtCommentsPreview);
-            panelCommentsContainer.Controls.Add(commentsFormatToolStrip);
-            panelCommentsContainer.Dock = System.Windows.Forms.DockStyle.Fill;
-            panelCommentsContainer.Location = new System.Drawing.Point(0, 0);
+            panelCommentsContainer.Controls.Add(richTextEditorComments);
+            panelCommentsContainer.Dock = DockStyle.Fill;
+            panelCommentsContainer.Location = new Point(0, 0);
             panelCommentsContainer.Name = "panelCommentsContainer";
-            panelCommentsContainer.Size = new System.Drawing.Size(1207, 144);
+            panelCommentsContainer.Size = new Size(1207, 215);
             panelCommentsContainer.TabIndex = 0;
+            // 
+            // richTextEditorComments
+            // 
+            this.richTextEditorComments.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.richTextEditorComments.Location = new System.Drawing.Point(0, 0);
+            richTextEditorComments.Name = "richTextEditorComments";
+            richTextEditorComments.ReadOnly = false;
+            richTextEditorComments.Rtf = resources.GetString("richTextEditorComments.Rtf");
+            richTextEditorComments.Size = new Size(1201, 180);
+            richTextEditorComments.TabIndex = 11;
             // 
             // btnSaveChanges
             // 
-            btnSaveChanges.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            btnSaveChanges.Enabled = false;
-            btnSaveChanges.Location = new System.Drawing.Point(1112, 114);
-            btnSaveChanges.Name = "btnSaveChanges";
-            btnSaveChanges.Size = new System.Drawing.Size(88, 27);
-            btnSaveChanges.TabIndex = 2;
-            btnSaveChanges.Text = "儲存";
-            btnSaveChanges.UseVisualStyleBackColor = true;
-            // 
-            // txtCommentsPreview
-            // 
-            txtCommentsPreview.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-            | System.Windows.Forms.AnchorStyles.Left)
-            | System.Windows.Forms.AnchorStyles.Right)));
-            txtCommentsPreview.BackColor = System.Drawing.SystemColors.Info;
-            txtCommentsPreview.Location = new System.Drawing.Point(3, 28);
-            txtCommentsPreview.Name = "txtCommentsPreview";
-            txtCommentsPreview.Size = new System.Drawing.Size(1201, 113);
-            txtCommentsPreview.TabIndex = 1;
-            txtCommentsPreview.Text = "";
-            // 
-            // commentsFormatToolStrip
-            // 
-            commentsFormatToolStrip.GripStyle = ToolStripGripStyle.Hidden;
-            commentsFormatToolStrip.Items.AddRange(new ToolStripItem[] { tsBtnBold, tsBtnItalic, tsBtnUnderline, tsBtnCodeSnippet, tsBtnSetColorRed, tsBtnSetColorBlack, tsBtnMoreColors, tsBtnHighlight, tsBtnClearHighlight, tsBtnBulletList, tsBtnIndent, tsBtnOutdent });
-            commentsFormatToolStrip.Location = new Point(0, 0);
-            commentsFormatToolStrip.Name = "commentsFormatToolStrip";
-            commentsFormatToolStrip.Size = new Size(1207, 28);
-            commentsFormatToolStrip.TabIndex = 2;
-            commentsFormatToolStrip.Text = "toolStrip2";
-            // 
-            // tsBtnHighlight
-            // 
-            this.tsBtnHighlight.BackColor = System.Drawing.Color.Yellow;
-            this.tsBtnHighlight.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.tsBtnHighlight.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            this.tsBtnHighlight.Name = "tsBtnHighlight";
-            this.tsBtnHighlight.Size = new System.Drawing.Size(23, 22);
-            this.tsBtnHighlight.Text = "H"; // "H" for Highlight
-            this.tsBtnHighlight.ToolTipText = "設定底色 (螢光筆)";
-            // 
-            // tsBtnCodeSnippet
-            // 
-            this.tsBtnCodeSnippet.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.tsBtnCodeSnippet.Name = "tsBtnCodeSnippet";
-            this.tsBtnCodeSnippet.Size = new System.Drawing.Size(23, 22);
-            this.tsBtnCodeSnippet.Text = "{;}"; // A simple text icon representing code
-            this.tsBtnCodeSnippet.ToolTipText = "程式碼片段樣式";
-            // 
-            // tsBtnMoreColors
-            // 
-            this.tsBtnMoreColors.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.tsBtnMoreColors.Name = "tsBtnMoreColors";
-            this.tsBtnMoreColors.Size = new System.Drawing.Size(23, 22);
-            this.tsBtnMoreColors.Text = "🎨"; // Using a palette emoji as a visual cue
-            this.tsBtnMoreColors.ToolTipText = "更多顏色...";
-            // 
-            // tsBtnBold
-            // 
-            tsBtnBold.DisplayStyle = ToolStripItemDisplayStyle.Text;
-            tsBtnBold.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            tsBtnBold.Name = "tsBtnBold";
-            tsBtnBold.Size = new Size(23, 25);
-            tsBtnBold.Text = "B";
-            tsBtnBold.ToolTipText = "粗體";
-            // 
-            // tsBtnItalic
-            // 
-            tsBtnItalic.DisplayStyle = ToolStripItemDisplayStyle.Text;
-            tsBtnItalic.Font = new Font("Segoe UI", 9F, FontStyle.Italic);
-            tsBtnItalic.Name = "tsBtnItalic";
-            tsBtnItalic.Size = new Size(23, 25);
-            tsBtnItalic.Text = "I";
-            tsBtnItalic.ToolTipText = "斜體";
-            // 
-            // tsBtnUnderline
-            // 
-            tsBtnUnderline.DisplayStyle = ToolStripItemDisplayStyle.Text;
-            tsBtnUnderline.Font = new Font("Segoe UI", 9F, FontStyle.Underline);
-            tsBtnUnderline.Name = "tsBtnUnderline";
-            tsBtnUnderline.Size = new Size(23, 25);
-            tsBtnUnderline.Text = "U";
-            tsBtnUnderline.ToolTipText = "底線";
+            this.btnSaveChanges.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnSaveChanges.Enabled = false;
+            this.btnSaveChanges.Location = new System.Drawing.Point(1112, 4);
+            this.btnSaveChanges.Name = "btnSaveChanges";
+            this.btnSaveChanges.Size = new System.Drawing.Size(88, 27);
+            this.btnSaveChanges.TabIndex = 10;
+            this.btnSaveChanges.Text = "儲存";
+            this.btnSaveChanges.UseVisualStyleBackColor = true;
             // 
             // toolStripSeparator1
             // 
             toolStripSeparator1.Name = "toolStripSeparator1";
             toolStripSeparator1.Size = new Size(6, 25);
             // 
-            // tsBtnSetColorRed
-            // 
-            tsBtnSetColorRed.DisplayStyle = ToolStripItemDisplayStyle.Text;
-            tsBtnSetColorRed.ForeColor = Color.Red;
-            tsBtnSetColorRed.Name = "tsBtnSetColorRed";
-            tsBtnSetColorRed.Size = new Size(23, 25);
-            tsBtnSetColorRed.Text = "A";
-            tsBtnSetColorRed.ToolTipText = "紅色文字";
-            // 
-            // tsBtnSetColorBlack
-            // 
-            tsBtnSetColorBlack.DisplayStyle = ToolStripItemDisplayStyle.Text;
-            tsBtnSetColorBlack.ForeColor = Color.Black;
-            tsBtnSetColorBlack.Name = "tsBtnSetColorBlack";
-            tsBtnSetColorBlack.Size = new Size(23, 25);
-            tsBtnSetColorBlack.Text = "A";
-            tsBtnSetColorBlack.ToolTipText = "黑色文字 (預設)";
-            // 
             // toolStripSeparator2
             // 
             toolStripSeparator2.Name = "toolStripSeparator2";
             toolStripSeparator2.Size = new Size(6, 25);
             // 
-            // tsBtnBulletList
-            // 
-            tsBtnBulletList.DisplayStyle = ToolStripItemDisplayStyle.Text;
-            tsBtnBulletList.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
-            tsBtnBulletList.Name = "tsBtnBulletList";
-            tsBtnBulletList.Size = new Size(23, 25);
-            tsBtnBulletList.Text = "•";
-            tsBtnBulletList.ToolTipText = "項目符號";
-            // 
-            // tsBtnIndent
-            // 
-            tsBtnIndent.DisplayStyle = ToolStripItemDisplayStyle.Text;
-            tsBtnIndent.Font = new Font("Segoe UI", 9F);
-            tsBtnIndent.Name = "tsBtnIndent";
-            tsBtnIndent.Size = new Size(23, 25);
-            tsBtnIndent.Text = "→";
-            tsBtnIndent.ToolTipText = "增加縮排";
-            // 
-            // tsBtnOutdent
-            // 
-            tsBtnOutdent.DisplayStyle = ToolStripItemDisplayStyle.Text;
-            tsBtnOutdent.Font = new Font("Segoe UI", 9F);
-            tsBtnOutdent.Name = "tsBtnOutdent";
-            tsBtnOutdent.Size = new Size(23, 25);
-            tsBtnOutdent.Text = "←";
-            tsBtnOutdent.ToolTipText = "減少縮排";
-            // 
             // toolStripSeparator3
             // 
             toolStripSeparator3.Name = "toolStripSeparator3";
             toolStripSeparator3.Size = new Size(6, 25);
-            // 
-            // tsBtnClearHighlight
-            // 
-            tsBtnClearHighlight.DisplayStyle = ToolStripItemDisplayStyle.Text;
-            tsBtnClearHighlight.Font = new Font("Segoe UI", 9F, FontStyle.Strikeout);
-            tsBtnClearHighlight.Name = "tsBtnClearHighlight";
-            tsBtnClearHighlight.Size = new Size(23, 25);
-            tsBtnClearHighlight.Text = "C";
-            tsBtnClearHighlight.ToolTipText = "清除底色標示";
             // 
             // toolStrip1
             // 
@@ -498,11 +359,12 @@ namespace TodoApp.WinForms.Forms
             panelPagination.Controls.Add(txtCurrentPage);
             panelPagination.Controls.Add(btnPreviousPage);
             panelPagination.Controls.Add(btnFirstPage);
+            panelPagination.Controls.Add(btnSaveChanges);
             panelPagination.Dock = DockStyle.Bottom;
-            panelPagination.Location = new Point(0, 533);
+            panelPagination.Location = new Point(0, 539);
             panelPagination.Margin = new Padding(4, 3, 4, 3);
             panelPagination.Name = "panelPagination";
-            panelPagination.Size = new Size(1207, 45);
+            panelPagination.Size = new Size(1207, 39);
             panelPagination.TabIndex = 4;
             // 
             // lblPageSize
@@ -598,8 +460,8 @@ namespace TodoApp.WinForms.Forms
             // splitContainerMain.Panel2
             // 
             splitContainerMain.Panel2.Controls.Add(panelCommentsContainer);
-            splitContainerMain.Size = new Size(1207, 468);
-            splitContainerMain.SplitterDistance = 250; //SplitterDistance 的值，直接控制了 DataGridView 區域的初始高度
+            splitContainerMain.Size = new Size(1207, 500);
+            splitContainerMain.SplitterDistance = 255;
             splitContainerMain.TabIndex = 5;
             // 
             // dgvTasks
@@ -623,16 +485,14 @@ namespace TodoApp.WinForms.Forms
             dgvTasks.Name = "dgvTasks";
             dgvTasks.RowHeadersVisible = false;
             dgvTasks.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvTasks.Size = new Size(1207, 350);
+            dgvTasks.Size = new Size(1207, 255);
             dgvTasks.TabIndex = 3;
             // 
             // MainForm
             // 
-            // --- 階段 2: 設定 MainForm 本身的屬性 ---
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1207, 600);
-            // --- 階段 3: 將頂層容器加入到 MainForm ---
             Controls.Add(splitContainerMain);
             Controls.Add(panelPagination);
             Controls.Add(panelFilters);
@@ -642,7 +502,20 @@ namespace TodoApp.WinForms.Forms
             MinimumSize = new Size(1192, 600);
             Name = "MainForm";
             Text = "Task Management";
-            // --- 階段 4: 恢復所有容器的佈局邏輯 ---
+            panelCommentsContainer.ResumeLayout(false);
+            toolStrip1.ResumeLayout(false);
+            toolStrip1.PerformLayout();
+            statusStrip1.ResumeLayout(false);
+            statusStrip1.PerformLayout();
+            panelFilters.ResumeLayout(false);
+            panelFilters.PerformLayout();
+            panelPagination.ResumeLayout(false);
+            panelPagination.PerformLayout();
+            splitContainerMain.Panel1.ResumeLayout(false);
+            splitContainerMain.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)splitContainerMain).EndInit();
+            splitContainerMain.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)dgvTasks).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }

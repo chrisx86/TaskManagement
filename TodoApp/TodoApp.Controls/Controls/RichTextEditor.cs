@@ -8,13 +8,35 @@ namespace TodoApp.Controls;
 /// </summary>
 public partial class RichTextEditor : UserControl
 {
+    // --- Step 3a: Define a public event ---
+    [Category("Action")]
+    [Description("Occurs when the text in the RichTextBox is changed.")]
+    public event EventHandler? TextChanged;
+
+    [Category("Behavior")]
+    [Description("Determines if the format toolbar automatically hides when focus is lost.")]
+    [DefaultValue(true)]
+    public bool AutoHideToolbar { get; set; } = true;
+
     public RichTextEditor()
     {
         InitializeComponent();
         WireUpFormattingEvents();
+        //this.richTextBox.Enter += (s, e) => { this.commentsFormatToolStrip.Visible = true; };
+        //this.richTextBox.Leave += (s, e) => { this.commentsFormatToolStrip.Visible = false; };
+        this.richTextBox.TextChanged += (s, e) =>
+        {
+            this.TextChanged?.Invoke(this, e);
+        };
     }
 
-    // --- Expose RichTextBox properties to the outside world ---
+    private void RichTextBox_Leave(object? sender, EventArgs e)
+    {
+        if (this.AutoHideToolbar)
+        {
+            this.commentsFormatToolStrip.Visible = false;
+        }
+    }
 
     [Category("Appearance")]
     [Description("The text content of the control.")]
@@ -81,6 +103,7 @@ public partial class RichTextEditor : UserControl
 
         // --- Group 5: Code Snippet ---
         tsBtnCodeSnippet.Click += (s, e) => richTextBox.ToggleCodeSnippetStyle();
+
     }
 
     public void Clear()
