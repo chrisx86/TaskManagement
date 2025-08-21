@@ -29,14 +29,13 @@ namespace TodoApp.WinForms.Forms
         private ToolStripButton tsBtnBulletList;
         private ToolStripButton tsBtnIndent;
         private ToolStripButton tsBtnOutdent;
-        private ToolStripButton tsBtnHighlightYellow;
-        private ToolStripButton tsBtnHighlightGreen;
         private ToolStripButton tsBtnClearHighlight;
         private Label lblStatus;
         private ComboBox cmbStatus;
         private ErrorProvider errorProvider1;
         private ToolStripButton tsBtnCodeSnippet;
         private ToolStripButton tsBtnMoreColors;
+        private ToolStripButton tsBtnHighlight;
 
         /// <summary>
         /// Clean up any resources being used.
@@ -81,14 +80,13 @@ namespace TodoApp.WinForms.Forms
             tsBtnBulletList = new ToolStripButton();
             tsBtnIndent = new ToolStripButton();
             tsBtnOutdent = new ToolStripButton();
-            tsBtnHighlightYellow = new ToolStripButton();
-            tsBtnHighlightGreen = new ToolStripButton();
             tsBtnClearHighlight = new ToolStripButton();
             btnSave = new Button();
             btnCancel = new Button();
             errorProvider1 = new ErrorProvider(components);
             this.tsBtnCodeSnippet = new System.Windows.Forms.ToolStripButton();
             this.tsBtnMoreColors = new System.Windows.Forms.ToolStripButton();
+            this.tsBtnHighlight = new System.Windows.Forms.ToolStripButton();
 
             commentsFormatToolStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)errorProvider1).BeginInit();
@@ -207,12 +205,22 @@ namespace TodoApp.WinForms.Forms
             commentsFormatToolStrip.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             commentsFormatToolStrip.Dock = DockStyle.None;
             commentsFormatToolStrip.GripStyle = ToolStripGripStyle.Hidden;
-            commentsFormatToolStrip.Items.AddRange(new ToolStripItem[] { tsBtnBold, tsBtnItalic, tsBtnUnderline, tsBtnCodeSnippet, tsBtnSetColorRed, tsBtnSetColorBlack, tsBtnMoreColors, tsBtnHighlightYellow, tsBtnHighlightGreen, tsBtnClearHighlight, tsBtnBulletList, tsBtnIndent, tsBtnOutdent });
+            commentsFormatToolStrip.Items.AddRange(new ToolStripItem[] { tsBtnBold, tsBtnItalic, tsBtnUnderline, tsBtnCodeSnippet, tsBtnSetColorRed, tsBtnSetColorBlack, tsBtnMoreColors, tsBtnHighlight, tsBtnClearHighlight, tsBtnBulletList, tsBtnIndent, tsBtnOutdent });
             commentsFormatToolStrip.Location = new Point(120, 202);
             commentsFormatToolStrip.Name = "commentsFormatToolStrip";
             commentsFormatToolStrip.Size = new Size(400, 28);
             commentsFormatToolStrip.TabIndex = 11;
             commentsFormatToolStrip.Text = "toolStrip1";
+            // 
+            // tsBtnHighlight
+            // 
+            this.tsBtnHighlight.BackColor = System.Drawing.Color.Yellow;
+            this.tsBtnHighlight.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.tsBtnHighlight.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.tsBtnHighlight.Name = "tsBtnHighlight";
+            this.tsBtnHighlight.Size = new System.Drawing.Size(23, 22);
+            this.tsBtnHighlight.Text = "H"; // "H" for Highlight
+            this.tsBtnHighlight.ToolTipText = "設定底色 (螢光筆)";
             // 
             // tsBtnCodeSnippet
             // 
@@ -302,26 +310,6 @@ namespace TodoApp.WinForms.Forms
             tsBtnOutdent.Size = new Size(23, 25);
             tsBtnOutdent.Text = "←";
             tsBtnOutdent.ToolTipText = "減少縮排";
-            // 
-            // tsBtnHighlightYellow
-            // 
-            tsBtnHighlightYellow.BackColor = Color.Yellow;
-            tsBtnHighlightYellow.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            tsBtnHighlightYellow.ImageTransparentColor = Color.Magenta;
-            tsBtnHighlightYellow.Name = "tsBtnHighlightYellow";
-            tsBtnHighlightYellow.Size = new Size(23, 25);
-            tsBtnHighlightYellow.Text = "Yellow Highlight";
-            tsBtnHighlightYellow.ToolTipText = "黃色螢光筆";
-            // 
-            // tsBtnHighlightGreen
-            // 
-            tsBtnHighlightGreen.BackColor = Color.LightGreen;
-            tsBtnHighlightGreen.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            tsBtnHighlightGreen.ImageTransparentColor = Color.Magenta;
-            tsBtnHighlightGreen.Name = "tsBtnHighlightGreen";
-            tsBtnHighlightGreen.Size = new Size(23, 25);
-            tsBtnHighlightGreen.Text = "Green Highlight";
-            tsBtnHighlightGreen.ToolTipText = "綠色螢光筆";
             // 
             // tsBtnClearHighlight
             // 

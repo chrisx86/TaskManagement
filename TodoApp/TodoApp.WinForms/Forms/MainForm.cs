@@ -216,6 +216,7 @@ public partial class MainForm : Form
         tsBtnUnderline.Click += (s, e) => txtCommentsPreview.ToggleFontStyle(FontStyle.Underline);
 
         // --- Font Color ---
+        tsBtnMoreColors.Click += (s, e) => txtCommentsPreview.ShowTextColorPicker();
         tsBtnSetColorRed.Click += (s, e) => txtCommentsPreview.SetSelectionColor(Color.Red);
         tsBtnSetColorBlack.Click += (s, e) => txtCommentsPreview.SetSelectionColor(Color.Black);
 
@@ -225,12 +226,11 @@ public partial class MainForm : Form
         tsBtnOutdent.Click += (s, e) => txtCommentsPreview.DecreaseIndent();
 
         // --- Highlighting ---
-        tsBtnHighlightYellow.Click += (s, e) => txtCommentsPreview.SetSelectionBackColor(Color.Yellow);
-        tsBtnHighlightGreen.Click += (s, e) => txtCommentsPreview.SetSelectionBackColor(Color.LightGreen);
+        tsBtnHighlight.Click += (s, e) => txtCommentsPreview.ShowBackColorPicker();
         tsBtnClearHighlight.Click += (s, e) => txtCommentsPreview.ClearSelectionBackColor();
 
+        // --- CodeSnippet ---
         tsBtnCodeSnippet.Click += (s, e) => txtCommentsPreview.ToggleCodeSnippetStyle();
-        tsBtnMoreColors.Click += (s, e) => txtCommentsPreview.ShowTextColorPicker();
     }
 
     private void SetupUIPermissions()

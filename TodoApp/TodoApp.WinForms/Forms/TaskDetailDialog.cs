@@ -134,6 +134,7 @@ public partial class TaskDetailDialog : Form
         tsBtnUnderline.Click += (s, e) => txtComments.ToggleFontStyle(FontStyle.Underline);
 
         // --- Font Color ---
+        tsBtnMoreColors.Click += (s, e) => txtComments.ShowTextColorPicker();
         tsBtnSetColorRed.Click += (s, e) => txtComments.SetSelectionColor(Color.Red);
         tsBtnSetColorBlack.Click += (s, e) => txtComments.SetSelectionColor(Color.Black);
 
@@ -143,12 +144,11 @@ public partial class TaskDetailDialog : Form
         tsBtnOutdent.Click += (s, e) => txtComments.DecreaseIndent();
 
         // --- Highlighting ---
-        tsBtnHighlightYellow.Click += (s, e) => txtComments.SetSelectionBackColor(Color.Yellow);
-        tsBtnHighlightGreen.Click += (s, e) => txtComments.SetSelectionBackColor(Color.LightGreen);
+        tsBtnHighlight.Click += (s, e) => txtComments.ShowBackColorPicker();
         tsBtnClearHighlight.Click += (s, e) => txtComments.ClearSelectionBackColor();
 
+        // --- CodeSnippet ---
         tsBtnCodeSnippet.Click += (s, e) => txtComments.ToggleCodeSnippetStyle();
-        tsBtnMoreColors.Click += (s, e) => txtComments.ShowTextColorPicker();
     }
 
     private void ToggleFontStyle(FontStyle style)

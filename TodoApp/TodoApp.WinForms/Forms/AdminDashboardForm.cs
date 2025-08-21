@@ -117,24 +117,28 @@ public partial class AdminDashboardForm : Form
 
     private void WireUpFormattingEvents()
     {
+        // --- Font Style ---
         tsBtnBold.Click += (s, e) => txtDetailComments.ToggleFontStyle(FontStyle.Bold);
         tsBtnItalic.Click += (s, e) => txtDetailComments.ToggleFontStyle(FontStyle.Italic);
         tsBtnUnderline.Click += (s, e) => txtDetailComments.ToggleFontStyle(FontStyle.Underline);
         tsBtnStrikeout.Click += (s, e) => txtDetailComments.ToggleFontStyle(FontStyle.Strikeout);
 
+        // --- Font Color ---
+        tsBtnMoreColors.Click += (s, e) => txtDetailComments.ShowTextColorPicker();
         tsBtnSetColorRed.Click += (s, e) => txtDetailComments.SetSelectionColor(Color.Red);
         tsBtnSetColorBlack.Click += (s, e) => txtDetailComments.SetSelectionColor(Color.Black);
 
+        // --- Paragraph ---
         tsBtnBulletList.Click += (s, e) => txtDetailComments.ToggleBullet();
         tsBtnIndent.Click += (s, e) => txtDetailComments.IncreaseIndent();
         tsBtnOutdent.Click += (s, e) => txtDetailComments.DecreaseIndent();
 
-        tsBtnHighlightYellow.Click += (s, e) => txtDetailComments.SetSelectionBackColor(Color.Yellow);
-        tsBtnHighlightGreen.Click += (s, e) => txtDetailComments.SetSelectionBackColor(Color.LightGreen);
+        // --- Highlighting ---
+        tsBtnHighlight.Click += (s, e) => txtDetailComments.ShowBackColorPicker();
         tsBtnClearHighlight.Click += (s, e) => txtDetailComments.ClearSelectionBackColor();
 
+        // --- CodeSnippet ---
         tsBtnCodeSnippet.Click += (s, e) => txtDetailComments.ToggleCodeSnippetStyle();
-        tsBtnMoreColors.Click += (s, e) => txtDetailComments.ShowTextColorPicker();
     }
     private void Card_Click(object? sender, EventArgs e)
     {

@@ -157,4 +157,26 @@ public static class RichTextBoxFormatHelper
 
         rtb.ResumeLayout();
     }
+
+    /// <summary>
+    /// Opens a ColorDialog to allow the user to choose a custom background color (highlight) for the selected text.
+    /// </summary>
+    public static void ShowBackColorPicker(this RichTextBox rtb)
+    {
+        using (var colorDialog = new ColorDialog())
+        {
+            // Set the dialog's initial color to the current selection's background color.
+            // If the current BackColor is the default, start with Yellow for a better UX.
+            colorDialog.Color = (rtb.SelectionBackColor == rtb.BackColor)
+                ? Color.Yellow
+                : rtb.SelectionBackColor;
+
+            // Show the dialog and apply the color if the user clicks OK.
+            if (colorDialog.ShowDialog() == DialogResult.OK)
+            {
+                rtb.SelectionBackColor = colorDialog.Color;
+            }
+        }
+    }
+
 }
