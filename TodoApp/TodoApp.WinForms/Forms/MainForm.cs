@@ -321,7 +321,8 @@ public partial class MainForm : Form
             UpdatePaginationUI();
             UpdateSortGlyphs();
         }
-        catch (Exception ex) { 
+        catch (Exception ex) 
+        { 
             MessageBox.Show($"載入任務時發生錯誤: {ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error); 
         }
         finally
@@ -947,8 +948,8 @@ public partial class MainForm : Form
     private async void TsbRefresh_Click(object? sender, EventArgs e)
     {
         lblStatus.Text = "正在重新整理...";
-        _sortedColumn = null;
-        SetDefaultFiltersForCurrentUser();
+        //_sortedColumn = null;
+        //SetDefaultFiltersForCurrentUser();
         await LoadTasksAsync();
         lblStatus.Text = "資料已重新整理。";
     }
