@@ -29,8 +29,6 @@ public partial class TaskDetailDialog : Form
 
         this.Load += OnFormLoad;
         this.btnSave.Click += OnSaveButtonClick;
-
-        WireUpFormatButtons();
     }
     /// <summary>
     /// Gets the updated task object after a successful save.
@@ -126,40 +124,7 @@ public partial class TaskDetailDialog : Form
             MessageBox.Show($"儲存任務時發生未預期的錯誤: {ex.Message}", "系統錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
-    private void WireUpFormatButtons()
-    {
-        // --- Font Style ---
-        tsBtnBold.Click += (s, e) => txtComments.ToggleFontStyle(FontStyle.Bold);
-        tsBtnItalic.Click += (s, e) => txtComments.ToggleFontStyle(FontStyle.Italic);
-        tsBtnUnderline.Click += (s, e) => txtComments.ToggleFontStyle(FontStyle.Underline);
 
-        // --- Font Color ---
-        tsBtnMoreColors.Click += (s, e) => txtComments.ShowTextColorPicker();
-        tsBtnSetColorRed.Click += (s, e) => txtComments.SetSelectionColor(Color.Red);
-        tsBtnSetColorBlack.Click += (s, e) => txtComments.SetSelectionColor(Color.Black);
-
-        // --- Paragraph ---
-        tsBtnBulletList.Click += (s, e) => txtComments.ToggleBullet();
-        tsBtnIndent.Click += (s, e) => txtComments.IncreaseIndent();
-        tsBtnOutdent.Click += (s, e) => txtComments.DecreaseIndent();
-
-        // --- Highlighting ---
-        tsBtnHighlight.Click += (s, e) => txtComments.ShowBackColorPicker();
-        tsBtnClearHighlight.Click += (s, e) => txtComments.ClearSelectionBackColor();
-
-        // --- CodeSnippet ---
-        tsBtnCodeSnippet.Click += (s, e) => txtComments.ToggleCodeSnippetStyle();
-    }
-
-    private void ToggleFontStyle(FontStyle style)
-    {
-        if (txtComments.SelectionFont == null) return;
-
-        var currentFont = txtComments.SelectionFont;
-        var newStyle = currentFont.Style ^ style;
-
-        txtComments.SelectionFont = new Font(currentFont, newStyle);
-    }
     private async Task PopulateComboBoxesAsync()
     {
         cmbStatus.DataSource = Enum.GetValues<TodoStatus>();
@@ -183,30 +148,19 @@ public partial class TaskDetailDialog : Form
         cmbAssignedTo.ValueMember = nameof(UserDisplayItem.Id);
     }
 
+    /// <summary>
+    /// Populates the dialog's controls with data from a given TodoItem.
+    /// </summary>
     private void PopulateControlsFromTask(TodoItem task)
     {
         _isUpdatingUI = true;
         try
         {
             txtTitle.Text = task.Title;
-            if (!string.IsNullOrEmpty(task.Comments))
-            {
-                try
-                {
-                    txtComments.Rtf = task.Comments;
-                }
-                catch (ArgumentException)
-                {
-                    txtComments.Text = task.Comments;
-                }
-            }
-            else
-            {
-                txtComments.Clear();
-            }
+
+            richTextEditorComments.Rtf = task.Comments ?? string.Empty;
 
             cmbStatus.SelectedItem = task.Status;
-
             cmbPriority.SelectedItem = task.Priority;
             cmbAssignedTo.SelectedValue = task.AssignedToId ?? 0;
 
@@ -215,9 +169,15 @@ public partial class TaskDetailDialog : Form
                 dtpDueDate.Checked = true;
                 dtpDueDate.Value = task.DueDate.Value.ToLocalTime();
             }
-            else { dtpDueDate.Checked = false; }
+            else
+            {
+                dtpDueDate.Checked = false;
+            }
         }
-        finally { _isUpdatingUI = false; }
+        finally
+        {
+            _isUpdatingUI = false;
+        }
     }
 
     private void SetDefaultsForCreateMode()
@@ -226,13 +186,18 @@ public partial class TaskDetailDialog : Form
         dtpDueDate.Checked = false;
     }
 
+    /// <summary>
+    /// Updates a TodoItem object with the current values from the dialog's controls.
+    /// </summary>
     private void UpdateTaskFromControls(TodoItem task)
     {
         task.Title = txtTitle.Text.Trim();
-        task.Comments = txtComments.TextLength > 0 ? txtComments.Rtf : string.Empty;
+
+        task.Comments = richTextEditorComments.TextLength > 0 ? richTextEditorComments.Rtf : string.Empty;
+
         task.Status = (TodoStatus)cmbStatus.SelectedItem;
         task.Priority = (PriorityLevel)cmbPriority.SelectedItem;
-        task.DueDate = dtpDueDate.Checked ? dtpDueDate.Value.Date : null;
+        task.DueDate = dtpDueDate.Checked ? dtpDueDate.Value.ToLocalTime().Date : null;
         task.AssignedToId = (cmbAssignedTo.SelectedValue is int selectedId && selectedId > 0) ? selectedId : null;
     }
 

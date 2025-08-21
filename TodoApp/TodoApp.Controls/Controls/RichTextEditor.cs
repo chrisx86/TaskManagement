@@ -36,6 +36,15 @@ public partial class RichTextEditor : UserControl
         }
     }
 
+    /// <summary>
+    /// Gets the length of the text in the control.
+    /// </summary>
+    [Browsable(false)] // Hide this property from the designer's property grid
+    public int TextLength
+    {
+        get => richTextBox.TextLength;
+    }
+
     // You can expose other properties like ReadOnly, etc. in the same way.
     [Category("Behavior")]
     public bool ReadOnly

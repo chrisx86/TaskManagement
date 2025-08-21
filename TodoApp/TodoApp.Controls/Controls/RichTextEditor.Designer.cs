@@ -9,24 +9,24 @@ namespace TodoApp.Controls
         /// </summary>
         private System.ComponentModel.IContainer components = null;
 
-        private System.Windows.Forms.ToolStrip commentsFormatToolStrip;
-        private System.Windows.Forms.RichTextBox richTextBox;
-        private System.Windows.Forms.ToolStripButton tsBtnBold;
-        private System.Windows.Forms.ToolStripButton tsBtnItalic;
-        private System.Windows.Forms.ToolStripButton tsBtnUnderline;
-        private System.Windows.Forms.ToolStripButton tsBtnStrikeout;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
-        private System.Windows.Forms.ToolStripButton tsBtnSetColorRed;
-        private System.Windows.Forms.ToolStripButton tsBtnSetColorBlack;
-        private System.Windows.Forms.ToolStripButton tsBtnMoreColors;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
-        private System.Windows.Forms.ToolStripButton tsBtnBulletList;
-        private System.Windows.Forms.ToolStripButton tsBtnIndent;
-        private System.Windows.Forms.ToolStripButton tsBtnOutdent;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
-        private System.Windows.Forms.ToolStripButton tsBtnHighlight;
-        private System.Windows.Forms.ToolStripButton tsBtnClearHighlight;
-        private System.Windows.Forms.ToolStripButton tsBtnCodeSnippet;
+        private ToolStrip commentsFormatToolStrip;
+        private RichTextBox richTextBox;
+        private ToolStripButton tsBtnBold;
+        private ToolStripButton tsBtnItalic;
+        private ToolStripButton tsBtnUnderline;
+        private ToolStripButton tsBtnStrikeout;
+        private ToolStripSeparator toolStripSeparator1;
+        private ToolStripButton tsBtnSetColorRed;
+        private ToolStripButton tsBtnSetColorBlack;
+        private ToolStripButton tsBtnMoreColors;
+        private ToolStripSeparator toolStripSeparator2;
+        private ToolStripButton tsBtnBulletList;
+        private ToolStripButton tsBtnIndent;
+        private ToolStripButton tsBtnOutdent;
+        private ToolStripSeparator toolStripSeparator3;
+        private ToolStripButton tsBtnHighlight;
+        private ToolStripButton tsBtnClearHighlight;
+        private ToolStripButton tsBtnCodeSnippet;
 
         /// <summary> 
         /// 清除任何使用中的資源。
@@ -49,43 +49,43 @@ namespace TodoApp.Controls
         /// </summary>
         private void InitializeComponent()
         {
-            this.commentsFormatToolStrip = new System.Windows.Forms.ToolStrip();
-            this.tsBtnBold = new System.Windows.Forms.ToolStripButton();
-            this.tsBtnItalic = new System.Windows.Forms.ToolStripButton();
-            this.tsBtnUnderline = new System.Windows.Forms.ToolStripButton();
-            this.tsBtnStrikeout = new System.Windows.Forms.ToolStripButton();
-            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
-            this.tsBtnSetColorRed = new System.Windows.Forms.ToolStripButton();
-            this.tsBtnSetColorBlack = new System.Windows.Forms.ToolStripButton();
-            this.tsBtnMoreColors = new System.Windows.Forms.ToolStripButton();
-            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
-            this.tsBtnBulletList = new System.Windows.Forms.ToolStripButton();
-            this.tsBtnIndent = new System.Windows.Forms.ToolStripButton();
-            this.tsBtnOutdent = new System.Windows.Forms.ToolStripButton();
-            this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
-            this.tsBtnHighlight = new System.Windows.Forms.ToolStripButton();
-            this.tsBtnClearHighlight = new System.Windows.Forms.ToolStripButton();
-            this.tsBtnCodeSnippet = new System.Windows.Forms.ToolStripButton();
-            this.richTextBox = new System.Windows.Forms.RichTextBox();
+            this.commentsFormatToolStrip = new ToolStrip();
+            this.tsBtnBold = new ToolStripButton();
+            this.tsBtnItalic = new ToolStripButton();
+            this.tsBtnUnderline = new ToolStripButton();
+            this.tsBtnStrikeout = new ToolStripButton();
+            this.toolStripSeparator1 = new ToolStripSeparator();
+            this.tsBtnSetColorRed = new ToolStripButton();
+            this.tsBtnSetColorBlack = new ToolStripButton();
+            this.tsBtnMoreColors = new ToolStripButton();
+            this.toolStripSeparator2 = new ToolStripSeparator();
+            this.tsBtnBulletList = new ToolStripButton();
+            this.tsBtnIndent = new ToolStripButton();
+            this.tsBtnOutdent = new ToolStripButton();
+            this.toolStripSeparator3 = new ToolStripSeparator();
+            this.tsBtnHighlight = new ToolStripButton();
+            this.tsBtnClearHighlight = new ToolStripButton();
+            this.tsBtnCodeSnippet = new ToolStripButton();
+            this.richTextBox = new RichTextBox();
             this.commentsFormatToolStrip.SuspendLayout();
             this.SuspendLayout();
             // 
             // commentsFormatToolStrip
             // 
-            this.commentsFormatToolStrip.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
-            this.commentsFormatToolStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.commentsFormatToolStrip.GripStyle = ToolStripGripStyle.Hidden;
+            this.commentsFormatToolStrip.Items.AddRange(new ToolStripItem[] {
                 this.tsBtnBold,
                 this.tsBtnItalic,
                 this.tsBtnUnderline,
                 this.tsBtnStrikeout,
                 this.toolStripSeparator1,
+                this.tsBtnCodeSnippet,
                 this.tsBtnSetColorRed,
                 this.tsBtnSetColorBlack,
                 this.tsBtnMoreColors,
                 this.toolStripSeparator2,
                 this.tsBtnHighlight,
                 this.tsBtnClearHighlight,
-                this.tsBtnCodeSnippet,
                 this.toolStripSeparator3,
                 this.tsBtnBulletList,
                 this.tsBtnIndent,
@@ -185,7 +185,7 @@ namespace TodoApp.Controls
             this.tsBtnIndent.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.tsBtnIndent.Name = "tsBtnIndent";
             this.tsBtnIndent.Size = new System.Drawing.Size(23, 22);
-            this.tsBtnIndent.Text = "➡";
+            this.tsBtnIndent.Text = "→";
             this.tsBtnIndent.ToolTipText = "增加縮排";
             // 
             // tsBtnOutdent
@@ -193,7 +193,7 @@ namespace TodoApp.Controls
             this.tsBtnOutdent.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.tsBtnOutdent.Name = "tsBtnOutdent";
             this.tsBtnOutdent.Size = new System.Drawing.Size(23, 22);
-            this.tsBtnOutdent.Text = "⬅";
+            this.tsBtnOutdent.Text = "←";
             this.tsBtnOutdent.ToolTipText = "減少縮排";
             // 
             // toolStripSeparator3

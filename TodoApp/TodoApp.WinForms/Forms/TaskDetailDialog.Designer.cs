@@ -7,6 +7,7 @@ namespace TodoApp.WinForms.Forms
         /// Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
+        private Controls.RichTextEditor richTextEditorComments;
 
         private Label lblTitle;
         private TextBox txtTitle;
@@ -19,23 +20,9 @@ namespace TodoApp.WinForms.Forms
         private Button btnSave;
         private Button btnCancel;
         private Label lblComments;
-        private RichTextBox txtComments;
-        private ToolStrip commentsFormatToolStrip;
-        private ToolStripButton tsBtnBold;
-        private ToolStripButton tsBtnItalic;
-        private ToolStripButton tsBtnUnderline;
-        private ToolStripButton tsBtnSetColorRed;
-        private ToolStripButton tsBtnSetColorBlack;
-        private ToolStripButton tsBtnBulletList;
-        private ToolStripButton tsBtnIndent;
-        private ToolStripButton tsBtnOutdent;
-        private ToolStripButton tsBtnClearHighlight;
         private Label lblStatus;
         private ComboBox cmbStatus;
         private ErrorProvider errorProvider1;
-        private ToolStripButton tsBtnCodeSnippet;
-        private ToolStripButton tsBtnMoreColors;
-        private ToolStripButton tsBtnHighlight;
 
         /// <summary>
         /// Clean up any resources being used.
@@ -70,25 +57,11 @@ namespace TodoApp.WinForms.Forms
             lblAssignedTo = new Label();
             cmbAssignedTo = new ComboBox();
             lblComments = new Label();
-            txtComments = new RichTextBox();
-            commentsFormatToolStrip = new ToolStrip();
-            tsBtnBold = new ToolStripButton();
-            tsBtnItalic = new ToolStripButton();
-            tsBtnUnderline = new ToolStripButton();
-            tsBtnSetColorRed = new ToolStripButton();
-            tsBtnSetColorBlack = new ToolStripButton();
-            tsBtnBulletList = new ToolStripButton();
-            tsBtnIndent = new ToolStripButton();
-            tsBtnOutdent = new ToolStripButton();
-            tsBtnClearHighlight = new ToolStripButton();
             btnSave = new Button();
             btnCancel = new Button();
             errorProvider1 = new ErrorProvider(components);
-            this.tsBtnCodeSnippet = new System.Windows.Forms.ToolStripButton();
-            this.tsBtnMoreColors = new System.Windows.Forms.ToolStripButton();
-            this.tsBtnHighlight = new System.Windows.Forms.ToolStripButton();
+            this.richTextEditorComments = new Controls.RichTextEditor();
 
-            commentsFormatToolStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)errorProvider1).BeginInit();
             SuspendLayout();
             // 
@@ -190,135 +163,17 @@ namespace TodoApp.WinForms.Forms
             lblComments.TabIndex = 10;
             lblComments.Text = "備註(&O):";
             // 
-            // txtComments
+            // richTextEditorComments (Our new User Control)
             // 
-            txtComments.AcceptsTab = true;
-            txtComments.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            txtComments.Location = new Point(120, 237);
-            txtComments.Name = "txtComments";
-            txtComments.Size = new Size(444, 144);
-            txtComments.TabIndex = 12;
-            txtComments.Text = "";
-            // 
-            // commentsFormatToolStrip
-            // 
-            commentsFormatToolStrip.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            commentsFormatToolStrip.Dock = DockStyle.None;
-            commentsFormatToolStrip.GripStyle = ToolStripGripStyle.Hidden;
-            commentsFormatToolStrip.Items.AddRange(new ToolStripItem[] { tsBtnBold, tsBtnItalic, tsBtnUnderline, tsBtnCodeSnippet, tsBtnSetColorRed, tsBtnSetColorBlack, tsBtnMoreColors, tsBtnHighlight, tsBtnClearHighlight, tsBtnBulletList, tsBtnIndent, tsBtnOutdent });
-            commentsFormatToolStrip.Location = new Point(120, 202);
-            commentsFormatToolStrip.Name = "commentsFormatToolStrip";
-            commentsFormatToolStrip.Size = new Size(400, 28);
-            commentsFormatToolStrip.TabIndex = 11;
-            commentsFormatToolStrip.Text = "toolStrip1";
-            // 
-            // tsBtnHighlight
-            // 
-            this.tsBtnHighlight.BackColor = System.Drawing.Color.Yellow;
-            this.tsBtnHighlight.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.tsBtnHighlight.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            this.tsBtnHighlight.Name = "tsBtnHighlight";
-            this.tsBtnHighlight.Size = new System.Drawing.Size(23, 22);
-            this.tsBtnHighlight.Text = "H"; // "H" for Highlight
-            this.tsBtnHighlight.ToolTipText = "設定底色 (螢光筆)";
-            // 
-            // tsBtnCodeSnippet
-            // 
-            this.tsBtnCodeSnippet.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.tsBtnCodeSnippet.Name = "tsBtnCodeSnippet";
-            this.tsBtnCodeSnippet.Size = new System.Drawing.Size(23, 22);
-            this.tsBtnCodeSnippet.Text = "{;}"; // A simple text icon representing code
-            this.tsBtnCodeSnippet.ToolTipText = "程式碼片段樣式";
-
-            // 
-            // tsBtnMoreColors
-            // 
-            this.tsBtnMoreColors.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.tsBtnMoreColors.Name = "tsBtnMoreColors";
-            this.tsBtnMoreColors.Size = new System.Drawing.Size(23, 22);
-            this.tsBtnMoreColors.Text = "🎨"; // Using a palette emoji as a visual cue
-            this.tsBtnMoreColors.ToolTipText = "更多顏色...";
-            // 
-            // tsBtnBold
-            // 
-            tsBtnBold.DisplayStyle = ToolStripItemDisplayStyle.Text;
-            tsBtnBold.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            tsBtnBold.Name = "tsBtnBold";
-            tsBtnBold.Size = new Size(23, 25);
-            tsBtnBold.Text = "B";
-            tsBtnBold.ToolTipText = "粗體";
-            // 
-            // tsBtnItalic
-            // 
-            tsBtnItalic.DisplayStyle = ToolStripItemDisplayStyle.Text;
-            tsBtnItalic.Font = new Font("Segoe UI", 9F, FontStyle.Italic);
-            tsBtnItalic.Name = "tsBtnItalic";
-            tsBtnItalic.Size = new Size(23, 25);
-            tsBtnItalic.Text = "I";
-            tsBtnItalic.ToolTipText = "斜體";
-            // 
-            // tsBtnUnderline
-            // 
-            tsBtnUnderline.DisplayStyle = ToolStripItemDisplayStyle.Text;
-            tsBtnUnderline.Font = new Font("Segoe UI", 9F, FontStyle.Underline);
-            tsBtnUnderline.Name = "tsBtnUnderline";
-            tsBtnUnderline.Size = new Size(23, 25);
-            tsBtnUnderline.Text = "U";
-            tsBtnUnderline.ToolTipText = "底線";
-            // 
-            // tsBtnSetColorRed
-            // 
-            tsBtnSetColorRed.DisplayStyle = ToolStripItemDisplayStyle.Text;
-            tsBtnSetColorRed.ForeColor = Color.Red;
-            tsBtnSetColorRed.Name = "tsBtnSetColorRed";
-            tsBtnSetColorRed.Size = new Size(23, 25);
-            tsBtnSetColorRed.Text = "A";
-            tsBtnSetColorRed.ToolTipText = "紅色文字";
-            // 
-            // tsBtnSetColorBlack
-            // 
-            tsBtnSetColorBlack.DisplayStyle = ToolStripItemDisplayStyle.Text;
-            tsBtnSetColorBlack.ForeColor = Color.Black;
-            tsBtnSetColorBlack.Name = "tsBtnSetColorBlack";
-            tsBtnSetColorBlack.Size = new Size(23, 25);
-            tsBtnSetColorBlack.Text = "A";
-            tsBtnSetColorBlack.ToolTipText = "黑色文字 (預設)";
-            // 
-            // tsBtnBulletList
-            // 
-            tsBtnBulletList.DisplayStyle = ToolStripItemDisplayStyle.Text;
-            tsBtnBulletList.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
-            tsBtnBulletList.Name = "tsBtnBulletList";
-            tsBtnBulletList.Size = new Size(23, 25);
-            tsBtnBulletList.Text = "•";
-            tsBtnBulletList.ToolTipText = "項目符號";
-            // 
-            // tsBtnIndent
-            // 
-            tsBtnIndent.DisplayStyle = ToolStripItemDisplayStyle.Text;
-            tsBtnIndent.Font = new Font("Segoe UI", 9F);
-            tsBtnIndent.Name = "tsBtnIndent";
-            tsBtnIndent.Size = new Size(23, 25);
-            tsBtnIndent.Text = "→";
-            tsBtnIndent.ToolTipText = "增加縮排";
-            // 
-            // tsBtnOutdent
-            // 
-            tsBtnOutdent.DisplayStyle = ToolStripItemDisplayStyle.Text;
-            tsBtnOutdent.Font = new Font("Segoe UI", 9F);
-            tsBtnOutdent.Name = "tsBtnOutdent";
-            tsBtnOutdent.Size = new Size(23, 25);
-            tsBtnOutdent.Text = "←";
-            tsBtnOutdent.ToolTipText = "減少縮排";
-            // 
-            // tsBtnClearHighlight
-            // 
-            tsBtnClearHighlight.DisplayStyle = ToolStripItemDisplayStyle.Text;
-            tsBtnClearHighlight.Font = new Font("Segoe UI", 9F, FontStyle.Strikeout);
-            tsBtnClearHighlight.Name = "tsBtnClearHighlight";
-            tsBtnClearHighlight.Size = new Size(23, 25);
-            tsBtnClearHighlight.Text = "C";
-            tsBtnClearHighlight.ToolTipText = "清除底色標示";
+            this.richTextEditorComments.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.richTextEditorComments.Location = new System.Drawing.Point(120, 202);
+            this.richTextEditorComments.Name = "richTextEditorComments";
+            this.richTextEditorComments.ReadOnly = false;
+            this.richTextEditorComments.Rtf = "{\\rtf1\\ansi\\ansicpg950\\deff0\\nouicompat\\deflang1028{\\fonttbl{\\f0\\fnil\\fcharset136 Microsoft JhengHei UI;}}\r\n{\\*\\generator Riched20 10.0.19041}\\viewkind4\\uc1 \r\n\\pard\\f0\\fs18\\lang1028\\par\r\n}\r\n";
+            this.richTextEditorComments.Size = new System.Drawing.Size(444, 179);
+            this.richTextEditorComments.TabIndex = 11;
             // 
             // btnSave
             // 
@@ -354,9 +209,8 @@ namespace TodoApp.WinForms.Forms
             ClientSize = new Size(596, 440);
             Controls.Add(cmbStatus);
             Controls.Add(lblStatus);
-            Controls.Add(commentsFormatToolStrip);
-            Controls.Add(txtComments);
             Controls.Add(lblComments);
+            Controls.Add(this.richTextEditorComments);
             Controls.Add(btnCancel);
             Controls.Add(btnSave);
             Controls.Add(cmbAssignedTo);
@@ -367,20 +221,18 @@ namespace TodoApp.WinForms.Forms
             Controls.Add(lblPriority);
             Controls.Add(txtTitle);
             Controls.Add(lblTitle);
+
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             MinimizeBox = false;
             Name = "TaskDetailDialog";
             StartPosition = FormStartPosition.CenterParent;
             Text = "任務詳細資料";
-            commentsFormatToolStrip.ResumeLayout(false);
-            commentsFormatToolStrip.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)errorProvider1).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
 
         #endregion
-
     }
 }
