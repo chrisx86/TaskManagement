@@ -61,6 +61,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\TodoApp.Controls\TodoApp.Controls.csproj" />
     <ProjectReference Include="..\TodoApp.Core\TodoApp.Core.csproj" />
     <ProjectReference Include="..\TodoApp.Infrastructure\TodoApp.Infrastructure.csproj" />
   </ItemGroup>

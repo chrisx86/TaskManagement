@@ -1,6 +1,6 @@
 ﻿#nullable disable
 
-namespace TodoApp.WinForms.Controls
+namespace TodoApp.Controls
 {
     partial class RichTextEditor
     {

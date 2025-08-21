@@ -1,5 +1,5 @@
 ﻿#nullable enable
-namespace TodoApp.WinForms.Helpers;
+namespace TodoApp.Controls;
 
 /// <summary>
 /// Provides extension methods for RichTextBox to simplify text formatting operations.

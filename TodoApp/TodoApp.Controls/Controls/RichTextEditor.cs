@@ -1,8 +1,7 @@
 ﻿#nullable enable
 using System.ComponentModel;
-using TodoApp.WinForms.Helpers;
 
-namespace TodoApp.WinForms.Controls;
+namespace TodoApp.Controls;
 
 /// <summary>
 /// A reusable user control that encapsulates a RichTextBox with a formatting ToolStrip.
