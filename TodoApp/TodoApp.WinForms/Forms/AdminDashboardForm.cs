@@ -2,7 +2,6 @@
 using TodoApp.Core.Models;
 using TodoApp.Core.Services;
 using TodoApp.Core.ViewModels;
-using TodoApp.Controls;
 using TodoApp.WinForms.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using TodoApp.Infrastructure.Comparers;
@@ -39,7 +38,6 @@ public partial class AdminDashboardForm : Form
 
         WireUpEvents();
         WireUpCardClickEvents();
-        WireUpFormattingEvents();
     }
 
     private void WireUpEvents()
@@ -60,7 +58,7 @@ public partial class AdminDashboardForm : Form
 
         // Detail Panel Buttons
         this.btnDetailEdit.Click += BtnDetailEdit_Click;
-        this.btnDetailReassign.Click += BtnDetailReassign_Click;
+        //this.btnDetailReassign.Click += BtnDetailReassign_Click;
         this.btnDetailDelete.Click += BtnDetailDelete_Click;
 
         // Context Menu
@@ -69,9 +67,9 @@ public partial class AdminDashboardForm : Form
         this.ctxReassignTask.Click += BtnDetailReassign_Click;
         this.ctxDeleteTask.Click += BtnDetailDelete_Click;
 
-        this.txtDetailComments.TextChanged += TxtDetailComments_TextChanged;
         this.btnSaveComment.Click += BtnSaveComment_Click;
         this.btnViewHistory.Click += BtnViewHistory_Click;
+
         this.cardTotalTasks.Cursor = Cursors.Hand;
         this.cardUncompleted.Cursor = Cursors.Hand;
         this.cardOverdue.Cursor = Cursors.Hand;
@@ -114,31 +112,6 @@ public partial class AdminDashboardForm : Form
         lblCompletedValue.Click += Card_Click;
     }
 
-    private void WireUpFormattingEvents()
-    {
-        // --- Font Style ---
-        tsBtnBold.Click += (s, e) => txtDetailComments.ToggleFontStyle(FontStyle.Bold);
-        tsBtnItalic.Click += (s, e) => txtDetailComments.ToggleFontStyle(FontStyle.Italic);
-        tsBtnUnderline.Click += (s, e) => txtDetailComments.ToggleFontStyle(FontStyle.Underline);
-        tsBtnStrikeout.Click += (s, e) => txtDetailComments.ToggleFontStyle(FontStyle.Strikeout);
-
-        // --- Font Color ---
-        tsBtnMoreColors.Click += (s, e) => txtDetailComments.ShowTextColorPicker();
-        tsBtnSetColorRed.Click += (s, e) => txtDetailComments.SetSelectionColor(Color.Red);
-        tsBtnSetColorBlack.Click += (s, e) => txtDetailComments.SetSelectionColor(Color.Black);
-
-        // --- Paragraph ---
-        tsBtnBulletList.Click += (s, e) => txtDetailComments.ToggleBullet();
-        tsBtnIndent.Click += (s, e) => txtDetailComments.IncreaseIndent();
-        tsBtnOutdent.Click += (s, e) => txtDetailComments.DecreaseIndent();
-
-        // --- Highlighting ---
-        tsBtnHighlight.Click += (s, e) => txtDetailComments.ShowBackColorPicker();
-        tsBtnClearHighlight.Click += (s, e) => txtDetailComments.ClearSelectionBackColor();
-
-        // --- CodeSnippet ---
-        tsBtnCodeSnippet.Click += (s, e) => txtDetailComments.ToggleCodeSnippetStyle();
-    }
     private void Card_Click(object? sender, EventArgs e)
     {
         Panel? clickedCard = null;
@@ -499,33 +472,39 @@ public partial class AdminDashboardForm : Form
         lblDetailCreationDate.Text = task.CreationDate.ToLocalTime().ToString("yyyy-MM-dd HH:mm");
         lblDetailLastModified.Text = task.LastModifiedDate.ToLocalTime().ToString("yyyy-MM-dd HH:mm");
 
-        try
-        {
-            if (!string.IsNullOrEmpty(task.Comments))
-            {
-                txtDetailComments.Rtf = task.Comments;
-            }
-            else
-            {
-                txtDetailComments.Clear();
-            }
-        }
-        catch (ArgumentException)
-        {
-            // Fallback for old, non-RTF data.
-            txtDetailComments.Text = task.Comments;
-        }
+        richTextEditorComments.Rtf = task.Comments ?? string.Empty;
+
         _isUpdatingUI = false;
-        btnSaveComment.Enabled = false;
         lblStatus.Text = $"已選取任務: {task.Title}";
         lblDetailDueDate.ForeColor = (task.DueDate < DateTime.Now && task.Status != TodoStatus.Completed)
             ? Color.Red
             : SystemColors.ControlText;
     }
 
-    private void TxtDetailComments_TextChanged(object? sender, EventArgs e)
+    /// <summary>
+    /// A new helper method to refresh a single item in the ViewModel and TreeView
+    /// without a full reload.
+    /// </summary>
+    private void RefreshSingleTaskInViewModel(TodoItem updatedTask)
     {
-        if (!_isUpdatingUI) btnSaveComment.Enabled = true;
+        if (_dashboardViewModel is null) return;
+
+        var owner = updatedTask.AssignedTo ?? updatedTask.Creator;
+        if (owner != null && _dashboardViewModel.GroupedTasks.TryGetValue(owner, out var taskList))
+        {
+            var index = taskList.FindIndex(t => t.Id == updatedTask.Id);
+            if (index != -1)
+            {
+                // Replace the old task object with the new one.
+                taskList[index] = updatedTask;
+            }
+        }
+
+        // Also update the tag in the currently selected TreeNode.
+        if (tvTasks.SelectedNode?.Tag is TodoItem currentTag && currentTag.Id == updatedTask.Id)
+        {
+            tvTasks.SelectedNode.Tag = updatedTask;
+        }
     }
 
     private void ClearAndHideDetails()
@@ -538,10 +517,10 @@ public partial class AdminDashboardForm : Form
     private void SetActionButtonsState(bool enabled)
     {
         btnDetailEdit.Enabled = enabled;
-        btnDetailReassign.Enabled = enabled;
         btnDetailDelete.Enabled = enabled;
-        btnSaveComment.Enabled = false;
         btnViewHistory.Enabled = enabled;
+        btnSaveComment.Enabled = enabled;
+        //btnDetailReassign.Enabled = enabled;
     }
 
     private async void BtnDetailEdit_Click(object? sender, EventArgs e)
@@ -648,19 +627,15 @@ public partial class AdminDashboardForm : Form
     /// </summary>
     private async void BtnSaveComment_Click(object? sender, EventArgs e)
     {
-        // Use the currently selected node's tag, which is the most reliable source.
         if (tvTasks.SelectedNode?.Tag is not TodoItem selectedTask || _userContext.CurrentUser is null)
         {
-            btnSaveComment.Enabled = false;
             return;
         }
 
-        var newRtfContent = txtDetailComments.Rtf;
+        var newRtfContent = richTextEditorComments.Rtf;
 
-        // Compare the RTF content to avoid unnecessary saves.
         if (selectedTask.Comments == newRtfContent)
         {
-            btnSaveComment.Enabled = false;
             return;
         }
 
@@ -669,21 +644,16 @@ public partial class AdminDashboardForm : Form
             SetLoadingState(true);
             lblStatus.Text = "正在儲存備註...";
 
-            // --- FIX 2: Call the dedicated, lightweight service for updating comments ---
-            // This is safer and more efficient than a full update.
-            await _taskService.UpdateTaskCommentsAsync(
+            var updatedTask = await _taskService.UpdateTaskCommentsAsync(
                 _userContext.CurrentUser,
                 selectedTask.Id,
                 newRtfContent
             );
 
             lblStatus.Text = "備註已成功儲存，正在重新整理...";
-            btnSaveComment.Enabled = false;
 
-            // --- FIX 3: Perform a full, safe reload to ensure UI consistency ---
-            // In a complex view like the dashboard, a full reload is the most reliable
-            // way to ensure all elements (stats, tree order, details) are in sync.
-            await LoadAndDisplayDataAsync();
+            RefreshSingleTaskInViewModel(updatedTask);
+            PopulateTaskDetails(updatedTask);
         }
         catch (Exception ex)
         {
@@ -693,6 +663,7 @@ public partial class AdminDashboardForm : Form
         finally
         {
             SetLoadingState(false);
+            SetActionButtonsState(tvTasks.SelectedNode?.Tag is TodoItem);
         }
     }
 
@@ -706,8 +677,6 @@ public partial class AdminDashboardForm : Form
 
         try
         {
-            // --- Manually create the dialog and pass dependencies from the current scope ---
-            // This is a clean way to handle dialogs with runtime parameters.
             var historyService = _serviceProvider.GetRequiredService<ITaskHistoryService>();
             var userService = _serviceProvider.GetRequiredService<IUserService>();
 
