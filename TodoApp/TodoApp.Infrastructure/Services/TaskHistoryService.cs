@@ -32,7 +32,14 @@ public class TaskHistoryService : ITaskHistoryService
 
         _context.TaskHistories.Add(historyEntry);
 
-        await _context.SaveChangesAsync();
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ERROR] Failed to log task history: {ex.Message}");
+        }
     }
 
     public async Task<List<TaskHistory>> GetHistoryForTaskAsync(int todoItemId)
