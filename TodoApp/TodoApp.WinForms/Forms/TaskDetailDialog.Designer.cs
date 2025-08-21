@@ -25,8 +25,6 @@ namespace TodoApp.WinForms.Forms
         private ToolStripButton tsBtnItalic;
         private ToolStripButton tsBtnUnderline;
         private ToolStripButton tsBtnSetColorRed;
-        private ToolStripButton tsBtnSetColorBlue;
-        private ToolStripButton tsBtnSetColorGreen;
         private ToolStripButton tsBtnSetColorBlack;
         private ToolStripButton tsBtnBulletList;
         private ToolStripButton tsBtnIndent;
@@ -37,6 +35,9 @@ namespace TodoApp.WinForms.Forms
         private Label lblStatus;
         private ComboBox cmbStatus;
         private ErrorProvider errorProvider1;
+        private ToolStripButton tsBtnCodeSnippet;
+        private ToolStripButton tsBtnMoreColors;
+
         /// <summary>
         /// Clean up any resources being used.
         /// </summary>
@@ -76,8 +77,6 @@ namespace TodoApp.WinForms.Forms
             tsBtnItalic = new ToolStripButton();
             tsBtnUnderline = new ToolStripButton();
             tsBtnSetColorRed = new ToolStripButton();
-            tsBtnSetColorBlue = new ToolStripButton();
-            tsBtnSetColorGreen = new ToolStripButton();
             tsBtnSetColorBlack = new ToolStripButton();
             tsBtnBulletList = new ToolStripButton();
             tsBtnIndent = new ToolStripButton();
@@ -88,6 +87,9 @@ namespace TodoApp.WinForms.Forms
             btnSave = new Button();
             btnCancel = new Button();
             errorProvider1 = new ErrorProvider(components);
+            this.tsBtnCodeSnippet = new System.Windows.Forms.ToolStripButton();
+            this.tsBtnMoreColors = new System.Windows.Forms.ToolStripButton();
+
             commentsFormatToolStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)errorProvider1).BeginInit();
             SuspendLayout();
@@ -205,12 +207,29 @@ namespace TodoApp.WinForms.Forms
             commentsFormatToolStrip.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             commentsFormatToolStrip.Dock = DockStyle.None;
             commentsFormatToolStrip.GripStyle = ToolStripGripStyle.Hidden;
-            commentsFormatToolStrip.Items.AddRange(new ToolStripItem[] { tsBtnBold, tsBtnItalic, tsBtnUnderline, tsBtnSetColorRed, tsBtnSetColorBlue, tsBtnSetColorGreen, tsBtnSetColorBlack, tsBtnHighlightYellow, tsBtnHighlightGreen, tsBtnClearHighlight, tsBtnBulletList, tsBtnIndent, tsBtnOutdent });
+            commentsFormatToolStrip.Items.AddRange(new ToolStripItem[] { tsBtnBold, tsBtnItalic, tsBtnUnderline, tsBtnCodeSnippet, tsBtnSetColorRed, tsBtnSetColorBlack, tsBtnMoreColors, tsBtnHighlightYellow, tsBtnHighlightGreen, tsBtnClearHighlight, tsBtnBulletList, tsBtnIndent, tsBtnOutdent });
             commentsFormatToolStrip.Location = new Point(120, 202);
             commentsFormatToolStrip.Name = "commentsFormatToolStrip";
-            commentsFormatToolStrip.Size = new Size(320, 28);
+            commentsFormatToolStrip.Size = new Size(400, 28);
             commentsFormatToolStrip.TabIndex = 11;
             commentsFormatToolStrip.Text = "toolStrip1";
+            // 
+            // tsBtnCodeSnippet
+            // 
+            this.tsBtnCodeSnippet.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.tsBtnCodeSnippet.Name = "tsBtnCodeSnippet";
+            this.tsBtnCodeSnippet.Size = new System.Drawing.Size(23, 22);
+            this.tsBtnCodeSnippet.Text = "{;}"; // A simple text icon representing code
+            this.tsBtnCodeSnippet.ToolTipText = "程式碼片段樣式";
+
+            // 
+            // tsBtnMoreColors
+            // 
+            this.tsBtnMoreColors.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.tsBtnMoreColors.Name = "tsBtnMoreColors";
+            this.tsBtnMoreColors.Size = new System.Drawing.Size(23, 22);
+            this.tsBtnMoreColors.Text = "🎨"; // Using a palette emoji as a visual cue
+            this.tsBtnMoreColors.ToolTipText = "更多顏色...";
             // 
             // tsBtnBold
             // 
@@ -247,25 +266,6 @@ namespace TodoApp.WinForms.Forms
             tsBtnSetColorRed.Size = new Size(23, 25);
             tsBtnSetColorRed.Text = "A";
             tsBtnSetColorRed.ToolTipText = "紅色文字";
-            // 
-            // tsBtnSetColorBlue
-            // 
-            tsBtnSetColorBlue.DisplayStyle = ToolStripItemDisplayStyle.Text;
-            tsBtnSetColorBlue.ForeColor = Color.Blue;
-            tsBtnSetColorBlue.Name = "tsBtnSetColorBlue";
-            tsBtnSetColorBlue.Size = new Size(23, 25);
-            tsBtnSetColorBlue.Text = "A";
-            tsBtnSetColorBlue.ToolTipText = "藍色文字";
-            // 
-            // tsBtnSetColorGreen
-            // 
-            tsBtnSetColorGreen.DisplayStyle = ToolStripItemDisplayStyle.Text;
-            tsBtnSetColorGreen.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            tsBtnSetColorGreen.ForeColor = Color.Green;
-            tsBtnSetColorGreen.Name = "tsBtnSetColorGreen";
-            tsBtnSetColorGreen.Size = new Size(23, 25);
-            tsBtnSetColorGreen.Text = "A";
-            tsBtnSetColorGreen.ToolTipText = "綠色文字";
             // 
             // tsBtnSetColorBlack
             // 

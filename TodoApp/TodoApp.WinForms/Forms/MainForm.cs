@@ -217,8 +217,6 @@ public partial class MainForm : Form
 
         // --- Font Color ---
         tsBtnSetColorRed.Click += (s, e) => txtCommentsPreview.SetSelectionColor(Color.Red);
-        tsBtnSetColorBlue.Click += (s, e) => txtCommentsPreview.SetSelectionColor(Color.Blue);
-        tsBtnSetColorGreen.Click += (s, e) => txtCommentsPreview.SetSelectionColor(Color.Green);
         tsBtnSetColorBlack.Click += (s, e) => txtCommentsPreview.SetSelectionColor(Color.Black);
 
         // --- Paragraph ---
@@ -230,6 +228,9 @@ public partial class MainForm : Form
         tsBtnHighlightYellow.Click += (s, e) => txtCommentsPreview.SetSelectionBackColor(Color.Yellow);
         tsBtnHighlightGreen.Click += (s, e) => txtCommentsPreview.SetSelectionBackColor(Color.LightGreen);
         tsBtnClearHighlight.Click += (s, e) => txtCommentsPreview.ClearSelectionBackColor();
+
+        tsBtnCodeSnippet.Click += (s, e) => txtCommentsPreview.ToggleCodeSnippetStyle();
+        tsBtnMoreColors.Click += (s, e) => txtCommentsPreview.ShowTextColorPicker();
     }
 
     private void SetupUIPermissions()

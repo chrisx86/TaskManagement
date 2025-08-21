@@ -8,6 +8,58 @@ namespace TodoApp.WinForms.Forms
         ///  Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
+        private RichTextBox txtCommentsPreview;
+        private Panel panelCommentsContainer;
+        private ToolStrip commentsFormatToolStrip;
+        private ToolStripButton tsBtnBold;
+        private ToolStripButton tsBtnItalic;
+        private ToolStripButton tsBtnUnderline;
+        private ToolStripButton tsBtnSetColorRed;
+        private ToolStripButton tsBtnSetColorBlack;
+        private ToolStripButton tsBtnBulletList;
+        private ToolStripButton tsBtnIndent;
+        private ToolStripButton tsBtnOutdent;
+        private ToolStripButton tsBtnHighlightYellow;
+        private ToolStripButton tsBtnHighlightGreen;
+        private ToolStripButton tsBtnClearHighlight;
+
+        private ToolStrip toolStrip1;
+        private ToolStripButton tsbNewTask;
+        private ToolStripButton tsbEditTask;
+        private ToolStripButton tsbDeleteTask;
+        private ToolStripSeparator toolStripSeparator1;
+        private ToolStripButton tsbRefresh;
+        private StatusStrip statusStrip1;
+        private ToolStripStatusLabel lblStatus;
+        private Panel panelFilters;
+        private ComboBox cmbFilterStatus;
+        private Label lblFilterStatus;
+        private ComboBox cmbFilterByUserRelation;
+        private Label lblFilterUser;
+        private DataGridView dgvTasks;
+        private ToolStripSeparator toolStripSeparator2;
+        private ToolStripButton tsbUserManagement;
+        private ToolStripButton tsbAdminDashboard;
+        private Panel panelPagination;
+        private Button btnLastPage;
+        private Button btnNextPage;
+        private Label lblPageInfo;
+        private TextBox txtCurrentPage;
+        private Button btnPreviousPage;
+        private Button btnFirstPage;
+        private Label lblPageSize;
+        private ComboBox cmbPageSize;
+        private Label lblFilterByAssignedUser;
+        private ComboBox cmbFilterByAssignedUser;
+        private ToolStripSeparator toolStripSeparator3;
+        private ToolStripButton tsbChangePassword;
+        private ToolStripButton tsbSwitchUser;
+        private SplitContainer splitContainerMain;
+        private Button btnSaveChanges;
+        private Label lblSearch;
+        private TextBox txtSearch;
+        private ToolStripButton tsBtnCodeSnippet;
+        private ToolStripButton tsBtnMoreColors;
 
         /// <summary>
         ///  Clean up any resources being used.
@@ -40,8 +92,6 @@ namespace TodoApp.WinForms.Forms
             tsBtnUnderline = new ToolStripButton();
             toolStripSeparator1 = new ToolStripSeparator();
             tsBtnSetColorRed = new ToolStripButton();
-            tsBtnSetColorBlue = new ToolStripButton();
-            tsBtnSetColorGreen = new ToolStripButton();
             tsBtnSetColorBlack = new ToolStripButton();
             toolStripSeparator2 = new ToolStripSeparator();
             tsBtnBulletList = new ToolStripButton();
@@ -82,6 +132,8 @@ namespace TodoApp.WinForms.Forms
             btnFirstPage = new Button();
             splitContainerMain = new SplitContainer();
             dgvTasks = new DataGridView();
+            this.tsBtnCodeSnippet = new System.Windows.Forms.ToolStripButton();
+            this.tsBtnMoreColors = new System.Windows.Forms.ToolStripButton();
 
             // --- 階段 1: 暫停所有容器的佈局邏輯 ---
             SuspendLayout(); // 這是針對 MainForm 自身的呼叫
@@ -124,12 +176,28 @@ namespace TodoApp.WinForms.Forms
             // commentsFormatToolStrip
             // 
             commentsFormatToolStrip.GripStyle = ToolStripGripStyle.Hidden;
-            commentsFormatToolStrip.Items.AddRange(new ToolStripItem[] { tsBtnBold, tsBtnItalic, tsBtnUnderline, tsBtnSetColorRed, tsBtnSetColorBlue, tsBtnSetColorGreen, tsBtnSetColorBlack, tsBtnHighlightYellow, tsBtnHighlightGreen, tsBtnClearHighlight, tsBtnBulletList, tsBtnIndent, tsBtnOutdent });
+            commentsFormatToolStrip.Items.AddRange(new ToolStripItem[] { tsBtnBold, tsBtnItalic, tsBtnUnderline, tsBtnCodeSnippet, tsBtnSetColorRed, tsBtnSetColorBlack, tsBtnMoreColors, tsBtnHighlightYellow, tsBtnHighlightGreen, tsBtnClearHighlight, tsBtnBulletList, tsBtnIndent, tsBtnOutdent });
             commentsFormatToolStrip.Location = new Point(0, 0);
             commentsFormatToolStrip.Name = "commentsFormatToolStrip";
             commentsFormatToolStrip.Size = new Size(1207, 28);
             commentsFormatToolStrip.TabIndex = 2;
             commentsFormatToolStrip.Text = "toolStrip2";
+            // tsBtnCodeSnippet
+            // 
+            this.tsBtnCodeSnippet.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.tsBtnCodeSnippet.Name = "tsBtnCodeSnippet";
+            this.tsBtnCodeSnippet.Size = new System.Drawing.Size(23, 22);
+            this.tsBtnCodeSnippet.Text = "{;}"; // A simple text icon representing code
+            this.tsBtnCodeSnippet.ToolTipText = "程式碼片段樣式";
+
+            // 
+            // tsBtnMoreColors
+            // 
+            this.tsBtnMoreColors.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.tsBtnMoreColors.Name = "tsBtnMoreColors";
+            this.tsBtnMoreColors.Size = new System.Drawing.Size(23, 22);
+            this.tsBtnMoreColors.Text = "🎨"; // Using a palette emoji as a visual cue
+            this.tsBtnMoreColors.ToolTipText = "更多顏色...";
             // 
             // tsBtnBold
             // 
@@ -171,25 +239,6 @@ namespace TodoApp.WinForms.Forms
             tsBtnSetColorRed.Size = new Size(23, 25);
             tsBtnSetColorRed.Text = "A";
             tsBtnSetColorRed.ToolTipText = "紅色文字";
-            // 
-            // tsBtnSetColorBlue
-            // 
-            tsBtnSetColorBlue.DisplayStyle = ToolStripItemDisplayStyle.Text;
-            tsBtnSetColorBlue.ForeColor = Color.Blue;
-            tsBtnSetColorBlue.Name = "tsBtnSetColorBlue";
-            tsBtnSetColorBlue.Size = new Size(23, 25);
-            tsBtnSetColorBlue.Text = "A";
-            tsBtnSetColorBlue.ToolTipText = "藍色文字";
-            // 
-            // tsBtnSetColorGreen
-            // 
-            tsBtnSetColorGreen.DisplayStyle = ToolStripItemDisplayStyle.Text;
-            tsBtnSetColorGreen.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            tsBtnSetColorGreen.ForeColor = Color.Green;
-            tsBtnSetColorGreen.Name = "tsBtnSetColorGreen";
-            tsBtnSetColorGreen.Size = new Size(23, 25);
-            tsBtnSetColorGreen.Text = "A";
-            tsBtnSetColorGreen.ToolTipText = "綠色文字";
             // 
             // tsBtnSetColorBlack
             // 
@@ -611,57 +660,6 @@ namespace TodoApp.WinForms.Forms
 
         #endregion
 
-        private RichTextBox txtCommentsPreview;
-        private Panel panelCommentsContainer;
-        private ToolStrip commentsFormatToolStrip;
-        private ToolStripButton tsBtnBold;
-        private ToolStripButton tsBtnItalic;
-        private ToolStripButton tsBtnUnderline;
-        private ToolStripButton tsBtnSetColorRed;
-        private ToolStripButton tsBtnSetColorBlue;
-        private ToolStripButton tsBtnSetColorGreen;
-        private ToolStripButton tsBtnSetColorBlack;
-        private ToolStripButton tsBtnBulletList;
-        private ToolStripButton tsBtnIndent;
-        private ToolStripButton tsBtnOutdent;
-        private ToolStripButton tsBtnHighlightYellow;
-        private ToolStripButton tsBtnHighlightGreen;
-        private ToolStripButton tsBtnClearHighlight;
 
-        private ToolStrip toolStrip1;
-        private ToolStripButton tsbNewTask;
-        private ToolStripButton tsbEditTask;
-        private ToolStripButton tsbDeleteTask;
-        private ToolStripSeparator toolStripSeparator1;
-        private ToolStripButton tsbRefresh;
-        private StatusStrip statusStrip1;
-        private ToolStripStatusLabel lblStatus;
-        private Panel panelFilters;
-        private ComboBox cmbFilterStatus;
-        private Label lblFilterStatus;
-        private ComboBox cmbFilterByUserRelation;
-        private Label lblFilterUser;
-        private DataGridView dgvTasks;
-        private ToolStripSeparator toolStripSeparator2;
-        private ToolStripButton tsbUserManagement;
-        private ToolStripButton tsbAdminDashboard;
-        private Panel panelPagination;
-        private Button btnLastPage;
-        private Button btnNextPage;
-        private Label lblPageInfo;
-        private TextBox txtCurrentPage;
-        private Button btnPreviousPage;
-        private Button btnFirstPage;
-        private Label lblPageSize;
-        private ComboBox cmbPageSize;
-        private Label lblFilterByAssignedUser;
-        private ComboBox cmbFilterByAssignedUser;
-        private ToolStripSeparator toolStripSeparator3;
-        private ToolStripButton tsbChangePassword;
-        private ToolStripButton tsbSwitchUser;
-        private SplitContainer splitContainerMain;
-        private Button btnSaveChanges;
-        private Label lblSearch;
-        private TextBox txtSearch;
     }
 }

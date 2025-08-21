@@ -135,8 +135,6 @@ public partial class TaskDetailDialog : Form
 
         // --- Font Color ---
         tsBtnSetColorRed.Click += (s, e) => txtComments.SetSelectionColor(Color.Red);
-        tsBtnSetColorBlue.Click += (s, e) => txtComments.SetSelectionColor(Color.Blue);
-        tsBtnSetColorGreen.Click += (s, e) => txtComments.SetSelectionColor(Color.Green);
         tsBtnSetColorBlack.Click += (s, e) => txtComments.SetSelectionColor(Color.Black);
 
         // --- Paragraph ---
@@ -148,6 +146,9 @@ public partial class TaskDetailDialog : Form
         tsBtnHighlightYellow.Click += (s, e) => txtComments.SetSelectionBackColor(Color.Yellow);
         tsBtnHighlightGreen.Click += (s, e) => txtComments.SetSelectionBackColor(Color.LightGreen);
         tsBtnClearHighlight.Click += (s, e) => txtComments.ClearSelectionBackColor();
+
+        tsBtnCodeSnippet.Click += (s, e) => txtComments.ToggleCodeSnippetStyle();
+        tsBtnMoreColors.Click += (s, e) => txtComments.ShowTextColorPicker();
     }
 
     private void ToggleFontStyle(FontStyle style)

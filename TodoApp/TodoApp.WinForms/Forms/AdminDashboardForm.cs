@@ -123,8 +123,6 @@ public partial class AdminDashboardForm : Form
         tsBtnStrikeout.Click += (s, e) => txtDetailComments.ToggleFontStyle(FontStyle.Strikeout);
 
         tsBtnSetColorRed.Click += (s, e) => txtDetailComments.SetSelectionColor(Color.Red);
-        tsBtnSetColorBlue.Click += (s, e) => txtDetailComments.SetSelectionColor(Color.Blue);
-        tsBtnSetColorGreen.Click += (s, e) => txtDetailComments.SetSelectionColor(Color.Green);
         tsBtnSetColorBlack.Click += (s, e) => txtDetailComments.SetSelectionColor(Color.Black);
 
         tsBtnBulletList.Click += (s, e) => txtDetailComments.ToggleBullet();
@@ -134,6 +132,9 @@ public partial class AdminDashboardForm : Form
         tsBtnHighlightYellow.Click += (s, e) => txtDetailComments.SetSelectionBackColor(Color.Yellow);
         tsBtnHighlightGreen.Click += (s, e) => txtDetailComments.SetSelectionBackColor(Color.LightGreen);
         tsBtnClearHighlight.Click += (s, e) => txtDetailComments.ClearSelectionBackColor();
+
+        tsBtnCodeSnippet.Click += (s, e) => txtDetailComments.ToggleCodeSnippetStyle();
+        tsBtnMoreColors.Click += (s, e) => txtDetailComments.ShowTextColorPicker();
     }
     private void Card_Click(object? sender, EventArgs e)
     {

@@ -9,7 +9,90 @@ namespace TodoApp.WinForms.Forms
         /// <summary>
         /// Required designer variable.
         /// </summary>
-        private IContainer components = null;
+        private System.ComponentModel.IContainer components = null;
+        private Panel panelFilters;
+        private StatusStrip statusStrip1;
+        private TreeView tvTasks;
+        private TextBox txtSearch;
+        private Label lblSearch;
+        private ComboBox cmbFilterPriority;
+        private Label lblFilterPriority;
+        private Button btnClearFilter;
+        private ToolStripStatusLabel lblStatus;
+        private TableLayoutPanel mainTableLayoutPanel;
+        private Panel panelLeft;
+        private Panel panelRight;
+        private Panel panelStatistics;
+        private Panel cardTotalTasks;
+        private Label lblTotalTasksValue;
+        private Label lblTotalTasksTitle;
+        private Panel cardUncompleted;
+        private Label lblUncompletedValue;
+        private Label lblUncompletedTitle;
+        private Panel cardOverdue;
+        private Label lblOverdueValue;
+        private Label lblOverdueTitle;
+        private Panel cardUnassigned;
+        private Label lblUnassignedValue;
+        private Label lblUnassignedTitle;
+        private Panel panelTaskDetails;
+        private Label lblDetailTitle;
+        private Label lblDetailStatusTitle;
+        private Label lblDetailStatus;
+        private Label lblDetailPriorityTitle;
+        private Label lblDetailPriority;
+        private Label lblDetailDueDateTitle;
+        private Label lblDetailDueDate;
+        private Label lblDetailCreatorTitle;
+        private Label lblDetailCreator;
+        private Label lblDetailAssignedToTitle;
+        private Label lblDetailAssignedTo;
+        private Label lblDetailCommentsTitle;
+        private RichTextBox txtDetailComments;
+        private ToolStrip commentsFormatToolStrip;
+        private ToolStripButton tsBtnBold;
+        private ToolStripButton tsBtnItalic;
+        private ToolStripButton tsBtnUnderline;
+        private ToolStripButton tsBtnStrikeout;
+        private ToolStripSeparator toolStripSeparator1;
+        private ToolStripButton tsBtnSetColorRed;
+        private ToolStripButton tsBtnSetColorBlack;
+        private ToolStripSeparator toolStripSeparator2;
+        private ToolStripButton tsBtnBulletList;
+        private ToolStripButton tsBtnIndent;
+        private ToolStripButton tsBtnOutdent;
+        private ToolStripSeparator toolStripSeparator3;
+        private ToolStripButton tsBtnHighlightYellow;
+        private ToolStripButton tsBtnHighlightGreen;
+        private ToolStripButton tsBtnClearHighlight;
+
+        private Label lblFilterStatus;
+        private ComboBox cmbFilterStatus;
+        private CheckBox chkFilterOverdue;
+        private Panel panelDetailActions;
+        private Button btnDetailDelete;
+        private Button btnDetailReassign;
+        private Button btnDetailEdit;
+        private ContextMenuStrip treeViewContextMenu;
+        private ToolStripMenuItem ctxEditTask;
+        private ToolStripMenuItem ctxReassignTask;
+        private ToolStripMenuItem ctxDeleteTask;
+        private Label lblDetailLastModified;
+        private Label lblDetailLastModifiedTitle;
+        private Label lblDetailCreationDate;
+        private Label lblDetailCreationDateTitle;
+        private Panel cardRejected;
+        private Label lblRejectedValue;
+        private Label lblRejectedTitle;
+        private Label lblFilterByUser;
+        private ComboBox cmbFilterByUser;
+        private Panel cardCompleted;
+        private Label lblCompletedValue;
+        private Label lblCompletedTitle;
+        private Button btnSaveComment;
+        private Button btnViewHistory;
+        private ToolStripButton tsBtnCodeSnippet;
+        private ToolStripButton tsBtnMoreColors;
 
         /// <summary>
         /// Clean up any resources being used.
@@ -91,8 +174,6 @@ namespace TodoApp.WinForms.Forms
             tsBtnStrikeout = new ToolStripButton();
             toolStripSeparator1 = new ToolStripSeparator();
             tsBtnSetColorRed = new ToolStripButton();
-            tsBtnSetColorBlue = new ToolStripButton();
-            tsBtnSetColorGreen = new ToolStripButton();
             tsBtnSetColorBlack = new ToolStripButton();
             toolStripSeparator2 = new ToolStripSeparator();
             tsBtnBulletList = new ToolStripButton();
@@ -117,6 +198,8 @@ namespace TodoApp.WinForms.Forms
             lblDetailTitle = new Label();
             btnSaveComment = new Button();
             btnViewHistory = new Button();
+            tsBtnCodeSnippet = new ToolStripButton();
+            tsBtnMoreColors = new ToolStripButton();
 
             SuspendLayout();
             // 
@@ -705,25 +788,6 @@ namespace TodoApp.WinForms.Forms
             tsBtnSetColorRed.Text = "A";
             tsBtnSetColorRed.ToolTipText = "紅色文字";
             // 
-            // tsBtnSetColorBlue
-            // 
-            tsBtnSetColorBlue.DisplayStyle = ToolStripItemDisplayStyle.Text;
-            tsBtnSetColorBlue.ForeColor = Color.Blue;
-            tsBtnSetColorBlue.Name = "tsBtnSetColorBlue";
-            tsBtnSetColorBlue.Size = new Size(23, 25);
-            tsBtnSetColorBlue.Text = "A";
-            tsBtnSetColorBlue.ToolTipText = "藍色文字";
-            // 
-            // tsBtnSetColorGreen
-            // 
-            tsBtnSetColorGreen.DisplayStyle = ToolStripItemDisplayStyle.Text;
-            tsBtnSetColorGreen.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            tsBtnSetColorGreen.ForeColor = Color.Green;
-            tsBtnSetColorGreen.Name = "tsBtnSetColorGreen";
-            tsBtnSetColorGreen.Size = new Size(23, 25);
-            tsBtnSetColorGreen.Text = "A";
-            tsBtnSetColorGreen.ToolTipText = "綠色文字";
-            // 
             // tsBtnSetColorBlack
             // 
             tsBtnSetColorBlack.DisplayStyle = ToolStripItemDisplayStyle.Text;
@@ -820,8 +884,24 @@ namespace TodoApp.WinForms.Forms
             commentsFormatToolStrip.Name = "commentsFormatToolStrip";
             commentsFormatToolStrip.Size = new System.Drawing.Size(277, 25);
             commentsFormatToolStrip.TabIndex = 18;
-            commentsFormatToolStrip.Items.AddRange(new ToolStripItem[] { tsBtnBold, tsBtnItalic, tsBtnUnderline, tsBtnSetColorRed, tsBtnSetColorBlue, tsBtnSetColorGreen, tsBtnSetColorBlack, tsBtnHighlightYellow, tsBtnHighlightGreen, tsBtnClearHighlight, tsBtnBulletList, tsBtnIndent, tsBtnOutdent });
+            commentsFormatToolStrip.Items.AddRange(new ToolStripItem[] { tsBtnBold, tsBtnItalic, tsBtnUnderline, tsBtnCodeSnippet, tsBtnSetColorRed, tsBtnSetColorBlack, tsBtnMoreColors, tsBtnHighlightYellow, tsBtnHighlightGreen, tsBtnClearHighlight, tsBtnBulletList, tsBtnIndent, tsBtnOutdent });
+            // 
+            // tsBtnCodeSnippet
+            // 
+            this.tsBtnCodeSnippet.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.tsBtnCodeSnippet.Name = "tsBtnCodeSnippet";
+            this.tsBtnCodeSnippet.Size = new System.Drawing.Size(23, 22);
+            this.tsBtnCodeSnippet.Text = "{;}"; // A simple text icon representing code
+            this.tsBtnCodeSnippet.ToolTipText = "程式碼片段樣式";
 
+            // 
+            // tsBtnMoreColors
+            // 
+            this.tsBtnMoreColors.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.tsBtnMoreColors.Name = "tsBtnMoreColors";
+            this.tsBtnMoreColors.Size = new System.Drawing.Size(23, 22);
+            this.tsBtnMoreColors.Text = "🎨"; // Using a palette emoji as a visual cue
+            this.tsBtnMoreColors.ToolTipText = "更多顏色...";
             // 
             // lblDetailAssignedTo
             // 
@@ -947,89 +1027,6 @@ namespace TodoApp.WinForms.Forms
 
         #endregion
 
-        private Panel panelFilters;
-        private StatusStrip statusStrip1;
-        private TreeView tvTasks;
-        private TextBox txtSearch;
-        private Label lblSearch;
-        private ComboBox cmbFilterPriority;
-        private Label lblFilterPriority;
-        private Button btnClearFilter;
-        private ToolStripStatusLabel lblStatus;
-        private TableLayoutPanel mainTableLayoutPanel;
-        private Panel panelLeft;
-        private Panel panelRight;
-        private Panel panelStatistics;
-        private Panel cardTotalTasks;
-        private Label lblTotalTasksValue;
-        private Label lblTotalTasksTitle;
-        private Panel cardUncompleted;
-        private Label lblUncompletedValue;
-        private Label lblUncompletedTitle;
-        private Panel cardOverdue;
-        private Label lblOverdueValue;
-        private Label lblOverdueTitle;
-        private Panel cardUnassigned;
-        private Label lblUnassignedValue;
-        private Label lblUnassignedTitle;
-        private Panel panelTaskDetails;
-        private Label lblDetailTitle;
-        private Label lblDetailStatusTitle;
-        private Label lblDetailStatus;
-        private Label lblDetailPriorityTitle;
-        private Label lblDetailPriority;
-        private Label lblDetailDueDateTitle;
-        private Label lblDetailDueDate;
-        private Label lblDetailCreatorTitle;
-        private Label lblDetailCreator;
-        private Label lblDetailAssignedToTitle;
-        private Label lblDetailAssignedTo;
-        private Label lblDetailCommentsTitle;
-        private RichTextBox txtDetailComments;
-        private ToolStrip commentsFormatToolStrip;
-        private ToolStripButton tsBtnBold;
-        private ToolStripButton tsBtnItalic;
-        private ToolStripButton tsBtnUnderline;
-        private ToolStripButton tsBtnStrikeout;
-        private ToolStripSeparator toolStripSeparator1;
-        private ToolStripButton tsBtnSetColorRed;
-        private ToolStripButton tsBtnSetColorBlue;
-        private ToolStripButton tsBtnSetColorGreen;
-        private ToolStripButton tsBtnSetColorBlack;
-        private ToolStripSeparator toolStripSeparator2;
-        private ToolStripButton tsBtnBulletList;
-        private ToolStripButton tsBtnIndent;
-        private ToolStripButton tsBtnOutdent;
-        private ToolStripSeparator toolStripSeparator3;
-        private ToolStripButton tsBtnHighlightYellow;
-        private ToolStripButton tsBtnHighlightGreen;
-        private ToolStripButton tsBtnClearHighlight;
 
-
-        private Label lblFilterStatus;
-        private ComboBox cmbFilterStatus;
-        private CheckBox chkFilterOverdue;
-        private Panel panelDetailActions;
-        private Button btnDetailDelete;
-        private Button btnDetailReassign;
-        private Button btnDetailEdit;
-        private ContextMenuStrip treeViewContextMenu;
-        private ToolStripMenuItem ctxEditTask;
-        private ToolStripMenuItem ctxReassignTask;
-        private ToolStripMenuItem ctxDeleteTask;
-        private Label lblDetailLastModified;
-        private Label lblDetailLastModifiedTitle;
-        private Label lblDetailCreationDate;
-        private Label lblDetailCreationDateTitle;
-        private Panel cardRejected;
-        private Label lblRejectedValue;
-        private Label lblRejectedTitle;
-        private Label lblFilterByUser;
-        private ComboBox cmbFilterByUser;
-        private Panel cardCompleted;
-        private Label lblCompletedValue;
-        private Label lblCompletedTitle;
-        private Button btnSaveComment;
-        private Button btnViewHistory;
     }
 }
