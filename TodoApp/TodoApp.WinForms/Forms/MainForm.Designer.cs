@@ -487,6 +487,7 @@ namespace TodoApp.WinForms.Forms
             dgvTasks.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgvTasks.Size = new Size(1207, 255);
             dgvTasks.TabIndex = 3;
+            dgvTasks.VirtualMode = true;
             // 
             // MainForm
             // 

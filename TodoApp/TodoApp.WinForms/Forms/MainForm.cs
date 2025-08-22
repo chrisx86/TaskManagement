@@ -28,7 +28,6 @@ public partial class MainForm : Form
     private readonly Font _italicFont;
 
     // --- UI State & Data Cache ---
-    //private readonly BindingList<TodoItem> _tasksBindingList = new();
     private List<User> _allUsers = new();
     private readonly TaskDataCache _taskDataCache;
 
@@ -112,7 +111,6 @@ public partial class MainForm : Form
         this.dgvTasks.ColumnHeaderMouseClick += DgvTasks_ColumnHeaderMouseClick;
         this.dgvTasks.CellDoubleClick += DgvTasks_CellDoubleClick;
         this.dgvTasks.CellClick += DgvTasks_CellClick;
-        this.dgvTasks.CellValueChanged += DgvTasks_CellValueChanged;
         this.dgvTasks.CellBeginEdit += DgvTasks_CellBeginEdit;
         this.dgvTasks.CellToolTipTextNeeded += DgvTasks_CellToolTipTextNeeded;
 
@@ -147,7 +145,7 @@ public partial class MainForm : Form
         this.dgvTasks.MouseLeave += DgvTasks_MouseLeave;
 
         this.richTextEditorComments.TextChanged += TxtCommentsPreview_TextChanged;
-
+        // --- The core event for Virtual Mode ---
         this.dgvTasks.CellValueNeeded += DgvTasks_CellValueNeeded;
     }
 
@@ -155,7 +153,6 @@ public partial class MainForm : Form
     {
         SetWindowTitleWithVersion();
         SetupDataGridViewForVirtualMode();
-        //SetupDataGridView();
         SetupUIPermissions();
         InitializePaginationControls();
         await PopulateFilterDropDownsAsync();
@@ -202,6 +199,63 @@ public partial class MainForm : Form
         dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "Creator", HeaderText = "建立者", Width = 80, SortMode = DataGridViewColumnSortMode.Programmatic });
         dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "CreationDate", HeaderText = "建立日期", Width = 80, DefaultCellStyle = { Format = "yyyy-MM-dd" }, ReadOnly = true, SortMode = DataGridViewColumnSortMode.Programmatic });
         dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "LastModifiedDate", HeaderText = "最後更新", Width = 120, DefaultCellStyle = { Format = "yyyy-MM-dd HH:mm" }, ReadOnly = true, SortMode = DataGridViewColumnSortMode.Programmatic });
+    }
+
+    private void DgvTasks_RowPrePaint(object? sender, DataGridViewRowPrePaintEventArgs e)
+    {
+        // Standard guard clause for headers and invalid rows.
+        if (e.RowIndex < 0) return;
+
+        // --- Step 1: Synchronously try to get the task object from the cache ---
+        // We use TryGetItem because RowPrePaint is a synchronous event and cannot be awaited.
+        // If the data isn't in the cache yet, we'll just use the default style for this paint cycle.
+        if (!_taskDataCache.TryGetItem(e.RowIndex, out var task) || task is null)
+        {
+            // If task is not available in cache, do nothing and let it paint with default style.
+            return;
+        }
+
+        // --- Step 2: The rest of the logic is the same as before ---
+        var row = dgvTasks.Rows[e.RowIndex];
+
+        // Determine the base style from business logic (overdue, urgent, etc.)
+        var baseStyle = GetRowStyleForTask(task);
+
+        // Determine the final style by applying the hover effect.
+        if (e.RowIndex == _hoveredRowIndex)
+        {
+            var highlightStyle = (DataGridViewCellStyle)baseStyle.Clone();
+            highlightStyle.BackColor = Color.FromArgb(220, 235, 252);
+            highlightStyle.ForeColor = Color.Black;
+            row.DefaultCellStyle = highlightStyle;
+        }
+        else
+        {
+            // If this row is not hovered, just apply its base style.
+            row.DefaultCellStyle = baseStyle;
+        }
+    }
+
+    private DataGridViewCellStyle GetRowStyleForTask(TodoItem task)
+    {
+        var overdueStyle = new DataGridViewCellStyle { BackColor = Color.MistyRose, ForeColor = Color.DarkRed, Font = _boldFont };
+        var dueSoonStyle = new DataGridViewCellStyle { BackColor = Color.LightYellow, ForeColor = Color.DarkGoldenrod, Font = _regularFont };
+        var completedStyle = new DataGridViewCellStyle { BackColor = Color.Honeydew, ForeColor = Color.DarkGray, Font = _strikeoutFont };
+        var rejectedStyle = new DataGridViewCellStyle { BackColor = Color.LightGray, ForeColor = Color.Black, Font = _italicFont };
+        var urgentStyle = new DataGridViewCellStyle { BackColor = Color.LightPink, ForeColor = Color.DarkRed, Font = _boldFont };
+        var defaultStyle = new DataGridViewCellStyle { BackColor = SystemColors.Window, ForeColor = SystemColors.ControlText, Font = _regularFont };
+
+        var now = DateTime.Now;
+        var isOverdue = task.DueDate.HasValue && task.DueDate < now.AddDays(-1) && task.Status != TodoStatus.Completed && task.Status != TodoStatus.Reject;
+        var isDueSoon = task.DueDate.HasValue && task.DueDate <= now.AddDays(3) && task.Status != TodoStatus.Completed && task.Status != TodoStatus.Reject;
+
+        if (task.Status == TodoStatus.Completed) return completedStyle;
+        if (task.Status == TodoStatus.Reject) return rejectedStyle;
+        if (task.Priority == PriorityLevel.Urgent) return urgentStyle;
+        if (isOverdue) return overdueStyle;
+        if (isDueSoon) return dueSoonStyle;
+
+        return defaultStyle;
     }
 
     private void SetWindowTitleWithVersion()
@@ -296,6 +350,7 @@ public partial class MainForm : Form
         }
     }
 
+    // --- LoadTasksAsync now only loads the total count ---
     private async Task LoadTasksAsync()
     {
         if (!this.IsHandleCreated || IsAnyFilterNull()) return;
@@ -446,7 +501,7 @@ public partial class MainForm : Form
         var task = await _taskDataCache.GetItemAsync(e.RowIndex);
 
         // 2. Handle the loading state placeholder.
-        if (task == null)
+        if (task is null)
         {
             e.Value = "Loading...";
             return;
@@ -480,19 +535,22 @@ public partial class MainForm : Form
 
         if (isRowSelected)
         {
-            var selectedRowIndex = dgvTasks.SelectedRows[0].Index;
-
             // The 'await' operator is now valid inside this async method.
-            var selectedTask = await _taskDataCache.GetItemAsync(selectedRowIndex);
+            _selectedTaskForEditing = await _taskDataCache.GetItemAsync(dgvTasks.SelectedRows[0].Index);
 
             // It's possible for the task to be null if the cache is still loading,
             // so we must handle this gracefully.
-            if (selectedTask != null)
+            if (_selectedTaskForEditing is not null)
             {
-                _selectedTaskForEditing = selectedTask;
                 richTextEditorComments.Rtf = _selectedTaskForEditing.Comments ?? "";
                 richTextEditorComments.Enabled = true;
             }
+        }
+        else
+        {
+            _selectedTaskForEditing = null;
+            richTextEditorComments.Clear();
+            richTextEditorComments.Enabled = false;
         }
     }
 
@@ -523,63 +581,6 @@ public partial class MainForm : Form
     {
         _currentPage = 1;
         await LoadTasksAsync();
-    }
-
-    private void DgvTasks_RowPrePaint(object? sender, DataGridViewRowPrePaintEventArgs e)
-    {
-        // Standard guard clause for headers and invalid rows.
-        if (e.RowIndex < 0) return;
-
-        // --- Step 1: Synchronously try to get the task object from the cache ---
-        // We use TryGetItem because RowPrePaint is a synchronous event and cannot be awaited.
-        // If the data isn't in the cache yet, we'll just use the default style for this paint cycle.
-        if (!_taskDataCache.TryGetItem(e.RowIndex, out var task) || task == null)
-        {
-            // If task is not available in cache, do nothing and let it paint with default style.
-            return;
-        }
-
-        // --- Step 2: The rest of the logic is the same as before ---
-        var row = dgvTasks.Rows[e.RowIndex];
-
-        // Determine the base style from business logic (overdue, urgent, etc.)
-        var baseStyle = GetRowStyleForTask(task);
-
-        // Determine the final style by applying the hover effect.
-        if (e.RowIndex == _hoveredRowIndex)
-        {
-            var highlightStyle = (DataGridViewCellStyle)baseStyle.Clone();
-            highlightStyle.BackColor = Color.FromArgb(220, 235, 252);
-            highlightStyle.ForeColor = Color.Black;
-            row.DefaultCellStyle = highlightStyle;
-        }
-        else
-        {
-            // If this row is not hovered, just apply its base style.
-            row.DefaultCellStyle = baseStyle;
-        }
-    }
-
-    private DataGridViewCellStyle GetRowStyleForTask(TodoItem task)
-    {
-        var overdueStyle = new DataGridViewCellStyle { BackColor = Color.MistyRose, ForeColor = Color.DarkRed, Font = _boldFont };
-        var dueSoonStyle = new DataGridViewCellStyle { BackColor = Color.LightYellow, ForeColor = Color.DarkGoldenrod, Font = _regularFont };
-        var completedStyle = new DataGridViewCellStyle { BackColor = Color.Honeydew, ForeColor = Color.DarkGray, Font = _strikeoutFont };
-        var rejectedStyle = new DataGridViewCellStyle { BackColor = Color.LightGray, ForeColor = Color.Black, Font = _italicFont };
-        var urgentStyle = new DataGridViewCellStyle { BackColor = Color.LightPink, ForeColor = Color.DarkRed, Font = _boldFont };
-        var defaultStyle = new DataGridViewCellStyle { BackColor = SystemColors.Window, ForeColor = SystemColors.ControlText, Font = _regularFont };
-
-        var now = DateTime.Now;
-        var isOverdue = task.DueDate.HasValue && task.DueDate < now.AddDays(-1) && task.Status != TodoStatus.Completed && task.Status != TodoStatus.Reject;
-        var isDueSoon = task.DueDate.HasValue && task.DueDate <= now.AddDays(3) && task.Status != TodoStatus.Completed && task.Status != TodoStatus.Reject;
-
-        if (task.Status == TodoStatus.Completed) return completedStyle;
-        if (task.Status == TodoStatus.Reject) return rejectedStyle;
-        if (task.Priority == PriorityLevel.Urgent) return urgentStyle;
-        if (isOverdue) return overdueStyle;
-        if (isDueSoon) return dueSoonStyle;
-
-        return defaultStyle;
     }
 
     private void DgvTasks_CellMouseMove(object? sender, DataGridViewCellMouseEventArgs e)
@@ -629,72 +630,6 @@ public partial class MainForm : Form
                 if (dgvTasks.EditingControl is DataGridViewComboBoxEditingControl comboBox)
                     comboBox.DroppedDown = true;
             }
-        }
-    }
-
-    private async void DgvTasks_CellValueChanged(object? sender, DataGridViewCellEventArgs e)
-    {
-        if (_isUpdatingUI || e.RowIndex < 0) return;
-
-        var columnName = dgvTasks.Columns[e.ColumnIndex].Name;
-        if (columnName != "Status" && columnName != "Priority") return;
-
-        // Fetch the task object from the cache to update it.
-        var taskToUpdate = await _taskDataCache.GetItemAsync(e.RowIndex);
-        if (taskToUpdate is null) return;
-
-        // Get the new value from the cell.
-        var newValue = dgvTasks.Rows[e.RowIndex].Cells[e.ColumnIndex].Value;
-
-        // Manually update the in-memory object based on the cell's new value.
-        if (columnName == "Status" && newValue is TodoStatus newStatus)
-        {
-            taskToUpdate.Status = newStatus;
-        }
-        else if (columnName == "Priority" && newValue is PriorityLevel newPriority)
-        {
-            taskToUpdate.Priority = newPriority;
-        }
-
-        // Invalidate the row immediately for visual feedback (color change).
-        SafeInvalidateRow(e.RowIndex);
-
-        // Fire-and-forget the background save, passing the rowIndex.
-        _ = SaveTaskChangesInBackground(taskToUpdate, e.RowIndex);
-    }
-
-    /// <summary>
-    /// Saves changes to a TodoItem in the background without blocking the UI.
-    /// This version is adapted for Virtual Mode with TaskDataCache.
-    /// </summary>
-    private async Task SaveTaskChangesInBackground(TodoItem taskToSave, int rowIndex)
-    {
-        try
-        {
-            // Call the full update service in the background.
-            // This persists the changes (e.g., new Status or Priority) to the database.
-            var updatedTaskFromServer = await _taskService.UpdateTaskAsync(_currentUser, taskToSave);
-
-            // --- Step 1: Invalidate the cache for the updated item ---
-            // This ensures that the next time this row is requested, the cache will
-            // fetch the fresh data (with the new LastModifiedDate) from the server.
-            _taskDataCache.InvalidateItem(rowIndex);
-
-            // --- Step 2: Trigger a repaint of the specific row ---
-            // This will cause CellValueNeeded and RowPrePaint to fire again for this row,
-            // displaying the latest data from the now-updated cache.
-            SafeInvalidateRow(rowIndex);
-        }
-        catch (Exception ex)
-        {
-            // If the background save fails, inform the user and trigger a full reload
-            // to ensure the UI is consistent with the database.
-            this.Invoke(async () => {
-                MessageBox.Show($"自動儲存任務 '{taskToSave.Title}' 時發生錯誤: {ex.Message}", "儲存失敗", MessageBoxButtons.OK, MessageBoxIcon.Error);
-
-                // A full reload is the safest way to ensure data consistency after an error.
-                await LoadTasksAsync();
-            });
         }
     }
 
@@ -894,22 +829,6 @@ public partial class MainForm : Form
         catch (Exception ex)
         {
             MessageBox.Show($"打開編輯視窗時發生錯誤: {ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
-    }
-
-    private void SelectTaskInDataGridView(int taskId)
-    {
-        dgvTasks.ClearSelection();
-
-        foreach (DataGridViewRow row in dgvTasks.Rows)
-        {
-            if (row.DataBoundItem is TodoItem item && item.Id == taskId)
-            {
-                row.Selected = true;
-                dgvTasks.FirstDisplayedScrollingRowIndex = row.Index;
-
-                return;
-            }
         }
     }
 
