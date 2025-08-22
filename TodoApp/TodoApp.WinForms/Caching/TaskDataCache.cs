@@ -21,6 +21,7 @@ public class TaskDataCache
     // The cache will call this delegate whenever it needs a new page of data.
     public delegate Task<List<TodoItem>> DataPageProvider(int pageNumber, int pageSize);
     private readonly DataPageProvider _dataProvider;
+    private readonly HashSet<int> _pagesBeingFetched = new();
 
     public TaskDataCache(DataPageProvider dataProvider, int pageSize = 100)
     {
@@ -79,11 +80,7 @@ public class TaskDataCache
     /// <summary>
     /// Synchronously tries to retrieve an item from the cache.
     /// Does NOT trigger a fetch from the data store if the item is not present.
-    /// This is a lightweight method suitable for use in synchronous UI events like RowPrePaint.
     /// </summary>
-    /// <param name="rowIndex">The index of the item to retrieve.</param>
-    /// <param name="item">The retrieved item, or null if not found in the cache.</param>
-    /// <returns>True if the item was found in the cache; otherwise, false.</returns>
     public bool TryGetItem(int rowIndex, [MaybeNullWhen(false)] out TodoItem item)
     {
         return _cache.TryGetValue(rowIndex, out item);
@@ -99,6 +96,72 @@ public class TaskDataCache
     {
         // The dictionary indexer will either update the existing entry or add a new one.
         _cache[rowIndex] = item;
+    }
+
+    /// <summary>
+    /// Ensures that the data page containing the specified row index is loaded into the cache.
+    /// This is the primary method for asynchronous prefetching.
+    /// </summary>
+    /// <param name="rowIndex">The zero-based index of the row to ensure is loaded.</param>
+    /// <returns>The TodoItem for the specified row, or null if it cannot be retrieved.</returns>
+    public async Task<TodoItem?> EnsureItemLoadedAsync(int rowIndex)
+    {
+        // If the item is already in the cache, we're done. Return it immediately.
+        if (_cache.TryGetValue(rowIndex, out var item))
+        {
+            return item;
+        }
+
+        // Calculate which page this row belongs to.
+        int pageNumber = (rowIndex / _pageSize) + 1;
+
+        // --- Prevent redundant fetches for the same page ---
+        // If this page is already being fetched by another background task, do nothing and exit.
+        lock (_pagesBeingFetched)
+        {
+            if (_pagesBeingFetched.Contains(pageNumber))
+            {
+                return null; // Another thread is already handling this page.
+            }
+            _pagesBeingFetched.Add(pageNumber);
+        }
+
+        try
+        {
+            // Fetch the required page of data from the data provider.
+            var pageData = await _dataProvider.Invoke(pageNumber, _pageSize);
+            if (pageData == null || !pageData.Any())
+            {
+                return null; // No data returned from the provider for this page.
+            }
+
+            // --- Populate the cache with the newly fetched page data ---
+            int startIndexOfPage = (pageNumber - 1) * _pageSize;
+            for (int i = 0; i < pageData.Count; i++)
+            {
+                // The key in the cache is the absolute row index.
+                _cache[startIndexOfPage + i] = pageData[i];
+            }
+
+            // Now that the cache is populated, try to get the item again.
+            _cache.TryGetValue(rowIndex, out item);
+            return item;
+        }
+        catch (Exception ex)
+        {
+            // Log the error if data fetching fails.
+            System.Diagnostics.Debug.WriteLine($"[錯誤] 從資料提供者獲取第 {pageNumber} 頁時失敗: {ex.Message}");
+            return null;
+        }
+        finally
+        {
+            // --- CRITICAL: Always remove the page from the "fetching" list ---
+            // This ensures that if the fetch fails, we can try again later.
+            lock (_pagesBeingFetched)
+            {
+                _pagesBeingFetched.Remove(pageNumber);
+            }
+        }
     }
 
     /// <summary>

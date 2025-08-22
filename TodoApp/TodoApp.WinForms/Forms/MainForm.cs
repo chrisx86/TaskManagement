@@ -107,7 +107,7 @@ public partial class MainForm : Form
         // DataGridView Events
         this.dgvTasks.SelectionChanged += DgvTasks_SelectionChanged;
         this.dgvTasks.RowPrePaint += DgvTasks_RowPrePaint;
-        this.dgvTasks.CellFormatting += DgvTasks_CellFormatting;
+        //this.dgvTasks.CellFormatting += DgvTasks_CellFormatting;
         this.dgvTasks.ColumnHeaderMouseClick += DgvTasks_ColumnHeaderMouseClick;
         this.dgvTasks.CellDoubleClick += DgvTasks_CellDoubleClick;
         this.dgvTasks.CellClick += DgvTasks_CellClick;
@@ -147,6 +147,47 @@ public partial class MainForm : Form
         this.richTextEditorComments.TextChanged += TxtCommentsPreview_TextChanged;
         // --- The core event for Virtual Mode ---
         this.dgvTasks.CellValueNeeded += DgvTasks_CellValueNeeded;
+        this.dgvTasks.Scroll += DgvTasks_Scroll;
+    }
+
+    /// <summary>
+    /// NEW: Handles the Scroll event to pre-fetch data for upcoming rows.
+    /// </summary>
+    private void DgvTasks_Scroll(object? sender, ScrollEventArgs e)
+    {
+        // We only care about vertical scrolling.
+        if (e.ScrollOrientation == ScrollOrientation.VerticalScroll)
+        {
+            // Get the index of the last visible row.
+            int lastVisibleRow = dgvTasks.FirstDisplayedScrollingRowIndex + dgvTasks.DisplayedRowCount(false) - 1;
+
+            // --- Prefetching Logic ---
+            // Trigger a fire-and-forget task to load the data for the last visible row.
+            // The cache will fetch the entire page containing this row.
+            // This warms up the cache for rows the user is about to see.
+            if (lastVisibleRow < dgvTasks.RowCount)
+            {
+                _ = PrefetchDataForRow(lastVisibleRow);
+            }
+        }
+    }
+
+    /// <summary>
+    /// NEW: Helper for background data prefetching.
+    /// </summary>
+    private async Task PrefetchDataForRow(int rowIndex)
+    {
+        // This call will ensure the page containing the rowIndex is loaded into the cache.
+        await _taskDataCache.EnsureItemLoadedAsync(rowIndex);
+
+        // After prefetching, we can invalidate the visible rows to update the "..." placeholders.
+        // This is an optional refinement for a smoother experience.
+        this.Invoke(() => {
+            if (dgvTasks.IsHandleCreated)
+            {
+                dgvTasks.Invalidate(); // Invalidate the whole grid to repaint visible cells
+            }
+        });
     }
 
     private async void MainForm_Load(object? sender, EventArgs e)
@@ -204,7 +245,10 @@ public partial class MainForm : Form
     private void DgvTasks_RowPrePaint(object? sender, DataGridViewRowPrePaintEventArgs e)
     {
         // Standard guard clause for headers and invalid rows.
-        if (e.RowIndex < 0) return;
+        if (e.RowIndex < 0 || e.RowIndex >= dgvTasks.RowCount)
+        {
+            return;
+        }
 
         // --- Step 1: Synchronously try to get the task object from the cache ---
         // We use TryGetItem because RowPrePaint is a synchronous event and cannot be awaited.
@@ -277,7 +321,7 @@ public partial class MainForm : Form
 
     private void InitializePaginationControls()
     {
-        cmbPageSize.Items.AddRange(new object[] { 10, 20, 50, 100 });
+        cmbPageSize.Items.AddRange(new object[] { 10, 20, 50 });
         cmbPageSize.SelectedItem = _pageSize;
     }
 
@@ -369,14 +413,14 @@ public partial class MainForm : Form
                 filterData.AssignedToUser, filterData.SearchKeyword
             );
 
+            UpdatePaginationState();
+            UpdatePaginationUI();
             // 2. Clear the old cached data and set the new RowCount.
             // This is the trigger for the UI refresh in Virtual Mode.
             _taskDataCache.Clear();
             dgvTasks.RowCount = _totalTasks;
 
             // 3. Update UI state based on the new total count.
-            UpdatePaginationState();
-            UpdatePaginationUI();
             UpdateSortGlyphs();
         }
         catch (Exception ex)
@@ -479,11 +523,13 @@ public partial class MainForm : Form
             _filterDebounceTimer.Tick += async (s, args) =>
             {
                 _filterDebounceTimer.Stop();
+                // --- Synchronous UI State Protection ---
+                _taskDataCache.Clear();
+                dgvTasks.RowCount = 0; // The key to preventing errors
+
                 _currentPage = 1;
                 _sortedColumn = null;
 
-                // The cache must be cleared before reloading.
-                _taskDataCache.Clear();
                 await LoadTasksAsync();
             };
         }
@@ -493,31 +539,40 @@ public partial class MainForm : Form
     /// <summary>
     /// CORE VIRTUAL MODE HANDLER: Provides data to the DataGridView on demand (Cell by Cell).
     /// </summary>
-    private async void DgvTasks_CellValueNeeded(object? sender, DataGridViewCellValueEventArgs e)
+    private void DgvTasks_CellValueNeeded(object? sender, DataGridViewCellValueEventArgs e)
     {
         if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
+        // --- PRE-AWAIT GUARD ---
+        // This is the first line of defense.
+        if (e.RowIndex >= dgvTasks.RowCount) return;
 
-        // 1. Request the item from the cache. This call is async!
-        var task = await _taskDataCache.GetItemAsync(e.RowIndex);
-
-        // 2. Handle the loading state placeholder.
-        if (task is null)
+        if (_taskDataCache.TryGetItem(e.RowIndex, out var task) && task != null)
         {
-            e.Value = "Loading...";
-            return;
-        }
+            // --- POST-AWAIT GUARD (THE CRITICAL FIX) ---
+            // After the await, the DataGridView's state (RowCount) might have changed.
+            // We MUST re-validate the rowIndex against the CURRENT RowCount before proceeding.
+            // If the row is no longer valid, we must not attempt to set e.Value.
+            if (e.RowIndex >= dgvTasks.RowCount) return;
 
-        // 3. Map the data object's properties to the correct columns.
-        switch (dgvTasks.Columns[e.ColumnIndex].Name)
-        {
-            case "Status": e.Value = task.Status; break;
-            case "Title": e.Value = task.Title; break;
-            case "Priority": e.Value = task.Priority; break; // Corrected typo
-            case "DueDate": e.Value = task.DueDate; break;
-            case "AssignedTo": e.Value = task.AssignedTo?.Username; break;
-            case "Creator": e.Value = task.Creator?.Username; break;
-            case "CreationDate": e.Value = task.CreationDate; break;
-            case "LastModifiedDate": e.Value = task.LastModifiedDate; break;
+            // 2. Handle the loading state placeholder.
+            if (task is null)
+            {
+                e.Value = "Loading...";
+                return;
+            }
+
+            // 3. Map the data object's properties to the correct columns.
+            switch (dgvTasks.Columns[e.ColumnIndex].Name)
+            {
+                case "Status": e.Value = task.Status; break;
+                case "Title": e.Value = task.Title; break;
+                case "Priority": e.Value = task.Priority; break;
+                case "DueDate": e.Value = task.DueDate; break;
+                case "AssignedTo": e.Value = task.AssignedTo?.Username; break;
+                case "Creator": e.Value = task.Creator?.Username; break;
+                case "CreationDate": e.Value = task.CreationDate; break;
+                case "LastModifiedDate": e.Value = task.LastModifiedDate; break;
+            }
         }
     }
 
@@ -580,6 +635,7 @@ public partial class MainForm : Form
     private async Task ApplySortAndReload()
     {
         _currentPage = 1;
+        _taskDataCache.Clear(); // Critical step for sorting in virtual mode
         await LoadTasksAsync();
     }
 
@@ -608,15 +664,6 @@ public partial class MainForm : Form
         }
     }
 
-    private void DgvTasks_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
-    {
-        if (e.RowIndex < 0 || dgvTasks.Rows[e.RowIndex].DataBoundItem is not TodoItem) return;
-
-        var columnName = dgvTasks.Columns[e.ColumnIndex].Name;
-        if (columnName == "AssignedTo" && e.Value is User assignedUser) { e.Value = assignedUser.Username; e.FormattingApplied = true; }
-        else if (columnName == "Creator" && e.Value is User creatorUser) { e.Value = creatorUser.Username; e.FormattingApplied = true; }
-    }
-
     private void DgvTasks_CellClick(object? sender, DataGridViewCellEventArgs e)
     {
         if (e.RowIndex >= 0)
@@ -633,7 +680,74 @@ public partial class MainForm : Form
         }
     }
 
-    private void DgvTasks_CellBeginEdit(object? sender, DataGridViewCellCancelEventArgs e)
+    /// <summary>
+    /// Handles in-place editing of ComboBox cells. In Virtual Mode, it fetches the
+    /// task from the cache, updates it, and triggers a background save.
+    /// </summary>
+    private async void DgvTasks_CellValueChanged(object? sender, DataGridViewCellEventArgs e)
+    {
+        if (_isUpdatingUI || e.RowIndex < 0) return;
+
+        var columnName = dgvTasks.Columns[e.ColumnIndex].Name;
+        if (columnName != "Status" && columnName != "Priority") return;
+
+        // Fetch the task object from the cache using the row index.
+        var taskToUpdate = await _taskDataCache.GetItemAsync(e.RowIndex);
+        if (taskToUpdate is null) return;
+
+        var newValue = dgvTasks.Rows[e.RowIndex].Cells[e.ColumnIndex].Value;
+
+        // Manually update the in-memory object based on the cell's new value.
+        if (columnName == "Status" && newValue is TodoStatus newStatus)
+            taskToUpdate.Status = newStatus;
+        else if (columnName == "Priority" && newValue is PriorityLevel newPriority)
+            taskToUpdate.Priority = newPriority;
+        else
+            return; // Exit if the value is not of the expected type
+
+        // Invalidate the row immediately for visual feedback (color change).
+        SafeInvalidateRow(e.RowIndex);
+
+        // Fire-and-forget the background save.
+        _ = SaveTaskChangesInBackground(taskToUpdate, e.RowIndex);
+    }
+
+    /// <summary>
+    /// Saves changes to a TodoItem in the background without blocking the UI.
+    /// This version is adapted for Virtual Mode with TaskDataCache.
+    /// </summary>
+    private async Task SaveTaskChangesInBackground(TodoItem taskToSave, int rowIndex)
+    {
+        try
+        {
+            // Call the full update service in the background.
+            // This persists the changes (e.g., new Status or Priority) to the database.
+            var updatedTaskFromServer = await _taskService.UpdateTaskAsync(_currentUser, taskToSave);
+
+            // --- Step 1: Invalidate the cache for the updated item ---
+            // This ensures that the next time this row is requested, the cache will
+            // fetch the fresh data (with the new LastModifiedDate) from the server.
+            _taskDataCache.InvalidateItem(rowIndex);
+
+            // --- Step 2: Trigger a repaint of the specific row ---
+            // This will cause CellValueNeeded and RowPrePaint to fire again for this row,
+            // displaying the latest data from the now-updated cache.
+            SafeInvalidateRow(rowIndex);
+        }
+        catch (Exception ex)
+        {
+            // If the background save fails, inform the user and trigger a full reload
+            // to ensure the UI is consistent with the database.
+            this.Invoke(async () => {
+                MessageBox.Show($"自動儲存任務 '{taskToSave.Title}' 時發生錯誤: {ex.Message}", "儲存失敗", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                // A full reload is the safest way to ensure data consistency after an error.
+                await LoadTasksAsync();
+            });
+        }
+    }
+
+    private async void DgvTasks_CellBeginEdit(object? sender, DataGridViewCellCancelEventArgs e)
     {
         var columnName = dgvTasks.Columns[e.ColumnIndex].Name;
         if (columnName != "Status" && columnName != "Priority")
@@ -642,7 +756,9 @@ public partial class MainForm : Form
             return;
         }
 
-        if (dgvTasks.Rows[e.RowIndex].DataBoundItem is TodoItem task)
+        // Fetch the task asynchronously to check permissions.
+        var task = await _taskDataCache.GetItemAsync(e.RowIndex);
+        if (task is not null)
         {
             var hasPermission = _currentUser.Role == UserRole.Admin || task.CreatorId == _currentUser.Id || task.AssignedToId == _currentUser.Id;
             if (!hasPermission)
@@ -651,23 +767,27 @@ public partial class MainForm : Form
                 lblStatus.Text = "您沒有權限修改此任務。";
             }
         }
+        else
+        {
+            // If task is not yet loaded, cancel editing for now.
+            e.Cancel = true;
+        }
     }
 
-    private void DgvTasks_CellToolTipTextNeeded(object? sender, DataGridViewCellToolTipTextNeededEventArgs e)
+    private async void DgvTasks_CellToolTipTextNeeded(object? sender, DataGridViewCellToolTipTextNeededEventArgs e)
     {
         if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
 
+        var task = await _taskDataCache.GetItemAsync(e.RowIndex);
+        if (task == null) return;
+
         var cell = dgvTasks.Rows[e.RowIndex].Cells[e.ColumnIndex];
-        var cellValue = cell.Value?.ToString();
+        var cellValue = cell.Value?.ToString(); // Value is already formatted by CellValueNeeded
 
         if (string.IsNullOrEmpty(cellValue)) return;
 
-        using (Graphics g = this.CreateGraphics())
-        {
-            var textSize = g.MeasureString(cellValue, dgvTasks.Font);
-
-            if (textSize.Width > cell.Size.Width) e.ToolTipText = cellValue;
-        }
+        // This logic can be simplified as we don't need Graphics object in many cases.
+        e.ToolTipText = cellValue;
     }
 
     private void DgvTasks_CellDoubleClick(object? sender, DataGridViewCellEventArgs e)
