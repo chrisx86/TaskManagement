@@ -30,45 +30,6 @@ public class TaskDataCache
     }
 
     /// <summary>
-    /// Retrieves a TodoItem for a specific row index.
-    /// If the item is not in the cache, it fetches the corresponding page from the data store.
-    /// </summary>
-    /// <param name="rowIndex">The zero-based index of the row to retrieve.</param>
-    /// <returns>The TodoItem for the specified row, or null if it cannot be retrieved.</returns>
-    public async Task<TodoItem?> GetItemAsync(int rowIndex)
-    {
-        // Check if the item is already in the cache.
-        if (_cache.TryGetValue(rowIndex, out var item))
-        {
-            return item;
-        }
-
-        // If not in cache, calculate which page this row belongs to.
-        int pageNumber = (rowIndex / _pageSize) + 1;
-
-        // Fetch the required page of data from the data provider.
-        var pageData = await _dataProvider.Invoke(pageNumber, _pageSize);
-        if (pageData == null || !pageData.Any())
-        {
-            return null; // No data returned from the provider.
-        }
-
-        // --- Populate the cache with the newly fetched page data ---
-        // Calculate the starting index for this page.
-        int startIndexOfPage = (pageNumber - 1) * _pageSize;
-        for (int i = 0; i < pageData.Count; i++)
-        {
-            // The key in the cache is the absolute row index.
-            _cache[startIndexOfPage + i] = pageData[i];
-        }
-
-        // Now that the cache is populated, try to get the item again.
-        // This should succeed if the data exists.
-        _cache.TryGetValue(rowIndex, out item);
-        return item;
-    }
-
-    /// <summary>
     /// Removes a specific item from the cache, forcing a reload from the data provider on next access.
     /// </summary>
     /// <param name="rowIndex">The index of the item to invalidate.</param>

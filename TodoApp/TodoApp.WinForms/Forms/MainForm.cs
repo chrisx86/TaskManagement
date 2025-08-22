@@ -591,7 +591,7 @@ public partial class MainForm : Form
         if (isRowSelected)
         {
             // The 'await' operator is now valid inside this async method.
-            _selectedTaskForEditing = await _taskDataCache.GetItemAsync(dgvTasks.SelectedRows[0].Index);
+            _selectedTaskForEditing = await _taskDataCache.EnsureItemLoadedAsync(dgvTasks.SelectedRows[0].Index);
 
             // It's possible for the task to be null if the cache is still loading,
             // so we must handle this gracefully.
@@ -692,7 +692,7 @@ public partial class MainForm : Form
         if (columnName != "Status" && columnName != "Priority") return;
 
         // Fetch the task object from the cache using the row index.
-        var taskToUpdate = await _taskDataCache.GetItemAsync(e.RowIndex);
+        var taskToUpdate = await _taskDataCache.EnsureItemLoadedAsync(e.RowIndex);
         if (taskToUpdate is null) return;
 
         var newValue = dgvTasks.Rows[e.RowIndex].Cells[e.ColumnIndex].Value;
@@ -757,7 +757,7 @@ public partial class MainForm : Form
         }
 
         // Fetch the task asynchronously to check permissions.
-        var task = await _taskDataCache.GetItemAsync(e.RowIndex);
+        var task = await _taskDataCache.EnsureItemLoadedAsync(e.RowIndex);
         if (task is not null)
         {
             var hasPermission = _currentUser.Role == UserRole.Admin || task.CreatorId == _currentUser.Id || task.AssignedToId == _currentUser.Id;
@@ -778,7 +778,7 @@ public partial class MainForm : Form
     {
         if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
 
-        var task = await _taskDataCache.GetItemAsync(e.RowIndex);
+        var task = await _taskDataCache.EnsureItemLoadedAsync(e.RowIndex);
         if (task == null) return;
 
         var cell = dgvTasks.Rows[e.RowIndex].Cells[e.ColumnIndex];
@@ -925,7 +925,7 @@ public partial class MainForm : Form
 
         try
         {
-            var taskToEdit = await _taskDataCache.GetItemAsync(selectedRowIndex);
+            var taskToEdit = await _taskDataCache.EnsureItemLoadedAsync(selectedRowIndex);
 
             if (taskToEdit is null)
             {
@@ -965,7 +965,7 @@ public partial class MainForm : Form
         var originalRowIndex = dgvTasks.SelectedRows[0].Index;
 
         // Get the task object from the cache to display its title in the confirmation box.
-        var selectedTask = await _taskDataCache.GetItemAsync(originalRowIndex);
+        var selectedTask = await _taskDataCache.EnsureItemLoadedAsync(originalRowIndex);
 
         if (selectedTask is null)
         {
