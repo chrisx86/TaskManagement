@@ -422,6 +422,17 @@ public partial class MainForm : Form
 
             // 3. Update UI state based on the new total count.
             UpdateSortGlyphs();
+
+            if (_totalTasks > 0)
+            {
+                // We don't need the result, just to trigger the fetch.
+                await _taskDataCache.EnsureItemLoadedAsync(0);
+
+                // After the first page is guaranteed to be in the cache,
+                // invalidate the grid to force it to re-request the cell values.
+                // It will now find the data in the cache synchronously.
+                dgvTasks.Invalidate();
+            }
         }
         catch (Exception ex)
         {
