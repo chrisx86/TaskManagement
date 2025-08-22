@@ -68,10 +68,7 @@ public class TaskDataCache
     public async Task<TodoItem?> EnsureItemLoadedAsync(int rowIndex)
     {
         // If the item is already in the cache, we're done. Return it immediately.
-        if (_cache.TryGetValue(rowIndex, out var item))
-        {
-            return item;
-        }
+        if (_cache.TryGetValue(rowIndex, out var item)) return item;
 
         // Calculate which page this row belongs to.
         int pageNumber = (rowIndex / _pageSize) + 1;

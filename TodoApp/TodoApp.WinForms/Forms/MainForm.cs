@@ -107,7 +107,6 @@ public partial class MainForm : Form
         // DataGridView Events
         this.dgvTasks.SelectionChanged += DgvTasks_SelectionChanged;
         this.dgvTasks.RowPrePaint += DgvTasks_RowPrePaint;
-        //this.dgvTasks.CellFormatting += DgvTasks_CellFormatting;
         this.dgvTasks.ColumnHeaderMouseClick += DgvTasks_ColumnHeaderMouseClick;
         this.dgvTasks.CellDoubleClick += DgvTasks_CellDoubleClick;
         this.dgvTasks.CellClick += DgvTasks_CellClick;
@@ -151,7 +150,7 @@ public partial class MainForm : Form
     }
 
     /// <summary>
-    /// NEW: Handles the Scroll event to pre-fetch data for upcoming rows.
+    /// Handles the Scroll event to pre-fetch data for upcoming rows.
     /// </summary>
     private void DgvTasks_Scroll(object? sender, ScrollEventArgs e)
     {
@@ -420,8 +419,10 @@ public partial class MainForm : Form
             _taskDataCache.Clear();
             dgvTasks.RowCount = _totalTasks;
 
+            UpdateStatusLabelWithCount();
+
             // 3. Update UI state based on the new total count.
-            UpdateSortGlyphs();
+            //UpdateSortGlyphs();
 
             if (_totalTasks > 0)
             {
@@ -445,6 +446,12 @@ public partial class MainForm : Form
             // We need to trigger selection changed manually as the DGV is now 'empty'
             DgvTasks_SelectionChanged(null, EventArgs.Empty);
         }
+    }
+
+    // --- A better way to display total count ---
+    private void UpdateStatusLabelWithCount()
+    {
+        lblStatus.Text = $"共 {_totalTasks} 筆符合條件的任務";
     }
 
     private record FilterData(
@@ -829,7 +836,59 @@ public partial class MainForm : Form
         if (newPageNumber >= 1 && newPageNumber <= _totalPages && newPageNumber != _currentPage)
         {
             _currentPage = newPageNumber;
-            await LoadTasksAsync();
+            await FetchPageAndRefreshGridAsync(_currentPage);
+        }
+    }
+
+    /// <summary>
+    /// A new helper method specifically for fetching a page of data and refreshing the UI.
+    /// This is more lightweight than a full LoadTasksAsync.
+    /// </summary>
+    /// <param name="pageNumber">The page number to fetch.</param>
+    private async Task FetchPageAndRefreshGridAsync(int pageNumber)
+    {
+        SetLoadingState(true);
+        try
+        {
+            // Calculate the starting row index for the page we need.
+            int startRowIndex = (pageNumber - 1) * _pageSize;
+
+            // Ensure the starting index is valid.
+            if (startRowIndex >= _totalTasks && _totalTasks > 0)
+            {
+                // This can happen if page size changes, adjust to the last valid page.
+                _currentPage = _totalPages;
+                startRowIndex = (_currentPage - 1) * _pageSize;
+            }
+            if (startRowIndex < 0) startRowIndex = 0;
+
+            // Proactively prefetch the data for the start of the new page.
+            // This will load the entire page block into the cache.
+            await _taskDataCache.EnsureItemLoadedAsync(startRowIndex);
+
+            // --- Step 2 (THE CRITICAL FIX): Manually set the scroll position. ---
+            // We must explicitly tell the DataGridView to scroll to the beginning of the new page.
+            // This action will automatically trigger CellValueNeeded for the newly visible rows.
+            if (dgvTasks.RowCount > startRowIndex)
+            {
+                dgvTasks.FirstDisplayedScrollingRowIndex = startRowIndex;
+            }
+
+            // --- Step 3: Refresh the entire grid to ensure all visible cells are updated. ---
+            // While setting the scroll index often triggers a refresh, an explicit Invalidate()
+            // ensures that even cells that were already visible (in a partial scroll) get updated.
+            dgvTasks.Refresh(); // Using Refresh() for a more immediate and forceful repaint.
+
+            // Update the pagination UI to reflect the new current page.
+            UpdatePaginationUI();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"切換頁面時發生錯誤: {ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+        finally
+        {
+            SetLoadingState(false);
         }
     }
 

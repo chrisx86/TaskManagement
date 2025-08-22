@@ -7,7 +7,7 @@ namespace TodoApp.Controls;
 /// </summary>
 public static class RichTextBoxFormatHelper
 {
-    private const int IndentSize = 20;
+    private const int IndentSize = 10;
     private const string CodeFontFamily = "Consolas";
     private static readonly Color CodeBackColor = Color.FromArgb(45, 45, 48);
     private static readonly Color CodeForeColor = Color.FromArgb(210, 210, 210);
