@@ -4,11 +4,11 @@ using System.Reflection;
 using System.ComponentModel;
 using TodoApp.Core.Models;
 using TodoApp.Core.Services;
-using TodoApp.Controls;
 using TodoApp.Infrastructure.Services;
 using TodoApp.WinForms.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
+using TodoApp.WinForms.Caching;
 
 namespace TodoApp.WinForms.Forms;
 
@@ -28,8 +28,9 @@ public partial class MainForm : Form
     private readonly Font _italicFont;
 
     // --- UI State & Data Cache ---
-    private readonly BindingList<TodoItem> _tasksBindingList = new();
+    //private readonly BindingList<TodoItem> _tasksBindingList = new();
     private List<User> _allUsers = new();
+    private readonly TaskDataCache _taskDataCache;
 
     // --- Sorting State ---
     private DataGridViewColumn? _sortedColumn;
@@ -73,6 +74,29 @@ public partial class MainForm : Form
         _boldFont = new Font(this.Font, FontStyle.Bold);
         _strikeoutFont = new Font(this.Font, FontStyle.Strikeout);
         _italicFont = new Font(this.Font, FontStyle.Italic);
+
+        // --- Instantiate the cache in the constructor ---
+        // We pass a lambda expression that matches the DataPageProvider delegate's signature.
+        // This lambda expression is what the cache will call to get data.
+        _taskDataCache = new TaskDataCache(
+            async (pageNumber, pageSize) =>
+            {
+                // This is where we call our actual backend service.
+                // All the filter and sort parameters are captured from the MainForm's state.
+                var filterData = GetCurrentFilterData();
+                return await _taskService.GetAllTasksAsync(
+                    _currentUser,
+                    filterData.Status,
+                    filterData.UserRelation,
+                    filterData.AssignedToUser,
+                    pageNumber,
+                    pageSize,
+                    _sortedColumn?.Name,
+                    _sortDirection == ListSortDirection.Ascending,
+                    filterData.SearchKeyword
+                );
+            }
+        );
 
         WireUpEvents();
     }
@@ -123,12 +147,15 @@ public partial class MainForm : Form
         this.dgvTasks.MouseLeave += DgvTasks_MouseLeave;
 
         this.richTextEditorComments.TextChanged += TxtCommentsPreview_TextChanged;
+
+        this.dgvTasks.CellValueNeeded += DgvTasks_CellValueNeeded;
     }
 
     private async void MainForm_Load(object? sender, EventArgs e)
     {
         SetWindowTitleWithVersion();
-        SetupDataGridView();
+        SetupDataGridViewForVirtualMode();
+        //SetupDataGridView();
         SetupUIPermissions();
         InitializePaginationControls();
         await PopulateFilterDropDownsAsync();
@@ -138,16 +165,9 @@ public partial class MainForm : Form
 
     #region --- Initialization and Setup ---
 
-    private void SetWindowTitleWithVersion()
+    private void SetupDataGridViewForVirtualMode()
     {
-        var mainAssembly = Assembly.GetExecutingAssembly();
-        var version = mainAssembly.GetName().Version;
-        var versionString = version != null ? $"V {version.Major}.{version.Minor}" : "V ?.?";
-        this.Text = $"{_configuration["ProjectName"]} App - Login : [ {_currentUser.Username} ] - {versionString}";
-    }
-
-    private void SetupDataGridView()
-    {
+        // --- Performance Optimization ---
         typeof(DataGridView).InvokeMember(
             "DoubleBuffered",
             BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.SetProperty,
@@ -156,50 +176,40 @@ public partial class MainForm : Form
             new object[] { true }
         );
 
-        dgvTasks.AutoGenerateColumns = false;
-        dgvTasks.DataSource = _tasksBindingList;
+        // --- CORE VIRTUAL MODE ACTIVATION ---
+        dgvTasks.VirtualMode = true;
+        dgvTasks.DataSource = null; // Essential: Disconnect from BindingList
 
-        dgvTasks.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None;
-
+        // --- Standard Appearance & Behavior Settings ---
+        dgvTasks.AutoGenerateColumns = false; // Always false
+        dgvTasks.AllowUserToAddRows = false;
+        dgvTasks.AllowUserToDeleteRows = false;
+        dgvTasks.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
         dgvTasks.RowTemplate.Height = 30;
-
         dgvTasks.DefaultCellStyle.WrapMode = DataGridViewTriState.True;
-
         dgvTasks.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
         dgvTasks.RowHeadersVisible = false;
         dgvTasks.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+        dgvTasks.MultiSelect = false;
 
+        // --- Column Definitions ---
         dgvTasks.Columns.Clear();
+        dgvTasks.Columns.Add(new DataGridViewComboBoxColumn { Name = "Status", HeaderText = "狀態", DataSource = Enum.GetValues<TodoStatus>(), Width = 100, FlatStyle = FlatStyle.Flat, SortMode = DataGridViewColumnSortMode.Programmatic });
+        dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "Title", HeaderText = "標題", Width = 550, SortMode = DataGridViewColumnSortMode.Programmatic });
+        dgvTasks.Columns.Add(new DataGridViewComboBoxColumn { Name = "Priority", HeaderText = "優先級", DataSource = Enum.GetValues<PriorityLevel>(), Width = 100, FlatStyle = FlatStyle.Flat, SortMode = DataGridViewColumnSortMode.Programmatic });
+        dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "DueDate", HeaderText = "到期日", Width = 80, DefaultCellStyle = { Format = "yyyy-MM-dd" }, SortMode = DataGridViewColumnSortMode.Programmatic });
+        dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "AssignedTo", HeaderText = "指派給", Width = 80, SortMode = DataGridViewColumnSortMode.Programmatic });
+        dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "Creator", HeaderText = "建立者", Width = 80, SortMode = DataGridViewColumnSortMode.Programmatic });
+        dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "CreationDate", HeaderText = "建立日期", Width = 80, DefaultCellStyle = { Format = "yyyy-MM-dd" }, ReadOnly = true, SortMode = DataGridViewColumnSortMode.Programmatic });
+        dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "LastModifiedDate", HeaderText = "最後更新", Width = 120, DefaultCellStyle = { Format = "yyyy-MM-dd HH:mm" }, ReadOnly = true, SortMode = DataGridViewColumnSortMode.Programmatic });
+    }
 
-        var statusColumn = new DataGridViewComboBoxColumn
-        {
-            Name = "Status",
-            HeaderText = "狀態",
-            DataPropertyName = "Status",
-            DataSource = Enum.GetValues<TodoStatus>(),
-            Width = 100,
-            FlatStyle = FlatStyle.Flat,
-            SortMode = DataGridViewColumnSortMode.Programmatic
-        };
-        dgvTasks.Columns.Add(statusColumn);
-
-        dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "Title", HeaderText = "標題", DataPropertyName = "Title", Width = 550, SortMode = DataGridViewColumnSortMode.Programmatic });
-        var priorityColumn = new DataGridViewComboBoxColumn
-        {
-            Name = "Priority",
-            HeaderText = "優先級",
-            DataPropertyName = "Priority",
-            DataSource = Enum.GetValues<PriorityLevel>(),
-            Width = 100,
-            FlatStyle = FlatStyle.Flat,
-            SortMode = DataGridViewColumnSortMode.Programmatic
-        };
-        dgvTasks.Columns.Add(priorityColumn);
-        dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "DueDate", HeaderText = "到期日", DataPropertyName = "DueDate", Width = 80, DefaultCellStyle = { Format = "yyyy-MM-dd" }, SortMode = DataGridViewColumnSortMode.Programmatic });
-        dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "AssignedTo", HeaderText = "指派給", DataPropertyName = "AssignedTo", Width = 80, SortMode = DataGridViewColumnSortMode.Programmatic });
-        dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "Creator", HeaderText = "建立者", DataPropertyName = "Creator", Width = 80, SortMode = DataGridViewColumnSortMode.Programmatic });
-        dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "CreationDate", HeaderText = "建立日期", DataPropertyName = "CreationDate", Width = 80, DefaultCellStyle = { Format = "yyyy-MM-dd" }, ReadOnly = true, SortMode = DataGridViewColumnSortMode.Programmatic });
-        dgvTasks.Columns.Add(new DataGridViewTextBoxColumn { Name = "LastModifiedDate", HeaderText = "最後更新", DataPropertyName = "LastModifiedDate", Width = 120, DefaultCellStyle = { Format = "yyyy-MM-dd HH:mm" }, ReadOnly = true, SortMode = DataGridViewColumnSortMode.Programmatic });
+    private void SetWindowTitleWithVersion()
+    {
+        var mainAssembly = Assembly.GetExecutingAssembly();
+        var version = mainAssembly.GetName().Version;
+        var versionString = version != null ? $"V {version.Major}.{version.Minor}" : "V ?.?";
+        this.Text = $"{_configuration["ProjectName"]} App - Login : [ {_currentUser.Username} ] - {versionString}";
     }
 
     private void SetupUIPermissions()
@@ -291,43 +301,38 @@ public partial class MainForm : Form
         if (!this.IsHandleCreated || IsAnyFilterNull()) return;
 
         ResetHoverState();
-
         if (_sortedColumn is null) ClearSortGlyphs();
-
         SetLoadingState(true);
 
         try
         {
             var filterData = GetCurrentFilterData();
 
-            var countTask = _taskService.GetTaskCountAsync(
-                    _currentUser, filterData.Status, filterData.UserRelation,
-                    filterData.AssignedToUser, filterData.SearchKeyword
-                );
+            // 1. Fetch ONLY the total count from the database.
+            _totalTasks = await _taskService.GetTaskCountAsync(
+                _currentUser, filterData.Status, filterData.UserRelation,
+                filterData.AssignedToUser, filterData.SearchKeyword
+            );
 
-            var tasksTask = _taskService.GetAllTasksAsync(
-                    _currentUser, filterData.Status, filterData.UserRelation,
-                    filterData.AssignedToUser, _currentPage, _pageSize,
-                    _sortedColumn?.Name, _sortDirection == ListSortDirection.Ascending,
-                    filterData.SearchKeyword
-                );
+            // 2. Clear the old cached data and set the new RowCount.
+            // This is the trigger for the UI refresh in Virtual Mode.
+            _taskDataCache.Clear();
+            dgvTasks.RowCount = _totalTasks;
 
-            await Task.WhenAll(countTask, tasksTask);
-            _totalTasks = await countTask;
-            var tasks = await tasksTask;
-            await Task.Yield(); // A simple way to ensure we are back on the UI context.
+            // 3. Update UI state based on the new total count.
             UpdatePaginationState();
-            UpdateBindingList(tasks);
             UpdatePaginationUI();
             UpdateSortGlyphs();
         }
-        catch (Exception ex) 
-        { 
-            MessageBox.Show($"載入任務時發生錯誤: {ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error); 
+        catch (Exception ex)
+        {
+            dgvTasks.RowCount = 0;
+            MessageBox.Show($"載入任務時發生錯誤: {ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
         finally
         {
             SetLoadingState(false);
+            // We need to trigger selection changed manually as the DGV is now 'empty'
             DgvTasks_SelectionChanged(null, EventArgs.Empty);
         }
     }
@@ -383,20 +388,6 @@ public partial class MainForm : Form
         if (_currentPage > _totalPages) _currentPage = _totalPages;
     }
 
-    private void UpdateBindingList(List<TodoItem> tasks)
-    {
-        _isUpdatingUI = true;
-        try
-        {
-            _tasksBindingList.Clear();
-            tasks.ForEach(task => _tasksBindingList.Add(task));
-        }
-        finally
-        {
-            _isUpdatingUI = false;
-        }
-    }
-
     private void UpdateSortGlyphs()
     {
         foreach (DataGridViewColumn col in dgvTasks.Columns)
@@ -435,39 +426,73 @@ public partial class MainForm : Form
                 _filterDebounceTimer.Stop();
                 _currentPage = 1;
                 _sortedColumn = null;
+
+                // The cache must be cleared before reloading.
+                _taskDataCache.Clear();
                 await LoadTasksAsync();
             };
         }
-
         _filterDebounceTimer.Start();
     }
 
-    private void DgvTasks_SelectionChanged(object? sender, EventArgs e)
+    /// <summary>
+    /// CORE VIRTUAL MODE HANDLER: Provides data to the DataGridView on demand (Cell by Cell).
+    /// </summary>
+    private async void DgvTasks_CellValueNeeded(object? sender, DataGridViewCellValueEventArgs e)
+    {
+        if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
+
+        // 1. Request the item from the cache. This call is async!
+        var task = await _taskDataCache.GetItemAsync(e.RowIndex);
+
+        // 2. Handle the loading state placeholder.
+        if (task == null)
+        {
+            e.Value = "Loading...";
+            return;
+        }
+
+        // 3. Map the data object's properties to the correct columns.
+        switch (dgvTasks.Columns[e.ColumnIndex].Name)
+        {
+            case "Status": e.Value = task.Status; break;
+            case "Title": e.Value = task.Title; break;
+            case "Priority": e.Value = task.Priority; break; // Corrected typo
+            case "DueDate": e.Value = task.DueDate; break;
+            case "AssignedTo": e.Value = task.AssignedTo?.Username; break;
+            case "Creator": e.Value = task.Creator?.Username; break;
+            case "CreationDate": e.Value = task.CreationDate; break;
+            case "LastModifiedDate": e.Value = task.LastModifiedDate; break;
+        }
+    }
+
+    private async void DgvTasks_SelectionChanged(object? sender, EventArgs e)
     {
         bool isRowSelected = dgvTasks.SelectedRows.Count > 0;
         tsbEditTask.Enabled = isRowSelected;
         tsbDeleteTask.Enabled = isRowSelected;
+        btnSaveChanges.Enabled = false; // Reset state
 
-        // Reset the save button state.
-        btnSaveChanges.Enabled = false;
+        // Clear previous selection info immediately for better responsiveness.
+        _selectedTaskForEditing = null;
+        richTextEditorComments.Clear();
+        richTextEditorComments.Enabled = false;
 
-        if (isRowSelected && dgvTasks.SelectedRows[0].DataBoundItem is TodoItem selectedTask)
+        if (isRowSelected)
         {
-            _selectedTaskForEditing = selectedTask;
+            var selectedRowIndex = dgvTasks.SelectedRows[0].Index;
 
-            // The logic for setting the Rtf property remains the same.
-            // The User Control's name in the designer is likely 'richTextEditor1'.
-            richTextEditorComments.Rtf = selectedTask.Comments ?? "";
+            // The 'await' operator is now valid inside this async method.
+            var selectedTask = await _taskDataCache.GetItemAsync(selectedRowIndex);
 
-            richTextEditorComments.Enabled = true;
-            btnSaveChanges.Enabled = false;
-        }
-        else
-        {
-            _selectedTaskForEditing = null;
-            richTextEditorComments.Clear();
-            richTextEditorComments.Enabled = false;
-            btnSaveChanges.Enabled = false;
+            // It's possible for the task to be null if the cache is still loading,
+            // so we must handle this gracefully.
+            if (selectedTask != null)
+            {
+                _selectedTaskForEditing = selectedTask;
+                richTextEditorComments.Rtf = _selectedTaskForEditing.Comments ?? "";
+                richTextEditorComments.Enabled = true;
+            }
         }
     }
 
@@ -490,6 +515,7 @@ public partial class MainForm : Form
             _sortedColumn = newSortColumn;
             _sortDirection = ListSortDirection.Ascending;
         }
+        _taskDataCache.Clear();
         await ApplySortAndReload();
     }
 
@@ -501,13 +527,25 @@ public partial class MainForm : Form
 
     private void DgvTasks_RowPrePaint(object? sender, DataGridViewRowPrePaintEventArgs e)
     {
-        if (e.RowIndex < 0 || dgvTasks.Rows.Count <= e.RowIndex || dgvTasks.Rows[e.RowIndex].DataBoundItem is not TodoItem task)
-            return;
+        // Standard guard clause for headers and invalid rows.
+        if (e.RowIndex < 0) return;
 
+        // --- Step 1: Synchronously try to get the task object from the cache ---
+        // We use TryGetItem because RowPrePaint is a synchronous event and cannot be awaited.
+        // If the data isn't in the cache yet, we'll just use the default style for this paint cycle.
+        if (!_taskDataCache.TryGetItem(e.RowIndex, out var task) || task == null)
+        {
+            // If task is not available in cache, do nothing and let it paint with default style.
+            return;
+        }
+
+        // --- Step 2: The rest of the logic is the same as before ---
         var row = dgvTasks.Rows[e.RowIndex];
 
+        // Determine the base style from business logic (overdue, urgent, etc.)
         var baseStyle = GetRowStyleForTask(task);
 
+        // Determine the final style by applying the hover effect.
         if (e.RowIndex == _hoveredRowIndex)
         {
             var highlightStyle = (DataGridViewCellStyle)baseStyle.Clone();
@@ -517,6 +555,7 @@ public partial class MainForm : Form
         }
         else
         {
+            // If this row is not hovered, just apply its base style.
             row.DefaultCellStyle = baseStyle;
         }
     }
@@ -595,46 +634,67 @@ public partial class MainForm : Form
 
     private async void DgvTasks_CellValueChanged(object? sender, DataGridViewCellEventArgs e)
     {
-        var cancellationToken = Program.AppShutdownTokenSource.Token;
         if (_isUpdatingUI || e.RowIndex < 0) return;
 
         var columnName = dgvTasks.Columns[e.ColumnIndex].Name;
         if (columnName != "Status" && columnName != "Priority") return;
 
-        if (dgvTasks.Rows[e.RowIndex].DataBoundItem is not TodoItem taskToUpdate) return;
-        dgvTasks.InvalidateRow(e.RowIndex);
-        _ = SaveTaskChangesInBackground(taskToUpdate);
+        // Fetch the task object from the cache to update it.
+        var taskToUpdate = await _taskDataCache.GetItemAsync(e.RowIndex);
+        if (taskToUpdate is null) return;
+
+        // Get the new value from the cell.
+        var newValue = dgvTasks.Rows[e.RowIndex].Cells[e.ColumnIndex].Value;
+
+        // Manually update the in-memory object based on the cell's new value.
+        if (columnName == "Status" && newValue is TodoStatus newStatus)
+        {
+            taskToUpdate.Status = newStatus;
+        }
+        else if (columnName == "Priority" && newValue is PriorityLevel newPriority)
+        {
+            taskToUpdate.Priority = newPriority;
+        }
+
+        // Invalidate the row immediately for visual feedback (color change).
+        SafeInvalidateRow(e.RowIndex);
+
+        // Fire-and-forget the background save, passing the rowIndex.
+        _ = SaveTaskChangesInBackground(taskToUpdate, e.RowIndex);
     }
 
     /// <summary>
     /// Saves changes to a TodoItem in the background without blocking the UI.
-    /// Includes error handling and updates the UI with the final state from the server.
+    /// This version is adapted for Virtual Mode with TaskDataCache.
     /// </summary>
-    private async Task SaveTaskChangesInBackground(TodoItem taskToSave)
+    private async Task SaveTaskChangesInBackground(TodoItem taskToSave, int rowIndex)
     {
         try
         {
             // Call the full update service in the background.
+            // This persists the changes (e.g., new Status or Priority) to the database.
             var updatedTaskFromServer = await _taskService.UpdateTaskAsync(_currentUser, taskToSave);
 
-            // --- Step 3 (Optional but Recommended): Re-sync the UI cache with the server state ---
-            // After the server confirms the save, update our local object with the final version
-            // from the database (which includes the new LastModifiedDate).
-            var indexInList = _tasksBindingList.IndexOf(taskToSave);
-            if (indexInList != -1)
-            {
-                _isUpdatingUI = true;
-                _tasksBindingList[indexInList] = updatedTaskFromServer;
-                _isUpdatingUI = false;
+            // --- Step 1: Invalidate the cache for the updated item ---
+            // This ensures that the next time this row is requested, the cache will
+            // fetch the fresh data (with the new LastModifiedDate) from the server.
+            _taskDataCache.InvalidateItem(rowIndex);
 
-                // We don't need ResetItem here as InvalidateRow is sufficient for repainting.
-            }
+            // --- Step 2: Trigger a repaint of the specific row ---
+            // This will cause CellValueNeeded and RowPrePaint to fire again for this row,
+            // displaying the latest data from the now-updated cache.
+            SafeInvalidateRow(rowIndex);
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"自動儲存任務 '{taskToSave.Title}' 時發生錯誤: {ex.Message}", "儲存失敗", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            // A full reload is the safest way to ensure data consistency after an error.
-            await LoadTasksAsync();
+            // If the background save fails, inform the user and trigger a full reload
+            // to ensure the UI is consistent with the database.
+            this.Invoke(async () => {
+                MessageBox.Show($"自動儲存任務 '{taskToSave.Title}' 時發生錯誤: {ex.Message}", "儲存失敗", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                // A full reload is the safest way to ensure data consistency after an error.
+                await LoadTasksAsync();
+            });
         }
     }
 
@@ -727,71 +787,67 @@ public partial class MainForm : Form
         }
     }
 
-    private async void BtnSaveChanges_Click(object? sender, EventArgs e)
+    private void BtnSaveChanges_Click(object? sender, EventArgs e)
     {
-        if (dgvTasks.SelectedRows.Count == 0 || dgvTasks.SelectedRows[0].DataBoundItem is not TodoItem selectedTask)
-            return;
+        if (_selectedTaskForEditing is null || dgvTasks.SelectedRows.Count == 0) return;
+
+        // --- Store the rowIndex at the moment the save is initiated ---
+        var rowIndex = dgvTasks.SelectedRows[0].Index;
+        var taskToSave = _selectedTaskForEditing;
 
         var currentRtfContent = richTextEditorComments.Rtf;
-
-        if (selectedTask.Comments == currentRtfContent)
+        if (taskToSave.Comments == currentRtfContent)
         {
             btnSaveChanges.Enabled = false;
             return;
         }
 
-        selectedTask.Comments = currentRtfContent;
+        // --- Optimistic UI Update ---
+        taskToSave.Comments = currentRtfContent;
         lblStatus.Text = "正在儲存備註...";
         btnSaveChanges.Enabled = false;
 
-        // Trigger the actual save operation in the background without awaiting it.
-        // The UI thread is now free and the application remains fully responsive.
-        _ = SyncCommentChangesToServerAsync(selectedTask);
+        // --- Fire-and-Forget, passing BOTH the task and its original rowIndex ---
+        _ = SyncCommentChangesToServerAsync(taskToSave, rowIndex);
     }
 
     /// <summary>
     /// A helper method to handle the asynchronous server-side update for comments.
-    /// This runs in the background.
+    /// This runs in the background and is decoupled from the current UI selection.
     /// </summary>
     /// <param name="taskToSync">The task object with the updated comments.</param>
-    private async Task SyncCommentChangesToServerAsync(TodoItem taskToSync)
+    /// <param name="rowIndex">The original row index of the task when the save was initiated.</param>
+    private async Task SyncCommentChangesToServerAsync(TodoItem taskToSync, int rowIndex)
     {
         try
         {
-            // We now use the dedicated, lightweight service method.
+            // --- Step 1: Call the server to persist the changes ---
             var updatedTaskFromServer = await _taskService.UpdateTaskCommentsAsync(
                 _currentUser,
                 taskToSync.Id,
                 taskToSync.Comments ?? string.Empty
             );
 
-            // After the server confirms, find the item in our BindingList and
-            // replace it with the authoritative version from the server.
-            // This updates properties like LastModifiedDate.
-            var indexInList = _tasksBindingList.IndexOf(taskToSync);
-            if (indexInList != -1)
-            {
-                _isUpdatingUI = true;
-                _tasksBindingList[indexInList] = updatedTaskFromServer;
-                _isUpdatingUI = false;
+            // --- Step 2: Directly update the cache with the authoritative server version ---
+            // This is simpler and more direct than invalidating then re-fetching.
+            _taskDataCache.UpdateItem(rowIndex, updatedTaskFromServer);
 
-                // We don't need a full ResetItem. A targeted repaint is more efficient.
-                SafeInvalidateRow(indexInList);
-            }
+            // --- Step 3: Trigger a repaint to show the new LastModifiedDate ---
+            // This call is now safe because it uses the original, unchanging rowIndex.
+            SafeInvalidateRow(rowIndex);
 
-            // This needs to be invoked to run on the UI thread.
+            // Update the status on the UI thread.
             this.Invoke(() => {
                 lblStatus.Text = "備註已成功儲存。";
             });
         }
         catch (Exception ex)
         {
-            // If the background save fails, inform the user and trigger a full reload
-            // to ensure the UI is consistent with the database.
-            this.Invoke(() => {
+            this.Invoke(async () => {
                 MessageBox.Show($"儲存備註時發生錯誤: {ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                // Trigger a full, safe reload on the UI thread.
-                _ = LoadTasksAsync();
+                // On error, a full reload is the safest way to ensure data consistency.
+                _taskDataCache.Clear();
+                await LoadTasksAsync();
             });
         }
     }
@@ -808,22 +864,22 @@ public partial class MainForm : Form
 
     private async void TsbEditTask_Click(object? sender, EventArgs e)
     {
-        if (dgvTasks.SelectedRows.Count == 0 || dgvTasks.SelectedRows[0].DataBoundItem is not TodoItem selectedTaskInfo)
-            return;
+        if (dgvTasks.SelectedRows.Count == 0) return;
 
-        var taskIdToSelect = selectedTaskInfo.Id;
-        var pageToRestore = _currentPage;
+        var selectedRowIndex = dgvTasks.SelectedRows[0].Index;
 
         try
         {
-            var taskToEdit = await _taskService.GetTaskByIdAsync(selectedTaskInfo.Id);
+            var taskToEdit = await _taskDataCache.GetItemAsync(selectedRowIndex);
+
             if (taskToEdit is null)
             {
-                MessageBox.Show("無法編輯任務，它可能已被其他使用者刪除。請重新整理。", "找不到任務", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("無法獲取任務資料，它可能已被刪除。請重新整理。", "找不到任務", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 await LoadTasksAsync();
                 return;
             }
 
+            // --- Step 3: Open the dialog and handle the result ---
             using var scope = _serviceProvider.CreateScope();
             var taskDialog = scope.ServiceProvider.GetRequiredService<TaskDetailDialog>();
             taskDialog.SetTaskForEdit(taskToEdit);
@@ -831,11 +887,8 @@ public partial class MainForm : Form
             if (taskDialog.ShowDialog(this) == DialogResult.OK)
             {
                 lblStatus.Text = "任務已成功更新，正在重新整理...";
-
-                _currentPage = pageToRestore;
+                _taskDataCache.Clear();
                 await LoadTasksAsync();
-
-                SelectTaskInDataGridView(taskIdToSelect);
             }
         }
         catch (Exception ex)
@@ -862,29 +915,60 @@ public partial class MainForm : Form
 
     private async void TsbDeleteTask_Click(object? sender, EventArgs e)
     {
-        if (dgvTasks.SelectedRows.Count == 0 || dgvTasks.SelectedRows[0].DataBoundItem is not TodoItem selectedTask) return;
+        // Ensure a row is selected before proceeding.
+        if (dgvTasks.SelectedRows.Count == 0)
+        {
+            MessageBox.Show("請先選擇一個要刪除的任務。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
 
+        // Store the original selected row index BEFORE any async operations or reloads.
         var originalRowIndex = dgvTasks.SelectedRows[0].Index;
 
-        var confirmResult = MessageBox.Show($"您確定要刪除任務 '{selectedTask.Title}' 嗎？", "確認刪除", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+        // Get the task object from the cache to display its title in the confirmation box.
+        var selectedTask = await _taskDataCache.GetItemAsync(originalRowIndex);
+
+        if (selectedTask is null)
+        {
+            // This can happen if the cache is out of sync. A refresh is a good recovery action.
+            MessageBox.Show("無法獲取任務資料，請重新整理後再試。", "操作失敗", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            TsbRefresh_Click(sender, e);
+            return;
+        }
+
+        // --- Confirmation Dialog with Traditional Chinese text ---
+        var confirmResult = MessageBox.Show(
+            $"您確定要永久刪除任務 '{selectedTask.Title}' 嗎？\n\n此操作無法復原。",
+            "確認刪除",
+            MessageBoxButtons.YesNo,
+            MessageBoxIcon.Warning,
+            MessageBoxDefaultButton.Button2); // Default focus on "No"
+
         if (confirmResult != DialogResult.Yes) return;
 
         try
         {
+            // Perform the delete operation.
             await _taskService.DeleteTaskAsync(_currentUser, selectedTask.Id);
 
+            // Invalidate the cache and reload the grid.
+            _taskDataCache.Clear();
             await LoadTasksAsync();
 
-            if (dgvTasks.Rows.Count > 0)
+            // After reloading, try to select the nearest available row.
+            if (dgvTasks.RowCount > 0)
             {
-                var newIndex = Math.Min(originalRowIndex, dgvTasks.Rows.Count - 1);
-                dgvTasks.Rows[newIndex].Selected = true;
-                dgvTasks.FirstDisplayedScrollingRowIndex = newIndex;
+                var newIndexToSelect = Math.Min(originalRowIndex, dgvTasks.RowCount - 1);
+
+                dgvTasks.ClearSelection();
+                dgvTasks.Rows[newIndexToSelect].Selected = true;
+                dgvTasks.FirstDisplayedScrollingRowIndex = newIndexToSelect;
             }
         }
         catch (Exception ex)
         {
             MessageBox.Show($"刪除任務失敗: {ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            // On failure, a full reload is the safest way to ensure consistency.
             await LoadTasksAsync();
         }
     }
