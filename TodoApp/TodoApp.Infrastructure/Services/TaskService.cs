@@ -173,13 +173,27 @@ public class TaskService : ITaskService
 
         var changeDescription = BuildChangeDescription(originalTask: trackedTask, newTask: taskFromUI);
 
-        _context.Entry(trackedTask).CurrentValues.SetValues(taskFromUI);
+        //_context.Entry(trackedTask).CurrentValues.SetValues(taskFromUI);
+
+        // --- Manual Property Mapping ---
+        trackedTask.Title = taskFromUI.Title;
+        trackedTask.Status = taskFromUI.Status;
+        trackedTask.Priority = taskFromUI.Priority;
+        trackedTask.DueDate = taskFromUI.DueDate;
+        trackedTask.Comments = taskFromUI.Comments;
+        trackedTask.AssignedToId = taskFromUI.AssignedToId;
+        // CreatorId is usually not updatable, so we don't map it.
 
         trackedTask.LastModifiedDate = DateTime.Now;
 
         try
         {
             await _context.SaveChangesAsync(_appShutdownTokenSource.Token);
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            // Handle concurrency exception specifically if needed
+            throw new Exception("資料己被他人修改，請重新整理後再試。", ex);
         }
         catch (Exception ex)
         {

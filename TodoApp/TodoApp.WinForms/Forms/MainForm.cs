@@ -1,15 +1,15 @@
 #nullable enable
+using System.Text;
 using System.Data;
 using System.Reflection;
 using System.ComponentModel;
 using TodoApp.Core.Models;
 using TodoApp.Core.Services;
-using TodoApp.Infrastructure.Services;
-using TodoApp.WinForms.ViewModels;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Configuration;
 using TodoApp.WinForms.Caching;
-using System.Text;
+using TodoApp.WinForms.ViewModels;
+using TodoApp.Infrastructure.Services;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace TodoApp.WinForms.Forms;
 
@@ -74,7 +74,6 @@ public partial class MainForm : Form
         _italicFont = new Font(this.Font, FontStyle.Italic);
 
         // --- TaskDataCache Instantiation (Complete Code) ---
-        //
         // We create an instance of our data cache. The cache's page size determines
         // how many records it fetches from the database in a single batch.
         // A larger size (e.g., 100-200) is generally more efficient for scrolling.
@@ -119,6 +118,10 @@ public partial class MainForm : Form
         this.dgvTasks.CellClick += DgvTasks_CellClick;
         this.dgvTasks.CellBeginEdit += DgvTasks_CellBeginEdit;
         this.dgvTasks.CellToolTipTextNeeded += DgvTasks_CellToolTipTextNeeded;
+        //this.dgvTasks.CellValueChanged += DgvTasks_CellValueChanged;
+        // Use CurrentCellDirtyStateChanged for immediate commit of ComboBox changes.
+        //this.dgvTasks.CurrentCellDirtyStateChanged += DgvTasks_CurrentCellDirtyStateChanged;
+        this.dgvTasks.CellValuePushed += DgvTasks_CellValuePushed;
 
         // ToolStrip Events
         this.tsbNewTask.Click += TsbNewTask_Click;
@@ -290,7 +293,7 @@ public partial class MainForm : Form
     {
         var overdueStyle = new DataGridViewCellStyle { BackColor = Color.MistyRose, ForeColor = Color.DarkRed, Font = _boldFont };
         var dueSoonStyle = new DataGridViewCellStyle { BackColor = Color.LightYellow, ForeColor = Color.DarkGoldenrod, Font = _regularFont };
-        var completedStyle = new DataGridViewCellStyle { BackColor = Color.Honeydew, ForeColor = Color.DarkGray, Font = _strikeoutFont };
+        var completedStyle = new DataGridViewCellStyle { BackColor = Color.FromArgb(240, 240, 240), ForeColor = Color.Gray, Font = _regularFont };
         var rejectedStyle = new DataGridViewCellStyle { BackColor = Color.LightGray, ForeColor = Color.Black, Font = _italicFont };
         var urgentStyle = new DataGridViewCellStyle { BackColor = Color.LightPink, ForeColor = Color.DarkRed, Font = _boldFont };
         var defaultStyle = new DataGridViewCellStyle { BackColor = SystemColors.Window, ForeColor = SystemColors.ControlText, Font = _regularFont };
@@ -737,8 +740,8 @@ public partial class MainForm : Form
     }
 
     /// <summary>
-    /// Handles in-place editing of ComboBox cells. In Virtual Mode, it fetches the
-    /// task from the cache, updates it, and triggers a background save.
+    /// This event now reliably handles the saving of in-place edits for ComboBoxes,
+    /// because CommitEdit() has already been called.
     /// </summary>
     private async void DgvTasks_CellValueChanged(object? sender, DataGridViewCellEventArgs e)
     {
@@ -747,25 +750,142 @@ public partial class MainForm : Form
         var columnName = dgvTasks.Columns[e.ColumnIndex].Name;
         if (columnName != "Status" && columnName != "Priority") return;
 
-        // Fetch the task object from the cache using the row index.
+        // --- The logic is now moved back here, and it will work correctly ---
         var taskToUpdate = await _taskDataCache.EnsureItemLoadedAsync(e.RowIndex);
         if (taskToUpdate is null) return;
 
-        var newValue = dgvTasks.Rows[e.RowIndex].Cells[e.ColumnIndex].Value;
+        var cell = dgvTasks.Rows[e.RowIndex].Cells[e.ColumnIndex];
+        var newValue = cell.Value;
 
-        // Manually update the in-memory object based on the cell's new value.
-        if (columnName == "Status" && newValue is TodoStatus newStatus)
+        bool changed = false;
+        if (columnName == "Status" && newValue is TodoStatus newStatus && taskToUpdate.Status != newStatus)
+        {
             taskToUpdate.Status = newStatus;
-        else if (columnName == "Priority" && newValue is PriorityLevel newPriority)
+            changed = true;
+        }
+        else if (columnName == "Priority" && newValue is PriorityLevel newPriority && taskToUpdate.Priority != newPriority)
+        {
             taskToUpdate.Priority = newPriority;
-        else
-            return; // Exit if the value is not of the expected type
+            changed = true;
+        }
 
-        // Invalidate the row immediately for visual feedback (color change).
-        SafeInvalidateRow(e.RowIndex);
+        if (changed)
+        {
+            // Invalidate the row immediately for visual feedback (color change).
+            SafeInvalidateRow(e.RowIndex);
 
-        // Fire-and-forget the background save.
-        _ = SaveTaskChangesInBackground(taskToUpdate, e.RowIndex);
+            // Fire-and-forget the background save.
+            _ = SaveTaskChangesInBackground(taskToUpdate, e.RowIndex);
+            lblStatus.Text = "正在自動儲存變更...";
+        }
+    }
+
+    /// <summary>
+    /// Handles the CellValuePushed event, which fires when a cell's value is modified
+    /// in Virtual Mode and needs to be saved to the underlying data store (our cache).
+    /// </summary>
+    private async void DgvTasks_CellValuePushed(object? sender, DataGridViewCellValueEventArgs e)
+    {
+        if (e.RowIndex < 0) return;
+
+        // --- Step 1: Get the task object from the cache ---
+        // Use the synchronous TryGetItem as this event should be fast.
+        // If the item is not in the cache, we cannot save the change.
+        if (!_taskDataCache.TryGetItem(e.RowIndex, out var taskToUpdate) || taskToUpdate is null)
+        {
+            // This is an edge case, but it's safer to handle it.
+            return;
+        }
+
+        // --- Step 2: Get the new value from the event arguments ---
+        // e.Value contains the new value selected by the user in the editor (e.g., the ComboBox).
+        var newValue = e.Value;
+        var columnName = dgvTasks.Columns[e.ColumnIndex].Name;
+
+        // --- Step 3: Update the in-memory object in our cache ---
+        var changed = false;
+        if (columnName == "Status")
+        {
+            // 1. Ensure the new value can be correctly interpreted as a TodoStatus.
+            //    This handles both direct enum values and string representations.
+            if (Enum.TryParse<TodoStatus>(newValue?.ToString(), out var newStatus))
+            {
+                // 2. Compare it with the existing value.
+                if (taskToUpdate.Status != newStatus)
+                {
+                    taskToUpdate.Status = newStatus;
+                    changed = true;
+                }
+            }
+        }
+        else if (columnName == "Priority")
+        {
+            if (Enum.TryParse<PriorityLevel>(newValue?.ToString(), out var newPriority))
+            {
+                if (taskToUpdate.Priority != newPriority)
+                {
+                    taskToUpdate.Priority = newPriority;
+                    changed = true;
+                }
+            }
+        }
+
+        // --- Step 4: If a change was made, trigger the background save ---
+        if (changed)
+        {
+            await SaveTaskChangesAndRefreshRowAsync(taskToUpdate, e.RowIndex);
+        }
+    }
+
+    /// <summary>
+    /// Renamed and refactored to be an awaitable task that handles saving and refreshing.
+    /// </summary>
+    private async Task SaveTaskChangesAndRefreshRowAsync(TodoItem taskToSave, int rowIndex)
+    {
+        // Indicate loading state for this specific, longer operation.
+        lblStatus.Text = "正在儲存變更...";
+        SetLoadingState(true); // Briefly disable UI to prevent conflicting edits.
+
+        try
+        {
+            var updatedTaskFromServer = await _taskService.UpdateTaskAsync(_currentUser, taskToSave);
+
+            // Directly update the cache with the authoritative server version.
+            _taskDataCache.UpdateItem(rowIndex, updatedTaskFromServer);
+
+            // Now that the cache is guaranteed to be up-to-date, invalidate the row.
+            // The subsequent CellValueNeeded will be fast and synchronous.
+            SafeInvalidateRow(rowIndex);
+
+            lblStatus.Text = "變更已儲存。";
+        }
+        catch (Exception ex)
+        {
+            this.Invoke(async () => {
+                MessageBox.Show($"自動儲存任務 '{taskToSave.Title}' 時發生錯誤: {ex.Message}", "儲存失敗", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                await LoadTasksAsync(); // On error, a full reload is safest.
+            });
+        }
+        finally
+        {
+            SetLoadingState(false);
+        }
+    }
+
+    /// <summary>
+    /// This event fires the moment a ComboBox value is changed.
+    /// We use it to programmatically commit the change, which in turn
+    /// will fire the CellValueChanged event with the correct new value.
+    /// </summary>
+    private void DgvTasks_CurrentCellDirtyStateChanged(object? sender, EventArgs e)
+    {
+        // If the current cell is a ComboBox cell, commit the edit immediately.
+        if (dgvTasks.IsCurrentCellDirty && dgvTasks.CurrentCell is DataGridViewComboBoxCell)
+        {
+            // This line forces the DataGridView to accept the new value and end the edit operation,
+            // which will then trigger the CellValueChanged event.
+            dgvTasks.CommitEdit(DataGridViewDataErrorContexts.Commit);
+        }
     }
 
     /// <summary>

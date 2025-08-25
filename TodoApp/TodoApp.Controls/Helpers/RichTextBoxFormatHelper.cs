@@ -8,9 +8,33 @@ namespace TodoApp.Controls;
 public static class RichTextBoxFormatHelper
 {
     private const int IndentSize = 10;
+    // 
+    // --- Style 0: Classic Dark (Visual Studio Code) ---
     private const string CodeFontFamily = "Consolas";
     private static readonly Color CodeBackColor = Color.FromArgb(45, 45, 48);
     private static readonly Color CodeForeColor = Color.FromArgb(210, 210, 210);
+
+    // --- Style A: Classic Light (GitHub Style) --- x
+    //private const string CodeFontFamily = "Consolas";
+    //// A very light gray, almost off-white background.
+    //private static readonly Color CodeBackColor = Color.FromArgb(246, 248, 250);
+    //// A dark, slightly soft black for the text.
+    //private static readonly Color CodeForeColor = Color.FromArgb(36, 41, 47);
+
+    // --- Style B: High-Contrast Blue ---
+    //private const string CodeFontFamily = "Consolas";
+    //// A deep, rich blue background.
+    //private static readonly Color CodeBackColor = Color.FromArgb(1, 36, 86);
+    //// A bright, off-white text color for high contrast.
+    //private static readonly Color CodeForeColor = Color.FromArgb(230, 230, 230);
+
+    // --- Style C: Soft Sepia/Paper ---
+    //private const string CodeFontFamily = "Courier New"; // Courier New fits the "typewriter" feel
+    //// A soft, creamy beige background.
+    //private static readonly Color CodeBackColor = Color.FromArgb(253, 246, 227);
+    //// A dark brown text color, softer than pure black.
+    //private static readonly Color CodeForeColor = Color.FromArgb(88, 80, 68);
+
     /// <summary>
     /// Toggles the specified font style (e.g., Bold, Italic) for the selected text.
     /// </summary>
