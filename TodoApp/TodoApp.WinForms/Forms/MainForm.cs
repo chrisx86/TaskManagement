@@ -57,7 +57,7 @@ public partial class MainForm : Form
         LocalCredentialManager credentialManager)
     {
         InitializeComponent();
-
+        this.Opacity = 0;
         _serviceProvider = serviceProvider;
         _taskService = taskService;
         _userService = userService;
@@ -201,13 +201,23 @@ public partial class MainForm : Form
 
     private async void MainForm_Load(object? sender, EventArgs e)
     {
-        SetWindowTitleWithVersion();
-        SetupDataGridViewForVirtualMode();
-        SetupUIPermissions();
-        //InitializePaginationControls();
-        await PopulateFilterDropDownsAsync();
-        SetDefaultFiltersForCurrentUser();
-        await LoadTasksAsync();
+        try
+        {
+            SetWindowTitleWithVersion();
+            SetupDataGridViewForVirtualMode();
+            SetupUIPermissions();
+            //InitializePaginationControls();
+            await PopulateFilterDropDownsAsync();
+            SetDefaultFiltersForCurrentUser();
+            await LoadTasksAsync();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"應用程式初始化失敗: {ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            this.Close();
+            return;
+        }
+        this.Opacity = 1;
     }
 
     #region --- Initialization and Setup ---
