@@ -429,7 +429,7 @@ public partial class MainForm : Form
             UpdateStatusLabelWithCount();
 
             // 3. Update UI state based on the new total count.
-            //UpdateSortGlyphs();
+            UpdateSortGlyphs();
 
             if (_totalTasks > 0)
             {
@@ -456,7 +456,6 @@ public partial class MainForm : Form
         }
     }
 
-    // --- A better way to display total count ---
     private void UpdateStatusLabelWithCount()
     {
         lblTaskCount.Text = $"共 {_totalTasks} 筆符合條件的任務";
@@ -501,14 +500,6 @@ public partial class MainForm : Form
         return new FilterData(statusFilter, userFilter, assignedToUserIdFilter, searchKeyword);
     }
 
-    private void ClearSortGlyphs()
-    {
-        foreach (DataGridViewColumn column in dgvTasks.Columns)
-        {
-            column.HeaderCell.SortGlyphDirection = SortOrder.None;
-        }
-    }
-
     private bool IsAnyFilterNull()
     {
         return cmbFilterStatus.SelectedItem is null ||
@@ -541,6 +532,14 @@ public partial class MainForm : Form
                 col.HeaderCell.SortGlyphDirection = (_sortDirection == ListSortDirection.Ascending) ? SortOrder.Ascending : SortOrder.Descending;
             else
                 col.HeaderCell.SortGlyphDirection = SortOrder.None;
+        }
+    }
+
+    private void ClearSortGlyphs()
+    {
+        foreach (DataGridViewColumn column in dgvTasks.Columns)
+        {
+            column.HeaderCell.SortGlyphDirection = SortOrder.None;
         }
     }
     #endregion
@@ -1180,7 +1179,7 @@ public partial class MainForm : Form
     private async void TsbRefresh_Click(object? sender, EventArgs e)
     {
         lblStatus.Text = "正在重新整理...";
-        //_sortedColumn = null;
+        _sortedColumn = null;
         //SetDefaultFiltersForCurrentUser();
         await LoadTasksAsync();
         lblStatus.Text = "資料已重新整理。";
