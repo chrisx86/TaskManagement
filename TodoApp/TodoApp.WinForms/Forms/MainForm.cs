@@ -9,6 +9,7 @@ using TodoApp.WinForms.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using TodoApp.WinForms.Caching;
+using System.Text;
 
 namespace TodoApp.WinForms.Forms;
 
@@ -35,11 +36,9 @@ public partial class MainForm : Form
     private DataGridViewColumn? _sortedColumn;
     private ListSortDirection _sortDirection = ListSortDirection.Ascending;
 
-    // --- Pagination State ---
-    private int _currentPage = 1;
-    private int _pageSize = 20;
+    // The cache's page size is now the single source of truth for fetching.
+    private readonly int _cachePageSize = 75;
     private int _totalTasks;
-    private int _totalPages;
 
     // --- Control Flags ---
     private bool _isUpdatingUI;
@@ -74,27 +73,35 @@ public partial class MainForm : Form
         _strikeoutFont = new Font(this.Font, FontStyle.Strikeout);
         _italicFont = new Font(this.Font, FontStyle.Italic);
 
-        // --- Instantiate the cache in the constructor ---
-        // We pass a lambda expression that matches the DataPageProvider delegate's signature.
-        // This lambda expression is what the cache will call to get data.
+        // --- TaskDataCache Instantiation (Complete Code) ---
+        //
+        // We create an instance of our data cache. The cache's page size determines
+        // how many records it fetches from the database in a single batch.
+        // A larger size (e.g., 100-200) is generally more efficient for scrolling.
         _taskDataCache = new TaskDataCache(
+            // --- Data Provider Delegate ---
+            // We pass a lambda expression that perfectly matches the 'DataPageProvider' delegate signature.
+            // This lambda becomes the "engine" that the cache uses to fetch data whenever it has a cache miss.
             async (pageNumber, pageSize) =>
             {
-                // This is where we call our actual backend service.
-                // All the filter and sort parameters are captured from the MainForm's state.
+                // Inside the lambda, we gather all the current filter and sort states from the UI.
                 var filterData = GetCurrentFilterData();
+
+                // Then, we call our backend service with all the necessary parameters.
+                // The cache doesn't know about filtering or sorting; it only knows how to ask for a page.
                 return await _taskService.GetAllTasksAsync(
                     _currentUser,
                     filterData.Status,
                     filterData.UserRelation,
                     filterData.AssignedToUser,
                     pageNumber,
-                    pageSize,
+                    pageSize, // The page size requested by the cache
                     _sortedColumn?.Name,
                     _sortDirection == ListSortDirection.Ascending,
                     filterData.SearchKeyword
                 );
-            }
+            },
+            cachePageSize: _cachePageSize // We can configure the cache's internal page size here.
         );
 
         WireUpEvents();
@@ -129,12 +136,12 @@ public partial class MainForm : Form
         this.cmbFilterByAssignedUser.SelectedIndexChanged += Filter_Changed;
 
         // Pagination Events
-        this.btnFirstPage.Click += (s, e) => ChangePage(1);
-        this.btnPreviousPage.Click += (s, e) => ChangePage(_currentPage - 1);
-        this.btnNextPage.Click += (s, e) => ChangePage(_currentPage + 1);
-        this.btnLastPage.Click += (s, e) => ChangePage(_totalPages);
-        this.cmbPageSize.SelectedIndexChanged += CmbPageSize_Changed;
-        this.txtCurrentPage.KeyDown += TxtCurrentPage_KeyDown;
+        //this.btnFirstPage.Click += (s, e) => ChangePage(1);
+        //this.btnPreviousPage.Click += (s, e) => ChangePage(_currentPage - 1);
+        //this.btnNextPage.Click += (s, e) => ChangePage(_currentPage + 1);
+        //this.btnLastPage.Click += (s, e) => ChangePage(_totalPages);
+        //this.cmbPageSize.SelectedIndexChanged += CmbPageSize_Changed;
+        //this.txtCurrentPage.KeyDown += TxtCurrentPage_KeyDown;
 
         this.btnSaveChanges.Click += BtnSaveChanges_Click;
 
@@ -194,7 +201,7 @@ public partial class MainForm : Form
         SetWindowTitleWithVersion();
         SetupDataGridViewForVirtualMode();
         SetupUIPermissions();
-        InitializePaginationControls();
+        //InitializePaginationControls();
         await PopulateFilterDropDownsAsync();
         SetDefaultFiltersForCurrentUser();
         await LoadTasksAsync();
@@ -318,11 +325,11 @@ public partial class MainForm : Form
         cmbFilterByAssignedUser.Visible = isAdmin;
     }
 
-    private void InitializePaginationControls()
-    {
-        cmbPageSize.Items.AddRange(new object[] { 10, 20, 50 });
-        cmbPageSize.SelectedItem = _pageSize;
-    }
+    //private void InitializePaginationControls()
+    //{
+    //    cmbPageSize.Items.AddRange(new object[] { 10, 20, 50 });
+    //    cmbPageSize.SelectedItem = _pageSize;
+    //}
 
     private async Task PopulateFilterDropDownsAsync()
     {
@@ -412,13 +419,13 @@ public partial class MainForm : Form
                 filterData.AssignedToUser, filterData.SearchKeyword
             );
 
-            UpdatePaginationState();
-            UpdatePaginationUI();
+            //UpdatePaginationState();
+            //UpdatePaginationUI();
+
             // 2. Clear the old cached data and set the new RowCount.
             // This is the trigger for the UI refresh in Virtual Mode.
             _taskDataCache.Clear();
             dgvTasks.RowCount = _totalTasks;
-
             UpdateStatusLabelWithCount();
 
             // 3. Update UI state based on the new total count.
@@ -434,6 +441,7 @@ public partial class MainForm : Form
                 // It will now find the data in the cache synchronously.
                 dgvTasks.Invalidate();
             }
+            UpdateStatusLabel("準備就緒", showTaskCount: true);
         }
         catch (Exception ex)
         {
@@ -451,7 +459,27 @@ public partial class MainForm : Form
     // --- A better way to display total count ---
     private void UpdateStatusLabelWithCount()
     {
-        lblStatus.Text = $"共 {_totalTasks} 筆符合條件的任務";
+        lblTaskCount.Text = $"共 {_totalTasks} 筆符合條件的任務";
+    }
+
+    /// <summary>
+    /// Updates the status label with contextual information.
+    /// </summary>
+    /// <param name="message">The primary message to display.</param>
+    /// <param name="showTaskCount">Whether to append the total task count.</param>
+    private void UpdateStatusLabel(string message, bool showTaskCount = false)
+    {
+        // Use a StringBuilder for efficient string concatenation.
+        var statusTextBuilder = new StringBuilder(message);
+
+        // If requested, and if we have a valid task count, append it to the message.
+        if (showTaskCount && _totalTasks > 0)
+        {
+            lblTaskCount.Text = $"共 {_totalTasks} 筆符合條件的任務";
+        }
+
+        // Update the UI element.
+        lblStatus.Text = statusTextBuilder.ToString();
     }
 
     private record FilterData(
@@ -498,12 +526,12 @@ public partial class MainForm : Form
         }
     }
 
-    private void UpdatePaginationState()
-    {
-        _totalPages = (_pageSize > 0) ? (int)Math.Ceiling((double)_totalTasks / _pageSize) : 1;
-        if (_totalPages == 0) _totalPages = 1;
-        if (_currentPage > _totalPages) _currentPage = _totalPages;
-    }
+    //private void UpdatePaginationState()
+    //{
+    //    _totalPages = (_pageSize > 0) ? (int)Math.Ceiling((double)_totalTasks / _pageSize) : 1;
+    //    if (_totalPages == 0) _totalPages = 1;
+    //    if (_currentPage > _totalPages) _currentPage = _totalPages;
+    //}
 
     private void UpdateSortGlyphs()
     {
@@ -526,7 +554,11 @@ public partial class MainForm : Form
         toolStrip1.Enabled = !isLoading;
         splitContainerMain.Enabled = !isLoading;
         panelPagination.Enabled = !isLoading;
-        lblStatus.Text = isLoading ? "正在載入..." : "準備就緒";
+        var message = isLoading ? "正在載入..." : "準備就緒";
+        if (isLoading)
+        {
+            UpdateStatusLabel(message);
+        }
     }
 
     private async void Filter_Changed(object? sender, EventArgs e)
@@ -545,7 +577,7 @@ public partial class MainForm : Form
                 _taskDataCache.Clear();
                 dgvTasks.RowCount = 0; // The key to preventing errors
 
-                _currentPage = 1;
+                //_currentPage = 1;
                 _sortedColumn = null;
 
                 await LoadTasksAsync();
@@ -600,30 +632,37 @@ public partial class MainForm : Form
         tsbEditTask.Enabled = isRowSelected;
         tsbDeleteTask.Enabled = isRowSelected;
         btnSaveChanges.Enabled = false; // Reset state
-
         // Clear previous selection info immediately for better responsiveness.
         _selectedTaskForEditing = null;
-        richTextEditorComments.Clear();
-        richTextEditorComments.Enabled = false;
+        _isUpdatingUI = true;
 
-        if (isRowSelected)
+        try
         {
-            // The 'await' operator is now valid inside this async method.
-            _selectedTaskForEditing = await _taskDataCache.EnsureItemLoadedAsync(dgvTasks.SelectedRows[0].Index);
-
-            // It's possible for the task to be null if the cache is still loading,
-            // so we must handle this gracefully.
-            if (_selectedTaskForEditing is not null)
-            {
-                richTextEditorComments.Rtf = _selectedTaskForEditing.Comments ?? "";
-                richTextEditorComments.Enabled = true;
-            }
-        }
-        else
-        {
-            _selectedTaskForEditing = null;
             richTextEditorComments.Clear();
             richTextEditorComments.Enabled = false;
+            if (isRowSelected)
+            {
+                // The 'await' operator is now valid inside this async method.
+                _selectedTaskForEditing = await _taskDataCache.EnsureItemLoadedAsync(dgvTasks.SelectedRows[0].Index);
+
+                // It's possible for the task to be null if the cache is still loading,
+                // so we must handle this gracefully.
+                if (_selectedTaskForEditing is not null)
+                {
+                    richTextEditorComments.Rtf = _selectedTaskForEditing.Comments ?? string.Empty;
+                    richTextEditorComments.Enabled = true;
+                }
+            }
+            else
+            {
+                _selectedTaskForEditing = null;
+                richTextEditorComments.Clear();
+                richTextEditorComments.Enabled = false;
+            }
+        }
+        finally
+        {
+            _isUpdatingUI = false;
         }
     }
 
@@ -652,7 +691,7 @@ public partial class MainForm : Form
 
     private async Task ApplySortAndReload()
     {
-        _currentPage = 1;
+        //_currentPage = 1;
         _taskDataCache.Clear(); // Critical step for sorting in virtual mode
         await LoadTasksAsync();
     }
@@ -817,100 +856,100 @@ public partial class MainForm : Form
 
     #region --- Pagination Event Handlers ---
 
-    private void UpdatePaginationUI()
-    {
-        lblPageInfo.Text = (_totalTasks == 0) ? "沒有符合條件的任務" : $"第 {_currentPage} / {_totalPages} 頁 (共 {_totalTasks} 筆)";
+    //private void UpdatePaginationUI()
+    //{
+    //    lblPageInfo.Text = (_totalTasks == 0) ? "沒有符合條件的任務" : $"第 {_currentPage} / {_totalPages} 頁 (共 {_totalTasks} 筆)";
 
-        _isUpdatingUI = true;
-        txtCurrentPage.Text = _currentPage.ToString();
-        _isUpdatingUI = false;
+    //    _isUpdatingUI = true;
+    //    txtCurrentPage.Text = _currentPage.ToString();
+    //    _isUpdatingUI = false;
 
-        btnFirstPage.Enabled = _currentPage > 1;
-        btnPreviousPage.Enabled = _currentPage > 1;
-        btnNextPage.Enabled = _currentPage < _totalPages;
-        btnLastPage.Enabled = _currentPage < _totalPages;
-    }
+    //    btnFirstPage.Enabled = _currentPage > 1;
+    //    btnPreviousPage.Enabled = _currentPage > 1;
+    //    btnNextPage.Enabled = _currentPage < _totalPages;
+    //    btnLastPage.Enabled = _currentPage < _totalPages;
+    //}
 
-    private async void ChangePage(int newPageNumber)
-    {
-        if (newPageNumber >= 1 && newPageNumber <= _totalPages && newPageNumber != _currentPage)
-        {
-            _currentPage = newPageNumber;
-            await FetchPageAndRefreshGridAsync(_currentPage);
-        }
-    }
+    //private async void ChangePage(int newPageNumber)
+    //{
+    //    if (newPageNumber >= 1 && newPageNumber <= _totalPages && newPageNumber != _currentPage)
+    //    {
+    //        _currentPage = newPageNumber;
+    //        await FetchPageAndRefreshGridAsync(_currentPage);
+    //    }
+    //}
 
     /// <summary>
     /// A new helper method specifically for fetching a page of data and refreshing the UI.
     /// This is more lightweight than a full LoadTasksAsync.
     /// </summary>
     /// <param name="pageNumber">The page number to fetch.</param>
-    private async Task FetchPageAndRefreshGridAsync(int pageNumber)
-    {
-        SetLoadingState(true);
-        try
-        {
-            // Calculate the starting row index for the page we need.
-            int startRowIndex = (pageNumber - 1) * _pageSize;
+    //private async Task FetchPageAndRefreshGridAsync(int pageNumber)
+    //{
+    //    SetLoadingState(true);
+    //    try
+    //    {
+    //        // Calculate the starting row index for the page we need.
+    //        int startRowIndex = (pageNumber - 1) * _pageSize;
 
-            // Ensure the starting index is valid.
-            if (startRowIndex >= _totalTasks && _totalTasks > 0)
-            {
-                // This can happen if page size changes, adjust to the last valid page.
-                _currentPage = _totalPages;
-                startRowIndex = (_currentPage - 1) * _pageSize;
-            }
-            if (startRowIndex < 0) startRowIndex = 0;
+    //        // Ensure the starting index is valid.
+    //        if (startRowIndex >= _totalTasks && _totalTasks > 0)
+    //        {
+    //            // This can happen if page size changes, adjust to the last valid page.
+    //            _currentPage = _totalPages;
+    //            startRowIndex = (_currentPage - 1) * _pageSize;
+    //        }
+    //        if (startRowIndex < 0) startRowIndex = 0;
 
-            // Proactively prefetch the data for the start of the new page.
-            // This will load the entire page block into the cache.
-            await _taskDataCache.EnsureItemLoadedAsync(startRowIndex);
+    //        // Proactively prefetch the data for the start of the new page.
+    //        // This will load the entire page block into the cache.
+    //        await _taskDataCache.EnsureItemLoadedAsync(startRowIndex);
 
-            // --- Step 2 (THE CRITICAL FIX): Manually set the scroll position. ---
-            // We must explicitly tell the DataGridView to scroll to the beginning of the new page.
-            // This action will automatically trigger CellValueNeeded for the newly visible rows.
-            if (dgvTasks.RowCount > startRowIndex)
-            {
-                dgvTasks.FirstDisplayedScrollingRowIndex = startRowIndex;
-            }
+    //        // --- Step 2 (THE CRITICAL FIX): Manually set the scroll position. ---
+    //        // We must explicitly tell the DataGridView to scroll to the beginning of the new page.
+    //        // This action will automatically trigger CellValueNeeded for the newly visible rows.
+    //        if (dgvTasks.RowCount > startRowIndex)
+    //        {
+    //            dgvTasks.FirstDisplayedScrollingRowIndex = startRowIndex;
+    //        }
 
-            // --- Step 3: Refresh the entire grid to ensure all visible cells are updated. ---
-            // While setting the scroll index often triggers a refresh, an explicit Invalidate()
-            // ensures that even cells that were already visible (in a partial scroll) get updated.
-            dgvTasks.Refresh(); // Using Refresh() for a more immediate and forceful repaint.
+    //        // --- Step 3: Refresh the entire grid to ensure all visible cells are updated. ---
+    //        // While setting the scroll index often triggers a refresh, an explicit Invalidate()
+    //        // ensures that even cells that were already visible (in a partial scroll) get updated.
+    //        dgvTasks.Refresh(); // Using Refresh() for a more immediate and forceful repaint.
 
-            // Update the pagination UI to reflect the new current page.
-            UpdatePaginationUI();
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show($"切換頁面時發生錯誤: {ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
-        finally
-        {
-            SetLoadingState(false);
-        }
-    }
+    //        // Update the pagination UI to reflect the new current page.
+    //        //UpdatePaginationUI();
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        MessageBox.Show($"切換頁面時發生錯誤: {ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+    //    }
+    //    finally
+    //    {
+    //        SetLoadingState(false);
+    //    }
+    //}
 
-    private async void CmbPageSize_Changed(object? sender, EventArgs e)
-    {
-        if (_isUpdatingUI) return;
-        if (cmbPageSize.SelectedItem is int newSize)
-        {
-            _pageSize = newSize;
-            _currentPage = 1;
-            await LoadTasksAsync();
-        }
-    }
+    //private async void CmbPageSize_Changed(object? sender, EventArgs e)
+    //{
+    //    if (_isUpdatingUI) return;
+    //    if (cmbPageSize.SelectedItem is int newSize)
+    //    {
+    //        _pageSize = newSize;
+    //        _currentPage = 1;
+    //        await LoadTasksAsync();
+    //    }
+    //}
 
-    private void TxtCurrentPage_KeyDown(object? sender, KeyEventArgs e)
-    {
-        if (e.KeyCode == Keys.Enter)
-        {
-            if (int.TryParse(txtCurrentPage.Text, out int pageNumber)) { ChangePage(pageNumber); }
-            e.SuppressKeyPress = true;
-        }
-    }
+    //private void TxtCurrentPage_KeyDown(object? sender, KeyEventArgs e)
+    //{
+    //    if (e.KeyCode == Keys.Enter)
+    //    {
+    //        if (int.TryParse(txtCurrentPage.Text, out int pageNumber)) { ChangePage(pageNumber); }
+    //        e.SuppressKeyPress = true;
+    //    }
+    //}
 
     private void BtnSaveChanges_Click(object? sender, EventArgs e)
     {

@@ -1,7 +1,5 @@
 ﻿#nullable enable
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading.Tasks;
 using TodoApp.Core.Models;
 
 namespace TodoApp.WinForms.Caching;
@@ -23,10 +21,10 @@ public class TaskDataCache
     private readonly DataPageProvider _dataProvider;
     private readonly HashSet<int> _pagesBeingFetched = new();
 
-    public TaskDataCache(DataPageProvider dataProvider, int pageSize = 100)
+    public TaskDataCache(DataPageProvider dataProvider, int cachePageSize = 20)
     {
         _dataProvider = dataProvider;
-        _pageSize = pageSize;
+        _pageSize = cachePageSize;
     }
 
     /// <summary>

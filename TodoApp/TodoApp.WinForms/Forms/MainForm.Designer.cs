@@ -19,6 +19,7 @@ namespace TodoApp.WinForms.Forms
         private ToolStripButton tsbRefresh;
         private StatusStrip statusStrip1;
         private ToolStripStatusLabel lblStatus;
+        private ToolStripStatusLabel lblTaskCount;
         private Panel panelFilters;
         private ComboBox cmbFilterStatus;
         private Label lblFilterStatus;
@@ -29,14 +30,6 @@ namespace TodoApp.WinForms.Forms
         private ToolStripButton tsbUserManagement;
         private ToolStripButton tsbAdminDashboard;
         private Panel panelPagination;
-        private Button btnLastPage;
-        private Button btnNextPage;
-        private Label lblPageInfo;
-        private TextBox txtCurrentPage;
-        private Button btnPreviousPage;
-        private Button btnFirstPage;
-        private Label lblPageSize;
-        private ComboBox cmbPageSize;
         private Label lblFilterByAssignedUser;
         private ComboBox cmbFilterByAssignedUser;
         private ToolStripSeparator toolStripSeparator3;
@@ -87,6 +80,7 @@ namespace TodoApp.WinForms.Forms
             tsbChangePassword = new ToolStripButton();
             statusStrip1 = new StatusStrip();
             lblStatus = new ToolStripStatusLabel();
+            lblTaskCount = new ToolStripStatusLabel();
             panelFilters = new Panel();
             lblFilterByAssignedUser = new Label();
             cmbFilterByAssignedUser = new ComboBox();
@@ -97,14 +91,6 @@ namespace TodoApp.WinForms.Forms
             txtSearch = new TextBox();
             lblSearch = new Label();
             panelPagination = new Panel();
-            lblPageSize = new Label();
-            cmbPageSize = new ComboBox();
-            btnLastPage = new Button();
-            btnNextPage = new Button();
-            lblPageInfo = new Label();
-            txtCurrentPage = new TextBox();
-            btnPreviousPage = new Button();
-            btnFirstPage = new Button();
             splitContainerMain = new SplitContainer();
             dgvTasks = new DataGridView();
 
@@ -240,7 +226,7 @@ namespace TodoApp.WinForms.Forms
             // statusStrip1
             // 
             statusStrip1.ImageScalingSize = new Size(20, 20);
-            statusStrip1.Items.AddRange(new ToolStripItem[] { lblStatus });
+            statusStrip1.Items.AddRange(new ToolStripItem[] { lblStatus, lblTaskCount });
             statusStrip1.Location = new Point(0, 578);
             statusStrip1.Name = "statusStrip1";
             statusStrip1.Padding = new Padding(1, 0, 16, 0);
@@ -253,6 +239,12 @@ namespace TodoApp.WinForms.Forms
             lblStatus.Name = "lblStatus";
             lblStatus.Size = new Size(43, 17);
             lblStatus.Text = "Ready";
+            // 
+            // lblTaskCount
+            // 
+            lblTaskCount.Name = "lblTaskCount";
+            lblTaskCount.Size = new Size(100, 17);
+            lblTaskCount.Text = "TaskCount";
             // 
             // panelFilters
             // 
@@ -351,14 +343,6 @@ namespace TodoApp.WinForms.Forms
             // 
             // panelPagination
             // 
-            panelPagination.Controls.Add(lblPageSize);
-            panelPagination.Controls.Add(cmbPageSize);
-            panelPagination.Controls.Add(btnLastPage);
-            panelPagination.Controls.Add(btnNextPage);
-            panelPagination.Controls.Add(lblPageInfo);
-            panelPagination.Controls.Add(txtCurrentPage);
-            panelPagination.Controls.Add(btnPreviousPage);
-            panelPagination.Controls.Add(btnFirstPage);
             panelPagination.Controls.Add(btnSaveChanges);
             panelPagination.Dock = DockStyle.Bottom;
             panelPagination.Location = new Point(0, 539);
@@ -366,85 +350,6 @@ namespace TodoApp.WinForms.Forms
             panelPagination.Name = "panelPagination";
             panelPagination.Size = new Size(1207, 39);
             panelPagination.TabIndex = 4;
-            // 
-            // lblPageSize
-            // 
-            lblPageSize.AutoSize = true;
-            lblPageSize.Location = new Point(14, 15);
-            lblPageSize.Margin = new Padding(4, 0, 4, 0);
-            lblPageSize.Name = "lblPageSize";
-            lblPageSize.Size = new Size(67, 15);
-            lblPageSize.TabIndex = 7;
-            lblPageSize.Text = "每頁顯示：";
-            // 
-            // cmbPageSize
-            // 
-            cmbPageSize.DropDownStyle = ComboBoxStyle.DropDownList;
-            cmbPageSize.FormattingEnabled = true;
-            cmbPageSize.Location = new Point(99, 12);
-            cmbPageSize.Margin = new Padding(4, 3, 4, 3);
-            cmbPageSize.Name = "cmbPageSize";
-            cmbPageSize.Size = new Size(69, 23);
-            cmbPageSize.TabIndex = 6;
-            // 
-            // btnLastPage
-            // 
-            btnLastPage.Location = new Point(682, 10);
-            btnLastPage.Margin = new Padding(4, 3, 4, 3);
-            btnLastPage.Name = "btnLastPage";
-            btnLastPage.Size = new Size(47, 25);
-            btnLastPage.TabIndex = 5;
-            btnLastPage.Text = ">|";
-            btnLastPage.UseVisualStyleBackColor = true;
-            // 
-            // btnNextPage
-            // 
-            btnNextPage.Location = new Point(630, 10);
-            btnNextPage.Margin = new Padding(4, 3, 4, 3);
-            btnNextPage.Name = "btnNextPage";
-            btnNextPage.Size = new Size(47, 25);
-            btnNextPage.TabIndex = 4;
-            btnNextPage.Text = ">";
-            btnNextPage.UseVisualStyleBackColor = true;
-            // 
-            // lblPageInfo
-            // 
-            lblPageInfo.AutoSize = true;
-            lblPageInfo.Location = new Point(391, 15);
-            lblPageInfo.Margin = new Padding(4, 0, 4, 0);
-            lblPageInfo.Name = "lblPageInfo";
-            lblPageInfo.Size = new Size(110, 15);
-            lblPageInfo.TabIndex = 3;
-            lblPageInfo.Text = "第 1 / 1 頁 (共 0 筆)";
-            // 
-            // txtCurrentPage
-            // 
-            txtCurrentPage.Location = new Point(338, 11);
-            txtCurrentPage.Margin = new Padding(4, 3, 4, 3);
-            txtCurrentPage.Name = "txtCurrentPage";
-            txtCurrentPage.Size = new Size(46, 23);
-            txtCurrentPage.TabIndex = 2;
-            txtCurrentPage.TextAlign = HorizontalAlignment.Center;
-            // 
-            // btnPreviousPage
-            // 
-            btnPreviousPage.Location = new Point(286, 10);
-            btnPreviousPage.Margin = new Padding(4, 3, 4, 3);
-            btnPreviousPage.Name = "btnPreviousPage";
-            btnPreviousPage.Size = new Size(47, 25);
-            btnPreviousPage.TabIndex = 1;
-            btnPreviousPage.Text = "<";
-            btnPreviousPage.UseVisualStyleBackColor = true;
-            // 
-            // btnFirstPage
-            // 
-            btnFirstPage.Location = new Point(233, 10);
-            btnFirstPage.Margin = new Padding(4, 3, 4, 3);
-            btnFirstPage.Name = "btnFirstPage";
-            btnFirstPage.Size = new Size(47, 25);
-            btnFirstPage.TabIndex = 0;
-            btnFirstPage.Text = "|<";
-            btnFirstPage.UseVisualStyleBackColor = true;
             // 
             // splitContainerMain
             // 
@@ -522,7 +427,5 @@ namespace TodoApp.WinForms.Forms
         }
 
         #endregion
-
-
     }
 }
