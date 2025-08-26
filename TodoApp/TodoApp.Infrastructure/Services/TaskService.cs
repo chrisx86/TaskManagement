@@ -173,8 +173,6 @@ public class TaskService : ITaskService
 
         var changeDescription = BuildChangeDescription(originalTask: trackedTask, newTask: taskFromUI);
 
-        //_context.Entry(trackedTask).CurrentValues.SetValues(taskFromUI);
-
         // --- Manual Property Mapping ---
         trackedTask.Title = taskFromUI.Title;
         trackedTask.Status = taskFromUI.Status;
@@ -218,14 +216,12 @@ public class TaskService : ITaskService
     {
         var descriptionBuilder = new StringBuilder();
 
-        if (!string.Equals(originalTask.Title, newTask.Title))
+        if (originalTask.Title != newTask.Title)
             descriptionBuilder.AppendLine("標題已修改。");
 
-        if (!string.Equals(originalTask.Comments, newTask.Comments))
+        if (originalTask.Comments != newTask.Comments)
         {
-            if (string.IsNullOrEmpty(originalTask.Comments))
-                descriptionBuilder.AppendLine("已新增備註。");
-            else if (string.IsNullOrEmpty(newTask.Comments))
+            if (newTask.Comments == string.Empty)
                 descriptionBuilder.AppendLine("備註已被清空。");
             else
                 descriptionBuilder.AppendLine("備註已修改。");

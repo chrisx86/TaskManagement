@@ -2,7 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using TodoApp.Core.Models;
 
-namespace TodoApp.WinForms.Caching;
+namespace TodoApp.Infrastructure.Caching;
 
 /// <summary>
 /// A cache to support the DataGridView's Virtual Mode.
@@ -10,16 +10,16 @@ namespace TodoApp.WinForms.Caching;
 /// </summary>
 public class TaskDataCache
 {
-    // The size of the page (block of data) to retrieve from the data store.
-    private readonly int _pageSize;
-    // The main cache storage. Key is the row index, Value is the TodoItem.
-    private readonly Dictionary<int, TodoItem> _cache = new();
-
     // A delegate that defines the contract for the data fetching logic.
     // The cache will call this delegate whenever it needs a new page of data.
     public delegate Task<List<TodoItem>> DataPageProvider(int pageNumber, int pageSize);
+
+    // The main cache storage. Key is the row index, Value is the TodoItem.
+    private readonly Dictionary<int, TodoItem> _cache = new();
     private readonly DataPageProvider _dataProvider;
     private readonly HashSet<int> _pagesBeingFetched = new();
+    // The size of the page (block of data) to retrieve from the data store.
+    private readonly int _pageSize;
 
     public TaskDataCache(DataPageProvider dataProvider, int cachePageSize = 20)
     {

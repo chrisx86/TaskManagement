@@ -1,190 +1,250 @@
 ﻿#nullable enable
+using Microsoft.EntityFrameworkCore;
 using Moq;
+using NUnit.Framework;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using TodoApp.Core.Models;
 using TodoApp.Core.Services;
 using TodoApp.Infrastructure.Data;
 using TodoApp.Infrastructure.Services;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Migrations;
-using System.ComponentModel;
 
-namespace TodoApp.Tests.Services;
+namespace TodoApp.Tests.NUnit;
 
 /// <summary>
-/// Contains unit tests for the TaskService class.
+/// Contains unit tests for the TaskService class using the NUnit framework.
 /// </summary>
 [TestFixture]
 public class TaskServiceTests
 {
-    //// --- System Under Test (SUT) and its dependencies ---
-    //private AppDbContext _context;
-    //private ITaskService _taskService;
+    // These fields will be re-initialized for each test by the [SetUp] method.
+    private AppDbContext _context = null!;
+    private ITaskService _taskService = null!;
+    private Mock<IEmailService> _mockEmailService = null!;
+    private Mock<IUserService> _mockUserService = null!;
+    private Mock<ITaskHistoryService> _mockHistoryService = null!;
 
-    //// --- Mocks for external dependencies ---
-    //private Mock<IEmailService> _mockEmailService;
-    //private Mock<IUserService> _mockUserService;
-    //private Mock<ITaskHistoryService> _mockHistoryService;
+    private User _adminUser = null!;
+    private User _normalUser1 = null!;
+    private User _normalUser2 = null!;
 
-    //// --- Test Data ---
-    //private User _adminUser;
-    //private User _regularUser;
+    /// <summary>
+    /// NUnit's equivalent of [TestInitialize]. This method is run before each test.
+    /// It sets up a fresh in-memory database and service instances for each test.
+    /// </summary>
+    [SetUp]
+    public void Setup()
+    {
+        // 1. Setup In-Memory Database
+        var options = new DbContextOptionsBuilder<AppDbContext>()
+            .UseInMemoryDatabase(databaseName: System.Guid.NewGuid().ToString())
+            .Options;
+        _context = new AppDbContext(options);
 
-    //[SetUp]
-    //public void Setup()
-    //{
-    //    var options = new DbContextOptionsBuilder<AppDbContext>()
-    //        .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-    //        .Options;
-    //    _context = new AppDbContext(options);
+        // 2. Seed Data
+        _adminUser = new User { Id = 1, Username = "admin", Role = UserRole.Admin };
+        _normalUser1 = new User { Id = 2, Username = "user1", Role = UserRole.User };
+        _normalUser2 = new User { Id = 3, Username = "user2", Role = UserRole.User };
 
-    //    _mockEmailService = new Mock<IEmailService>();
-    //    _mockUserService = new Mock<IUserService>();
-    //    _mockHistoryService = new Mock<ITaskHistoryService>();
+        _context.Users.AddRange(_adminUser, _normalUser1, _normalUser2);
 
-    //    _taskService = new TaskService(_context, _mockEmailService.Object, _mockUserService.Object, _mockHistoryService.Object);
+        _context.TodoItems.AddRange(new List<TodoItem>
+        {
+            new() { Id = 1, Title = "User1's own task", CreatorId = 2, AssignedToId = 2, Status = TodoStatus.Pending },
+            new() { Id = 2, Title = "Task for User2", CreatorId = 2, AssignedToId = 3, Status = TodoStatus.InProgress },
+            new() { Id = 3, Title = "Admin task for User1", CreatorId = 1, AssignedToId = 2, Status = TodoStatus.Completed, Priority = PriorityLevel.High },
+            new() { Id = 4, Title = "Unassigned urgent task", CreatorId = 1, AssignedToId = null, Status = TodoStatus.Pending, Priority = PriorityLevel.Urgent }
+        });
+        _context.SaveChanges();
 
-    //    _adminUser = new User { Id = 1, Username = "admin", Role = UserRole.Admin, Email = "admin@example.com" };
-    //    _regularUser = new User { Id = 2, Username = "user", Role = UserRole.User, Email = "user@example.com" };
-    //    _context.Users.AddRange(_adminUser, _regularUser);
-    //    _context.SaveChanges();
-    //}
+        // 3. Setup Mocks and Service Instance
+        _mockEmailService = new Mock<IEmailService>();
+        _mockUserService = new Mock<IUserService>();
+        _mockHistoryService = new Mock<ITaskHistoryService>();
 
-    //[TearDown]
-    //public void Teardown()
-    //{
-    //    _context.Dispose();
-    //}
+        _taskService = new TaskService(
+            _context,
+            _mockEmailService.Object,
+            _mockUserService.Object,
+            _mockHistoryService.Object,
+            new CancellationTokenSource()
+        );
+    }
 
-    //#region CreateTaskAsync Tests
+    /// <summary>
+    /// NUnit's equivalent of [TestCleanup]. This method is run after each test.
+    /// </summary>
+    [TearDown]
+    public void TearDown()
+    {
+        _context.Dispose();
+    }
 
-    //[Test]
-    //public async Task CreateTaskAsync_WhenCalled_CreatesTaskInDatabase()
-    //{
-    //    var createdTask = await _taskService.CreateTaskAsync(
-    //        _adminUser, "New Test Task", "Some comments", TodoStatus.Pending, PriorityLevel.High, DateTime.Now, _regularUser.Id
-    //    );
+    [Test]
+    public async Task GetAllTasksAsync_AdminWithNoFilters_ReturnsAllTasks()
+    {
+        // Arrange
 
-    //    var taskInDb = await _context.TodoItems.FindAsync(createdTask.Id);
-    //    Assert.Multiple(() =>
-    //    {
-    //        Assert.That(taskInDb, Is.Not.Null);
-    //        Assert.That(taskInDb.Title, Is.EqualTo("New Test Task"));
-    //        Assert.That(taskInDb.CreatorId, Is.EqualTo(_adminUser.Id));
-    //    });
-    //}
+        // Act
+        var tasks = await _taskService.GetAllTasksAsync(_adminUser, null, UserTaskFilter.All, null, 1, 10, null, true, null);
 
-    ////[Test]
-    ////public async Task CreateTaskAsync_WhenCreatedByRegularUser_NotifiesAllAdmins()
-    ////{
-    ////    var admins = new List<User> { _adminUser };
-    ////    _mockUserService.Setup(s => s.GetAllUsersAsync()).ReturnsAsync(admins);
+        // Assert
+        Assert.That(tasks, Is.Not.Null);
+        Assert.That(tasks.Count, Is.EqualTo(4));
+    }
 
-    ////    await _taskService.CreateTaskAsync(
-    ////        _regularUser, "User Task", null, TodoStatus.Pending, PriorityLevel.Low, null, null
-    ////    );
+    [Test]
+    public async Task GetAllTasksAsync_NormalUserWithNoFilters_ReturnsOnlyRelatedTasks()
+    {
+        // Arrange
 
-    ////    _mockEmailService.Verify(
-    ////        s => s.SendEmailAsync(
-    ////            _adminUser.Email,
-    ////            It.IsAny<string>(),
-    ////            It.IsAny<string>()
-    ////        ),
-    ////        Times.Once
-    ////    );
-    ////}
+        // Act
+        var tasks = await _taskService.GetAllTasksAsync(_normalUser1, null, UserTaskFilter.All, null, 1, 10, null, true, null);
 
-    ////[Test]
-    ////public async Task CreateTaskAsync_WhenCreatedByAdmin_NotifiesAssignee()
-    ////{
-    ////    await _taskService.CreateTaskAsync(
-    ////        _adminUser, "Admin Task", null, TodoStatus.Pending, PriorityLevel.Medium, null, _regularUser.Id
-    ////    );
+        // Assert
+        Assert.That(tasks, Is.Not.Null);
+        Assert.That(tasks.Count, Is.EqualTo(3));
+        Assert.That(tasks.All(t => t.CreatorId == _normalUser1.Id || t.AssignedToId == _normalUser1.Id), Is.True);
+        Assert.That(tasks.Any(t => t.Id == 4), Is.False, "Should not see the unassigned admin task.");
+    }
 
-    ////    _mockEmailService.Verify(
-    ////        s => s.SendEmailAsync(
-    ////            _regularUser.Email,
-    ////            It.IsAny<string>(),
-    ////            It.IsAny<string>()
-    ////        ),
-    ////        Times.Once
-    ////    );
-    ////}
+    [Test]
+    public async Task GetAllTasksAsync_AdminFiltersByAssignedUser_ReturnsCorrectTasks()
+    {
+        // Arrange
 
-    //#endregion
+        // Act
+        var tasks = await _taskService.GetAllTasksAsync(_adminUser, null, UserTaskFilter.All, _normalUser2.Id, 1, 10, null, true, null);
 
-    //#region UpdateTaskAsync Tests
+        // Assert
+        Assert.That(tasks, Is.Not.Null);
+        Assert.That(tasks.Count, Is.EqualTo(1));
+        Assert.That(tasks.First().Id, Is.EqualTo(2));
+    }
 
-    //[Test]
-    //public async Task UpdateTaskAsync_WhenConcurrencyTokenMismatches_ThrowsDbUpdateConcurrencyException()
-    //{
-    //    var initialTask = new TodoItem
-    //    {
-    //        Title = "Initial Version",
-    //        CreatorId = _adminUser.Id,
-    //        LastModifiedDate = DateTime.Now
-    //    };
-    //    _context.TodoItems.Add(initialTask);
-    //    await _context.SaveChangesAsync();
+    [Test]
+    public async Task GetTaskCountAsync_WithSearchKeyword_ReturnsCorrectCount()
+    {
+        // Arrange
 
-    //    var staleTimestamp = initialTask.LastModifiedDate;
+        // Act
+        var count = await _taskService.GetTaskCountAsync(_adminUser, null, UserTaskFilter.All, null, "User1");
 
-    //    var taskInDb = await _context.TodoItems.FindAsync(initialTask.Id);
-    //    Assert.That(taskInDb, Is.Not.Null, "Task should exist in DB.");
+        // Assert
+        Assert.That(count, Is.EqualTo(2));
+    }
 
-    //    taskInDb!.LastModifiedDate = DateTime.Now.AddSeconds(5);
-    //    await _context.SaveChangesAsync();
+    [Test]
+    public async Task CreateTaskAsync_ValidData_CreatesTaskAndLogsHistory()
+    {
+        // Arrange
+        var title = "New test task";
+        var currentUser = _normalUser1;
+        var assignedUser = _normalUser2;
 
-    //    var staleTaskFromUI = new TodoItem
-    //    {
-    //        Id = initialTask.Id,
-    //        Title = "An Attempted Stale Update",
-    //        LastModifiedDate = staleTimestamp
-    //    };
+        // We must provide all the required arguments in the correct order as defined
+        // by the ITaskService.CreateTaskAsync method signature.
+        var createdTask = await _taskService.CreateTaskAsync(
+            currentUser,                   // User currentUser
+            title,                         // string title
+            "Test comments",               // string? comments
+            TodoStatus.Pending,            // TodoStatus status
+            PriorityLevel.High,            // PriorityLevel priority
+            DateTime.Now.AddDays(7),       // DateTime? dueDate
+            assignedUser.Id                // int? assignedToId
+        );
 
-    //    Assert.ThrowsAsync<DbUpdateConcurrencyException>(async () =>
-    //        await _taskService.UpdateTaskAsync(_adminUser, staleTaskFromUI)
-    //    );
-    //}
+        // Assert
+        Assert.That(createdTask, Is.Not.Null);
+        Assert.That(createdTask.Title, Is.EqualTo(title));
+        Assert.That(createdTask.CreatorId, Is.EqualTo(currentUser.Id));
+        Assert.That(createdTask.AssignedToId, Is.EqualTo(assignedUser.Id));
+        Assert.That(createdTask.Status, Is.EqualTo(TodoStatus.Pending));
+        Assert.That(createdTask.Priority, Is.EqualTo(PriorityLevel.High));
 
-    //#endregion
+        var taskInDb = await _context.TodoItems.FindAsync(createdTask.Id);
+        Assert.That(taskInDb, Is.Not.Null);
 
-    //#region DeleteTaskAsync Tests
+        _mockHistoryService.Verify(h => h.LogHistoryAsync(
+            It.IsAny<int>(),
+            currentUser.Id,
+            "Create",
+            It.IsAny<string>()),
+            Times.Once);
+    }
 
-    //[Test]
-    //public async Task DeleteTaskAsync_ByUserWithoutPermission_ThrowsUnauthorizedAccessException()
-    //{
-    //    var task = new TodoItem { Title = "Admin's Task", CreatorId = _adminUser.Id };
-    //    _context.TodoItems.Add(task);
-    //    await _context.SaveChangesAsync();
+    [Test]
+    public async Task DeleteTaskAsync_AdminDeletesAnotherUsersTask_Succeeds()
+    {
+        // Arrange
+        var taskIdToDelete = 1;
 
-    //    Assert.ThrowsAsync<UnauthorizedAccessException>(async () =>
-    //        await _taskService.DeleteTaskAsync(_regularUser, task.Id)
-    //    );
-    //}
+        // Act
+        await _taskService.DeleteTaskAsync(_adminUser, taskIdToDelete);
 
-    //#endregion
+        // Assert
+        var taskInDb = await _context.TodoItems.FindAsync(taskIdToDelete);
+        Assert.That(taskInDb, Is.Null);
+    }
 
-    //#region Pagination Tests
+    [Test]
+    public void DeleteTaskAsync_UserDeletesUnrelatedTask_ThrowsException()
+    {
+        // Arrange
+        var taskIdToDelete = 1;
 
-    //[Test]
-    //public async Task GetAllTasksAsync_WithPagination_ReturnsCorrectPageAndCount()
-    //{
-    //    for (int i = 1; i <= 25; i++)
-    //    {
-    //        _context.TodoItems.Add(new TodoItem { Title = $"Task {i}", CreatorId = _adminUser.Id, AssignedTo = _adminUser });
-    //    }
-    //    await _context.SaveChangesAsync();
+        // Act & Assert
+        Assert.ThrowsAsync<UnauthorizedAccessException>(async () =>
+        {
+            await _taskService.DeleteTaskAsync(_normalUser2, taskIdToDelete);
+        });
+    }
 
-    //    var pagedTasks = await _taskService.GetAllTasksAsync(_adminUser, null, UserTaskFilter.All, null, 2, 10, null, true, null);
-    //    var totalCount = await _taskService.GetTaskCountAsync(_adminUser, null, UserTaskFilter.All, _adminUser.Id, null);
+    [Test]
+    public async Task UpdateTaskAsync_UserUpdatesOwnTask_SucceedsAndLogsHistory()
+    {
+        // Arrange
+        var originalTaskId = 1; // user1's own task
 
-    //    Assert.Multiple(() =>
-    //    {
-    //        Assert.That(totalCount, Is.EqualTo(25));
-    //        Assert.That(pagedTasks.Count, Is.EqualTo(10));
-    //        Assert.That(pagedTasks.First().Title, Is.EqualTo("Task 11"));
-    //    });
-    //}
+        // --- THIS IS THE KEY FIX ---
+        // 1. Fetch the original state of the task from the database.
+        //    Do not modify this object. It represents the state before the user's edit.
+        var originalTask = await _context.TodoItems.AsNoTracking().FirstOrDefaultAsync(t => t.Id == originalTaskId);
+        Assert.That(originalTask, Is.Not.Null, "Precondition failed: Original task not found.");
 
-    //#endregion
+        // 2. Create a NEW object that represents the data coming from the UI.
+        //    This simulates the user changing values in a dialog and clicking "Save".
+        var taskFromUI = new TodoItem
+        {
+            Id = originalTask.Id,
+            Title = "Updated Title", // New value
+            Status = TodoStatus.InProgress, // New value
+            Priority = originalTask.Priority, // Unchanged value
+            Comments = originalTask.Comments, // Unchanged value
+            CreatorId = originalTask.CreatorId, // Unchanged value
+            AssignedToId = originalTask.AssignedToId, // Unchanged value
+            DueDate = originalTask.DueDate, // Unchanged value
+            CreationDate = originalTask.CreationDate, // Unchanged value
+            LastModifiedDate = originalTask.LastModifiedDate // This will be ignored by SetValues
+        };
+
+        // Act
+        // Pass the new UI object to the service.
+        var updatedTask = await _taskService.UpdateTaskAsync(_normalUser1, taskFromUI);
+
+        // Assert
+        Assert.That(updatedTask, Is.Not.Null);
+        Assert.That(updatedTask.Title, Is.EqualTo("Updated Title"));
+        Assert.That(updatedTask.Status, Is.EqualTo(TodoStatus.InProgress));
+
+        // Now, the verification should pass because a change was detected.
+        _mockHistoryService.Verify(h => h.LogHistoryAsync(
+            taskFromUI.Id,
+            _normalUser1.Id,
+            "Update",
+            It.Is<string>(s => s.Contains("狀態") && s.Contains("標題"))), // Check for Chinese keywords
+            Times.Once);
+    }
 }

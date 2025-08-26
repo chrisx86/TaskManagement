@@ -5,11 +5,12 @@ using System.Reflection;
 using System.ComponentModel;
 using TodoApp.Core.Models;
 using TodoApp.Core.Services;
-using TodoApp.WinForms.Caching;
+using TodoApp.Infrastructure.Caching;
 using TodoApp.WinForms.ViewModels;
 using TodoApp.Infrastructure.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using TodoApp.Core.DTOs;
 
 namespace TodoApp.WinForms.Forms;
 
@@ -182,7 +183,7 @@ public partial class MainForm : Form
     }
 
     /// <summary>
-    /// NEW: Helper for background data prefetching.
+    /// Helper for background data prefetching.
     /// </summary>
     private async Task PrefetchDataForRow(int rowIndex)
     {
@@ -493,13 +494,6 @@ public partial class MainForm : Form
         // Update the UI element.
         lblStatus.Text = statusTextBuilder.ToString();
     }
-
-    private record FilterData(
-        TodoStatus? Status,
-        UserTaskFilter UserRelation,
-        int? AssignedToUser,
-        string? SearchKeyword
-    );
 
     private FilterData GetCurrentFilterData()
     {
