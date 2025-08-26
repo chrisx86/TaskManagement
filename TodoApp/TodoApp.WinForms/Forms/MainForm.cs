@@ -48,6 +48,7 @@ public partial class MainForm : Form
     private System.Windows.Forms.Timer? _filterDebounceTimer;
 
     private int _hoveredRowIndex = -1;
+    private bool _isClosing = false;
 
     public MainForm(
         IServiceProvider serviceProvider,
@@ -58,6 +59,7 @@ public partial class MainForm : Form
         LocalCredentialManager credentialManager)
     {
         InitializeComponent();
+
         this.Opacity = 0;
         _serviceProvider = serviceProvider;
         _taskService = taskService;
@@ -110,6 +112,7 @@ public partial class MainForm : Form
     private void WireUpEvents()
     {
         this.Load += MainForm_Load;
+        this.FormClosing += MainForm_FormClosing;
 
         // DataGridView Events
         this.dgvTasks.SelectionChanged += DgvTasks_SelectionChanged;
@@ -158,6 +161,24 @@ public partial class MainForm : Form
         // --- The core event for Virtual Mode ---
         this.dgvTasks.CellValueNeeded += DgvTasks_CellValueNeeded;
         this.dgvTasks.Scroll += DgvTasks_Scroll;
+    }
+
+    /// <summary>
+    /// Handles the FormClosing event to perform graceful shutdown of the DataGridView.
+    /// </summary>
+    private void MainForm_FormClosing(object? sender, FormClosingEventArgs e)
+    {
+        // Set a flag to indicate that we are closing.
+        _isClosing = true;
+
+        // Before the form closes, we gracefully shut down the DataGridView's virtual mode.
+        // 1. Unsubscribe from the event to prevent any further calls.
+        this.dgvTasks.CellValueNeeded -= DgvTasks_CellValueNeeded;
+
+        // 2. Set RowCount to 0. This immediately stops the DataGridView from
+        //    thinking it needs to manage any rows, preventing invalid index access.
+        if (this.dgvTasks.IsHandleCreated && !this.dgvTasks.IsDisposed)
+            this.dgvTasks.RowCount = 0;
     }
 
     /// <summary>
@@ -439,9 +460,28 @@ public partial class MainForm : Form
             // 2. Clear the old cached data and set the new RowCount.
             // This is the trigger for the UI refresh in Virtual Mode.
             _taskDataCache.Clear();
-            dgvTasks.RowCount = _totalTasks;
-            UpdateStatusLabelWithCount();
 
+            if (_totalTasks > 0)
+            {
+                // Step 2: Proactively prefetch the data for the first page.
+                // This "warms up" the cache.
+                await _taskDataCache.EnsureItemLoadedAsync(0);
+
+                // Step 3: NOW, after the data is ready, we set the RowCount.
+                // At this point, any CellValueNeeded event that fires immediately
+                // will find its data synchronously in the cache.
+                if (this.IsHandleCreated && !this.IsDisposed) // Add safety check
+                {
+                    dgvTasks.RowCount = _totalTasks;
+                }
+            }
+            else
+            {
+                // If there are no tasks, just set RowCount to 0.
+                dgvTasks.RowCount = 0;
+            }
+
+            UpdateStatusLabelWithCount();
             // 3. Update UI state based on the new total count.
             UpdateSortGlyphs();
 
@@ -597,6 +637,7 @@ public partial class MainForm : Form
     /// </summary>
     private void DgvTasks_CellValueNeeded(object? sender, DataGridViewCellValueEventArgs e)
     {
+        if (_isClosing) return;
         if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
         // --- PRE-AWAIT GUARD ---
         // This is the first line of defense.
