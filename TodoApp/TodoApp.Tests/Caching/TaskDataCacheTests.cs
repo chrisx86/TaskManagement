@@ -1,8 +1,4 @@
 ﻿#nullable enable
-using NUnit.Framework;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using TodoApp.Core.Models;
 using TodoApp.Infrastructure.Caching;
 
@@ -25,7 +21,6 @@ public class TaskDataCacheTests
     [Test]
     public async Task EnsureItemLoadedAsync_FirstRequest_FetchesFirstPage()
     {
-        // Arrange
         var pageSize = 100;
         var requestedIndex = 5;
         var timesCalled = 0;
@@ -43,10 +38,8 @@ public class TaskDataCacheTests
 
         var cache = new TaskDataCache(fakeDataProvider, pageSize);
 
-        // Act
         var item = await cache.EnsureItemLoadedAsync(requestedIndex);
 
-        // Assert
         Assert.That(timesCalled, Is.EqualTo(1), "Data provider should be called exactly once.");
         Assert.That(item, Is.Not.Null);
         Assert.That(item.Id, Is.EqualTo(requestedIndex + 1));
@@ -55,7 +48,6 @@ public class TaskDataCacheTests
     [Test]
     public async Task EnsureItemLoadedAsync_CacheHit_DoesNotFetchAgain()
     {
-        // Arrange
         var pageSize = 100;
         var timesCalled = 0;
 
@@ -68,18 +60,15 @@ public class TaskDataCacheTests
 
         var cache = new TaskDataCache(fakeDataProvider, pageSize);
 
-        // Act
         await cache.EnsureItemLoadedAsync(10); // First call, fetches page 1
         await cache.EnsureItemLoadedAsync(20); // Second call, should be a cache hit
 
-        // Assert
         Assert.That(timesCalled, Is.EqualTo(1), "Data provider should only be called once for the same page.");
     }
 
     [Test]
     public async Task EnsureItemLoadedAsync_RequestDeduplication_FetchesOnlyOnce()
     {
-        // Arrange
         var pageSize = 100;
         var timesCalled = 0;
 
@@ -101,7 +90,6 @@ public class TaskDataCacheTests
 
         await Task.WhenAll(task1, task2, task3);
 
-        // Assert
         Assert.That(timesCalled, Is.EqualTo(1), "Data provider should only be called once despite concurrent requests for the same page.");
     }
 }
