@@ -202,5 +202,4 @@ public static class RichTextBoxFormatHelper
             }
         }
     }
-
 }

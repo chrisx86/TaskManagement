@@ -1,6 +1,4 @@
 ﻿#nullable enable
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using TodoApp.Core.Models;
 
 namespace TodoApp.Core.Services;

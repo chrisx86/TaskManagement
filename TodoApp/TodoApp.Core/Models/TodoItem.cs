@@ -17,7 +17,9 @@ public class TodoItem
     public TodoStatus Status { get; set; }
 
     public PriorityLevel Priority { get; set; }
+
     public DateTime CreationDate { get; set; }
+
     public DateTime? DueDate { get; set; }
 
     public int CreatorId { get; set; }

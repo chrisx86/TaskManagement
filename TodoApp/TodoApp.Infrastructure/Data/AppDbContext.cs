@@ -2,7 +2,6 @@
 using TodoApp.Core.Models;
 using TodoApp.Infrastructure.Security;
 
-// The namespace should match the project and folder structure.
 namespace TodoApp.Infrastructure.Data;
 
 /// <summary>
@@ -19,9 +18,6 @@ public class AppDbContext : DbContext
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
     }
-
-    // --- DbSets ---
-    // Each DbSet<T> property maps to a table in the database.
 
     /// <summary>
     /// Represents the 'Users' table in the database.

@@ -1,7 +1,6 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
 
-// The namespace should match the project and folder structure.
 namespace TodoApp.Infrastructure.Security;
 
 /// <summary>
